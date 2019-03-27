@@ -1,0 +1,23 @@
+[[constraint]]
+name = "github.com/stellar/go"
+branch = "master"
+
+[[constraint]]
+name = "gopkg.in/cheggaaa/pb.v1"
+version = "v1"
+
+[[constraint]]
+name = "github.com/lib/pq"
+branch = "master"
+
+[[constraint]]
+name = "github.com/elastic/go-elasticsearch"
+branch = "master"
+
+[[constraint]]
+name = "github.com/jmoiron/sqlx"
+branch = "master"
+
+[[constraint]]
+name = "gopkg.in/alecthomas/kingpin.v2"
+version = "v2"
