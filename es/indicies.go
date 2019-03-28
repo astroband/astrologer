@@ -84,10 +84,22 @@ const opIndex = `
 					},
 					"type": { "type": "keyword", "index": true },
 					"source_account_id": { "type": "keyword", "index": true },
-					"source_asset": { "type": "keyword" },
+					"source_asset": { 
+						"properties": {
+							"key": { "type": "keyword" },
+							"code": { "type": "keyword" },
+							"issuer": { "type": "keyword" }
+						}
+					},
 					"source_amount": { "type": "long" },
 					"destination_account_id": { "type": "keyword", "index": true },
-					"destination_asset": { "type": "keyword" },
+					"destination_asset": {
+						"properties": {
+							"key": { "type": "keyword" },
+							"code": { "type": "keyword" },
+							"issuer": { "type": "keyword" }
+						}
+					},
 					"destination_amount": { "type": "long" },
 					"starting_balance": { "type": "long" },
 					"offer_price": { "type": "long" },

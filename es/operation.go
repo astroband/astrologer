@@ -7,6 +7,12 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+type Asset struct {
+	Code   string `json:"code"`
+	Issuer string `json:"issuer,omitempty"`
+	Key    string `json:"key"`
+}
+
 // Transaction represents ES-serializable transaction
 type Operation struct {
 	TxID                 string    `json:"tx_id"`
@@ -20,10 +26,10 @@ type Operation struct {
 	TxSourceAccountID    string    `json:"tx_source_account_id"`
 	Type                 string    `json:"type"`
 	SourceAccountID      string    `json:"source_account_id,omitempty"`
-	SourceAsset          string    `json:"source_asset,omitempty"`
+	SourceAsset          *Asset    `json:"source_asset,omitempty"`
 	SourceAmount         int       `json:"source_amount,omitempty"`
 	DestinationAccountID string    `json:"destination_account_id,omitempty"`
-	DestinationAsset     string    `json:"destination_asset,omitempty"`
+	DestinationAsset     *Asset    `json:"destination_asset,omitempty"`
 	DestinationAmount    int       `json:"destination_amount,omitempty"`
 	StartingBalance      int       `json:"starting_balance,omitempty"`
 	OfferPrice           int       `json:"offer_price,omitempty"`
@@ -38,6 +44,7 @@ type Operation struct {
 // NewOperation creates LedgerHeader from LedgerHeaderRow
 func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 	sourceAccountID := t.SourceAccountID
+
 	if o.SourceAccount != nil {
 		sourceAccountID = o.SourceAccount.Address()
 	}
@@ -58,7 +65,30 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		Memo: t.Memo,
 	}
 
+	switch t := o.Body.Type; t {
+	case xdr.OperationTypePayment:
+		newPayment(o.Body.MustPaymentOp(), op)
+	}
+
 	return op
+}
+
+func newPayment(o xdr.PaymentOp, op *Operation) {
+	op.SourceAmount = int(o.Amount)
+	op.DestinationAccountID = o.Destination.Address()
+	op.SourceAsset = asset(&o.Asset)
+}
+
+func asset(a *xdr.Asset) *Asset {
+	var t, c, i string
+
+	a.MustExtract(&t, &c, &i)
+
+	if t == "native" {
+		return &Asset{"native", "", "native"}
+	}
+
+	return &Asset{c, i, fmt.Sprintf("%s-%s", c, i)}
 }
 
 func (op *Operation) DocID() string {
