@@ -6,8 +6,14 @@ import (
 	"github.com/elastic/go-elasticsearch/esapi"
 )
 
-var ledgerIndexName = "ledger"
+var ledgerHeaderIndexName = "ledger"
 var txIndexName = "tx"
+
+// Indexable represents object that can be indexed for ElasticSearch
+type Indexable interface {
+	DocID() string
+	IndexName() string
+}
 
 func checkErr(res *esapi.Response, err error) {
 	if err != nil {

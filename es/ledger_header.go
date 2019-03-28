@@ -10,7 +10,6 @@ import (
 
 // LedgerHeader represents json-serializable struct for LedgerHeader to index
 type LedgerHeader struct {
-	DocID          string    `json:"-"`
 	Hash           string    `json:"hash"`
 	PrevHash       string    `json:"prev_hash"`
 	BucketListHash string    `json:"bucket_list_hash"`
@@ -33,7 +32,6 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 	xdr.SafeUnmarshalBase64(row.Data, &h)
 
 	return &LedgerHeader{
-		DocID:          strconv.Itoa(row.LedgerSeq),
 		Hash:           row.Hash,
 		PrevHash:       row.PrevHash,
 		BucketListHash: row.BucketListHash,
@@ -48,4 +46,12 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 		BaseReserve:    int(h.BaseReserve),
 		MaxTxSetSize:   int(h.MaxTxSetSize),
 	}
+}
+
+func (h *LedgerHeader) DocID() string {
+	return strconv.Itoa(h.Seq)
+}
+
+func (h *LedgerHeader) IndexName() string {
+	return ledgerHeaderIndexName
 }

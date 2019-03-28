@@ -13,7 +13,6 @@ import (
 
 // Transaction represents ES-serializable transaction
 type Transaction struct {
-	DocID           string    `json:"-"`
 	ID              string    `json:"id"`
 	Index           int       `json:"idx"`
 	Seq             int       `json:"seq"`
@@ -36,7 +35,6 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 	xdr.SafeUnmarshalBase64(row.TxResult, &r)
 
 	return &Transaction{
-		DocID:           row.TxID,
 		ID:              row.TxID,
 		Index:           row.TxIndex,
 		Seq:             row.LedgerSeq,
@@ -49,4 +47,12 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ResultCode:      int(r.Result.Code),
 		SourceAccountID: e.Tx.SourceAccount.Address(),
 	}
+}
+
+func (t *Transaction) DocID() string {
+	return t.ID
+}
+
+func (h *Transaction) IndexName() string {
+	return txIndexName
 }

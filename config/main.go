@@ -17,18 +17,6 @@ var (
 	createIndexCommand = kingpin.Command("create-index", "Create ES indexes")
 	exportCommand      = kingpin.Command("export", "Run export")
 
-	// DB Instance of sqlx.DB
-	DB *sqlx.DB
-
-	// ES ElasticSearch client instance
-	ES *es.Client
-
-	// Command KingPin command
-	Command string
-
-	// ForceRecreateIndexes Allows indexes to be deleted before creation
-	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
-
 	databaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").
 			Default("postgres://localhost/core?sslmode=disable").
@@ -38,6 +26,18 @@ var (
 		Flag("es-url", "ElasticSearch URL").
 		Default("http://localhost:9200").
 		URL()
+
+	// ForceRecreateIndexes Allows indexes to be deleted before creation
+	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
+
+	// DB Instance of sqlx.DB
+	DB *sqlx.DB
+
+	// ES ElasticSearch client instance
+	ES *es.Client
+
+	// Command KingPin command
+	Command string
 )
 
 func initDB() {

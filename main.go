@@ -30,24 +30,24 @@ func export() {
 	}
 
 	for i := 0; i < blocks; i++ {
-		var builder strings.Builder
+		var b strings.Builder
 
 		rows := db.LedgerHeaderRowFetchBatch(i)
 
 		for n := 0; n < len(rows); n++ {
 			h := es.NewLedgerHeader(&rows[n])
-			builder.WriteString(es.LedgerHeaderSerializeForBulk(h))
+			es.SerializeForBulk(h, &b)
 
 			txs := db.TxHistoryRowForSeq(h.Seq)
 			for t := 0; t < len(txs); t++ {
 				tx := es.NewTransaction(&txs[t], h.CloseTime)
-				builder.WriteString(es.TransactionSerializeForBulk(tx))
+				es.SerializeForBulk(tx, &b)
 			}
 
 			bar.Increment()
 		}
 
-		es.BulkIndex(builder.String())
+		es.BulkIndex(strings.NewReader(b.String()))
 	}
 
 	bar.Finish()
