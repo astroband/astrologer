@@ -16,7 +16,7 @@ type Memo struct {
 // Transaction represents ES-serializable transaction
 type Transaction struct {
 	ID              string    `json:"id"`
-	Index           int       `json:"idx"`
+	Index           byte      `json:"idx"`
 	Seq             int       `json:"seq"`
 	Order           string    `json:"order"`
 	Fee             int       `json:"fee"`
@@ -36,7 +36,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 
 	tx := &Transaction{
 		ID:              row.ID,
-		Index:           row.Index,
+		Index:           byte(row.Index),
 		Seq:             row.LedgerSeq,
 		Order:           fmt.Sprintf("%d:%d", row.LedgerSeq, row.Index),
 		Fee:             int(row.Envelope.Tx.Fee),
