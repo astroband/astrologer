@@ -40,19 +40,33 @@ func export() {
 
 			txs := db.TxHistoryRowForSeq(h.Seq)
 			for t := 0; t < len(txs); t++ {
-				tx := es.NewTransaction(&txs[t], h.CloseTime)
+				txRow := &txs[t]
+				ops := txRow.Envelope.Tx.Operations
+
+				tx := es.NewTransaction(txRow, h.CloseTime)
 				es.SerializeForBulk(tx, &b)
+
+				for o := 0; o < len(ops); o++ {
+					op := es.NewOperation(tx, &ops[o], byte(o))
+					es.SerializeForBulk(op, &b)
+				}
 			}
 
-			bar.Increment()
+			if !*config.Verbose {
+				bar.Increment()
+			}
 		}
 
 		if *config.Verbose {
 			log.Println(b.String())
 		}
 
-		es.BulkIndex(strings.NewReader(b.String()))
+		if !*config.DryRun {
+			es.BulkIndex(strings.NewReader(b.String()))
+		}
 	}
 
-	bar.Finish()
+	if !*config.Verbose {
+		bar.Finish()
+	}
 }

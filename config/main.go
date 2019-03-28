@@ -28,7 +28,10 @@ var (
 		URL()
 
 	// Verbose print data
-	Verbose = kingpin.Flag("verbose", "Print indexed data").Bool()
+	Verbose = exportCommand.Flag("verbose", "Print indexed data").Bool()
+
+	// DryRun do not index data
+	DryRun = exportCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()

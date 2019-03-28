@@ -35,8 +35,13 @@ type Operation struct {
 	*Memo `json:"memo,omitempty"`
 }
 
-// NewTransaction creates LedgerHeader from LedgerHeaderRow
+// NewOperation creates LedgerHeader from LedgerHeaderRow
 func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
+	sourceAccountID := t.SourceAccountID
+	if o.SourceAccount != nil {
+		sourceAccountID = o.SourceAccount.Address()
+	}
+
 	op := &Operation{
 		TxID:              t.ID,
 		TxIndex:           t.Index,
@@ -47,6 +52,8 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		Succesful:         true, // TODO: Implement
 		ResultCode:        0,    // TODO: Implement
 		TxSourceAccountID: t.SourceAccountID,
+		Type:              o.Body.Type.String(),
+		SourceAccountID:   sourceAccountID,
 
 		Memo: t.Memo,
 	}
