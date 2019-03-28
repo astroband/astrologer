@@ -26,3 +26,7 @@ There are also --verbose and --dry-run flags for export.
 https://www.getpostman.com/downloads
 
 See es.postman_collection.json
+
+# Cluster storage size
+
+```curl localhost:9200/_cluster/stats?human\&pretty | more```
