@@ -1,5 +1,28 @@
-TODO:
+# Installation
 
-4. MEMO fields
-5. Operations (create account, payment)
-6. Changes (account, balance, etc)
+```
+  go get git@github.com/astroband/stellar-core-export # not sure
+  brew install elasticsearch
+  ./stellar-core-export create-indexes
+```
+
+# Run
+
+```
+  ./stellar-core-export export
+```
+
+There are also --verbose and --dry-run flags for export.
+
+# From scratch
+
+```
+  ./stellar-core-export create-indexes --force
+  ./stellar-core-export export
+```
+
+# Postman
+
+https://www.getpostman.com/downloads
+
+See es.postman_collection.json

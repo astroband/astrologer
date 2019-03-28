@@ -1,0 +1,272 @@
+{
+	"info": {
+		"_postman_id": "abc5a806-c8a4-40cd-aa22-e91e8ac9bcf2",
+		"name": "es",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Filter Ledger By Term",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"term\" : { \"seq\" : 22982225 } \n  }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/_search",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ledger Count By Date",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"aggs\" : {\n        \"ledgers_over_day\" : {\n            \"date_histogram\" : {\n                \"field\" : \"close_time\",\n                \"interval\" : \"day\"\n            },\n\t        \"aggs\": {\n\t        \t\"max_ledger\": {\n\t        \t\t\"max\": {\n\t        \t\t\t\"field\": \"seq\"\n\t        \t\t}\n\t        \t},\n\t        \t\"min_ledger\": {\n\t        \t\t\"min\": {\n\t        \t\t\t\"field\": \"seq\"\n\t        \t\t}\n\t        \t}\n\t        }\n        }\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/ledger/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"ledger",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transaction By Date",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"aggs\" : {\n        \"transactions_over_day\" : {\n            \"date_histogram\" : {\n                \"field\" : \"close_time\",\n                \"interval\" : \"day\"\n            },\n\t        \"aggs\": {\n\t        \t\"operation_count\": {\n\t        \t\t\"sum\": {\n\t        \t\t\t\"field\": \"operation_count\"\n\t        \t\t}\n\t        \t}\n\t        }\n        }\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/tx/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"tx",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Transactions With Nonempty Memos",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"exists\" : { \"field\" : \"memo\" }\n  }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/tx/_search",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"tx",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Most Popular Memo Values",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6b3c2e99-aa9f-4f97-9a30-2968031627cb",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": {\n    \"exists\" : { \"field\" : \"memo\" }\n  },\n  \"aggregations\" : {\n    \"significant_memo_values\" : {\n        \"significant_terms\" : { \"field\" : \"memo.value\" }\n    }\n  }\n}\n"
+				},
+				"url": {
+					"raw": "localhost:9200/tx/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"tx",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Operation By Type",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"aggs\" : {\n        \"operations_by_type\" : {\n            \"terms\" : { \"field\" : \"type\" }\n        }\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/op/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"op",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "test",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Most Popular Operation Assets (source)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		}
+	]
+}
