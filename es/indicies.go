@@ -61,10 +61,51 @@ const txIndex = `
 	}
 `
 
+// TODO: PathPayment path, SetOptions options, DataEntry name/value
+const opIndex = `
+	{
+		"mappings": {
+			"_doc": {
+				"properties": {
+					"tx_id": { "type": "keyword", "index": true },
+					"tx_idx": { "type": "integer" },
+					"idx": { "type": "integer" },
+					"seq": { "type": "long" },
+					"order": { "type": "keyword", "index": true },
+					"close_time": { "type": "date" },
+					"successful": { "type": "boolean" },
+					"result_code": { "type": "byte" },
+					"tx_source_account_id": { "type": "keyword", "index": true },
+					"memo": {
+						"properties": {
+							"type": { "type": "byte" },
+							"value": { "type": "keyword" }
+						}
+					},
+					"type": { "type": "keyword", "index": true },
+					"source_account_id": { ""type": "keyword", "index": true },
+					"source_asset": { "type": "keyword" },
+					"source_amount": { "type": "long" },
+					"destination_account_id": { "type": "keyword", "index": true },
+					"destination_asset": { "type": "keyword" },
+					"destination_amount": { "type": "long" },
+					"starting_balance": { "type": "long" },
+					"offer_price": { "type": "long" },
+					"offer_id": { "type": "long" },
+					"trust_limit": { "type": "long" },
+					"authorize": { "type": "bool" },
+					"bump_to": { "type": "long" }
+				}
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
 	refreshIndex(txIndexName, txIndex)
+	refreshIndex(opIndexName, opIndex)
 }
 
 func refreshIndex(name string, body string) {

@@ -25,7 +25,7 @@ type Transaction struct {
 	CloseTime       time.Time `json:"close_time"`
 	Successful      bool      `json:"succesful"`
 	ResultCode      int       `json:"result_code"`
-	SourceAccountID string    `json:"source_account"`
+	SourceAccountID string    `json:"source_account_id"`
 
 	*Memo `json:"memo,omitempty"`
 }
