@@ -27,6 +27,9 @@ var (
 		Default("http://localhost:9200").
 		URL()
 
+	// Verbose print data
+	Verbose = kingpin.Flag("verbose", "Print indexed data").Bool()
+
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
 

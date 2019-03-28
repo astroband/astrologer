@@ -47,6 +47,10 @@ func export() {
 			bar.Increment()
 		}
 
+		if *config.Verbose {
+			log.Println(b.String())
+		}
+
 		es.BulkIndex(strings.NewReader(b.String()))
 	}
 

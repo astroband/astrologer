@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gzigzigzeo/stellar-core-export/db"
-	"github.com/stellar/go/xdr"
 )
 
 // LedgerHeader represents json-serializable struct for LedgerHeader to index
@@ -27,24 +26,20 @@ type LedgerHeader struct {
 
 // NewLedgerHeader creates LedgerHeader from LedgerHeaderRow
 func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
-	var h xdr.LedgerHeader
-
-	xdr.SafeUnmarshalBase64(row.Data, &h)
-
 	return &LedgerHeader{
 		Hash:           row.Hash,
 		PrevHash:       row.PrevHash,
 		BucketListHash: row.BucketListHash,
 		Seq:            row.LedgerSeq,
 		CloseTime:      time.Unix(row.CloseTime, 0),
-		Version:        int(h.LedgerVersion),
-		TotalCoins:     int(h.TotalCoins),
-		FeePool:        int(h.FeePool),
-		InflationSeq:   int(h.InflationSeq),
-		IDPool:         int(h.IdPool),
-		BaseFee:        int(h.BaseFee),
-		BaseReserve:    int(h.BaseReserve),
-		MaxTxSetSize:   int(h.MaxTxSetSize),
+		Version:        int(row.Data.LedgerVersion),
+		TotalCoins:     int(row.Data.TotalCoins),
+		FeePool:        int(row.Data.FeePool),
+		InflationSeq:   int(row.Data.InflationSeq),
+		IDPool:         int(row.Data.IdPool),
+		BaseFee:        int(row.Data.BaseFee),
+		BaseReserve:    int(row.Data.BaseReserve),
+		MaxTxSetSize:   int(row.Data.MaxTxSetSize),
 	}
 }
 

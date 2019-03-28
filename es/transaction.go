@@ -8,8 +8,10 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// MemoType        int       `json:"memo_type"`
-// MemoValue       string    `json:"memo_value"`
+type Memo struct {
+	Type  int    `json:"type"`
+	Value string `json:"value"`
+}
 
 // Transaction represents ES-serializable transaction
 type Transaction struct {
@@ -24,6 +26,8 @@ type Transaction struct {
 	Successful      bool      `json:"succesful"`
 	ResultCode      int       `json:"result_code"`
 	SourceAccountID string    `json:"source_account"`
+
+	*Memo `json:"memo,omitempty"`
 }
 
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
@@ -34,7 +38,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 	xdr.SafeUnmarshalBase64(row.TxBody, &e)
 	xdr.SafeUnmarshalBase64(row.TxResult, &r)
 
-	return &Transaction{
+	tx := &Transaction{
 		ID:              row.TxID,
 		Index:           row.TxIndex,
 		Seq:             row.LedgerSeq,
@@ -47,12 +51,38 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ResultCode:      int(r.Result.Code),
 		SourceAccountID: e.Tx.SourceAccount.Address(),
 	}
+
+	tx.setMemo(&e)
+
+	return tx
 }
 
-func (t *Transaction) DocID() string {
-	return t.ID
+func (tx *Transaction) setMemo(e *xdr.TransactionEnvelope) {
+	if e.Tx.Memo.Type != xdr.MemoTypeMemoNone {
+		var v string = ""
+
+		// switch e.Tx.Memo.Type {
+		// case xdr.MemoTypeMemoHash:
+		// 	// b, err := e.Tx.Memo.Hash.MarshalBinary()
+		// 	// if err != nil {
+		// 	// 	log.Fatal(err)
+		// 	// }
+		// 	v = hex.EncodeToString(([]byte)e.Tx.Memo.Hash)
+		// case xdr.MemoTypeMemoReturn:
+
+		// }
+
+		tx.Memo = &Memo{
+			Type:  int(e.Tx.Memo.Type),
+			Value: v,
+		}
+	}
 }
 
-func (h *Transaction) IndexName() string {
+func (tx *Transaction) DocID() string {
+	return tx.ID
+}
+
+func (tx *Transaction) IndexName() string {
 	return txIndexName
 }

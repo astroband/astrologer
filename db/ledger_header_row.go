@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
+	"github.com/stellar/go/xdr"
 )
 
 // LedgerHeaderRowBatchSize used in LedgerHeaderRowFetchBatch
@@ -11,12 +12,12 @@ var LedgerHeaderRowBatchSize = 100
 
 // LedgerHeaderRow is struct representing ledger in database
 type LedgerHeaderRow struct {
-	Hash           string `db:"ledgerhash"`
-	PrevHash       string `db:"prevhash"`
-	BucketListHash string `db:"bucketlisthash"`
-	LedgerSeq      int    `db:"ledgerseq"`
-	CloseTime      int64  `db:"closetime"`
-	Data           string `db:"data"`
+	Hash           string           `db:"ledgerhash"`
+	PrevHash       string           `db:"prevhash"`
+	BucketListHash string           `db:"bucketlisthash"`
+	LedgerSeq      int              `db:"ledgerseq"`
+	CloseTime      int64            `db:"closetime"`
+	Data           xdr.LedgerHeader `db:"data"`
 }
 
 // LedgerHeaderRowCount returns total ledgers count
