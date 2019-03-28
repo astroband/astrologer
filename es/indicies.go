@@ -43,7 +43,7 @@ const txIndex = `
 					"seq": { "type": "long" },
 					"order": { "type": "keyword", "index": true },
 					"fee": { "type": "long" },
-					"fee_paid": { "type": "long" },
+					"fee_charged": { "type": "long" },
 					"operation_count": { "type": "byte" },
 					"close_time": { "type": "date" },
 					"successful": { "type": "boolean" },

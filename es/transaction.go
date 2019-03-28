@@ -20,7 +20,7 @@ type Transaction struct {
 	Seq             int       `json:"seq"`
 	Order           string    `json:"order"`
 	Fee             int       `json:"fee"`
-	FeePaid         int       `json:"fee_paid"`
+	FeeCharged      int       `json:"fee_charged"`
 	OperationCount  int       `json:"operation_count"`
 	CloseTime       time.Time `json:"close_time"`
 	Successful      bool      `json:"succesful"`
@@ -32,51 +32,32 @@ type Transaction struct {
 
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
 func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
-	var e xdr.TransactionEnvelope
-	var r xdr.TransactionResult
-
-	xdr.SafeUnmarshalBase64(row.TxBody, &e)
-	xdr.SafeUnmarshalBase64(row.TxResult, &r)
+	resultCode := row.Result.Result.Result.Code
 
 	tx := &Transaction{
-		ID:              row.TxID,
-		Index:           row.TxIndex,
+		ID:              row.ID,
+		Index:           row.Index,
 		Seq:             row.LedgerSeq,
-		Order:           fmt.Sprintf("%d:%d", row.LedgerSeq, row.TxIndex),
-		Fee:             int(e.Tx.Fee),
-		FeePaid:         int(r.FeeCharged),
-		OperationCount:  len(e.Tx.Operations),
+		Order:           fmt.Sprintf("%d:%d", row.LedgerSeq, row.Index),
+		Fee:             int(row.Envelope.Tx.Fee),
+		FeeCharged:      int(row.Result.Result.FeeCharged),
+		OperationCount:  len(row.Envelope.Tx.Operations),
 		CloseTime:       t,
-		Successful:      r.Result.Code == xdr.TransactionResultCodeTxSuccess,
-		ResultCode:      int(r.Result.Code),
-		SourceAccountID: e.Tx.SourceAccount.Address(),
+		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
+		ResultCode:      int(resultCode),
+		SourceAccountID: row.Envelope.Tx.SourceAccount.Address(),
 	}
 
-	tx.setMemo(&e)
-
-	return tx
-}
-
-func (tx *Transaction) setMemo(e *xdr.TransactionEnvelope) {
-	if e.Tx.Memo.Type != xdr.MemoTypeMemoNone {
-		var v string = ""
-
-		// switch e.Tx.Memo.Type {
-		// case xdr.MemoTypeMemoHash:
-		// 	// b, err := e.Tx.Memo.Hash.MarshalBinary()
-		// 	// if err != nil {
-		// 	// 	log.Fatal(err)
-		// 	// }
-		// 	v = hex.EncodeToString(([]byte)e.Tx.Memo.Hash)
-		// case xdr.MemoTypeMemoReturn:
-
-		// }
+	if row.Envelope.Tx.Memo.Type != xdr.MemoTypeMemoNone {
+		value := row.MemoValue()
 
 		tx.Memo = &Memo{
-			Type:  int(e.Tx.Memo.Type),
-			Value: v,
+			Type:  int(row.Envelope.Tx.Memo.Type),
+			Value: value.String,
 		}
 	}
+
+	return tx
 }
 
 func (tx *Transaction) DocID() string {
