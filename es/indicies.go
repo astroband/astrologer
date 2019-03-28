@@ -83,7 +83,7 @@ const opIndex = `
 						}
 					},
 					"type": { "type": "keyword", "index": true },
-					"source_account_id": { ""type": "keyword", "index": true },
+					"source_account_id": { "type": "keyword", "index": true },
 					"source_asset": { "type": "keyword" },
 					"source_amount": { "type": "long" },
 					"destination_account_id": { "type": "keyword", "index": true },
@@ -93,7 +93,7 @@ const opIndex = `
 					"offer_price": { "type": "long" },
 					"offer_id": { "type": "long" },
 					"trust_limit": { "type": "long" },
-					"authorize": { "type": "bool" },
+					"authorize": { "type": "boolean" },
 					"bump_to": { "type": "long" }
 				}
 			}
