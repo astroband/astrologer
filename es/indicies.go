@@ -52,7 +52,7 @@ const txIndex = `
 					"memo": {
 						"properties": {
 							"type": { "type": "byte" },
-							"value": { "type": "text" }
+							"value": { "type": "keyword" }
 						}
 					}
 				}
