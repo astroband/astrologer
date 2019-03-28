@@ -18,19 +18,5 @@ func BulkIndex(body io.Reader) {
 	res, err := req.Do(context.Background(), config.ES)
 	defer res.Body.Close()
 
-	checkErr(res, err)
+	fatalIfError(res, err)
 }
-
-// func index(index string, id string, body string) {
-// 	req := esapi.IndexRequest{
-// 		Index:      index,
-// 		DocumentID: id,
-// 		Body:       strings.NewReader(body),
-// 		Refresh:    "true",
-// 	}
-
-// 	res, err := req.Do(context.Background(), config.ES)
-// 	defer res.Body.Close()
-
-// 	checkErr(res, err)
-// }

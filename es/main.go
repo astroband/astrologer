@@ -15,13 +15,12 @@ type Indexable interface {
 	IndexName() string
 }
 
-func checkErr(res *esapi.Response, err error) {
+func fatalIfError(res *esapi.Response, err error) {
 	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
+		log.Fatal(err)
 	}
 
 	if res.IsError() {
-		log.Println(res)
-		log.Fatalf("[%s] Error occured!", res.Status())
+		log.Fatal(res)
 	}
 }

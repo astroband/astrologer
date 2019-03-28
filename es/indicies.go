@@ -2,13 +2,15 @@ package es
 
 import (
 	"context"
+	"log"
+	"net/http"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/gzigzigzeo/stellar-core-export/config"
 )
 
-const ledgerIndex = `
+const ledgerHeaderIndex = `
 	{
 		"mappings": {
 			"_doc": {
@@ -55,23 +57,45 @@ const txIndex = `
 
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
-	if *config.ForceRecreateIndexes {
-		deleteIndex([]string{"ledger", "tx"})
-	}
-
-	createIndex("ledger", ledgerIndex)
-	createIndex("tx", txIndex)
+	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
+	refreshIndex(txIndexName, txIndex)
 }
 
-func deleteIndex(index []string) {
-	req := esapi.IndicesDeleteRequest{
-		Index: index,
+func refreshIndex(name string, body string) {
+	req := esapi.IndicesGetRequest{
+		Index: []string{name},
 	}
 
 	res, err := req.Do(context.Background(), config.ES)
 	defer res.Body.Close()
 
-	checkErr(res, err)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		createIndex(name, body)
+		log.Printf("%s index created!", name)
+	} else {
+		if *config.ForceRecreateIndexes {
+			deleteIndex(name)
+			createIndex(name, body)
+			log.Printf("%s index recreated!", name)
+		} else {
+			log.Printf("%s index found, skipping...", name)
+		}
+	}
+}
+
+func deleteIndex(index string) {
+	req := esapi.IndicesDeleteRequest{
+		Index: []string{index},
+	}
+
+	res, err := req.Do(context.Background(), config.ES)
+	defer res.Body.Close()
+
+	fatalIfError(res, err)
 }
 
 func createIndex(index string, body string) {
@@ -83,5 +107,5 @@ func createIndex(index string, body string) {
 	res, err := req.Do(context.Background(), config.ES)
 	defer res.Body.Close()
 
-	checkErr(res, err)
+	fatalIfError(res, err)
 }
