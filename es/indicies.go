@@ -48,7 +48,13 @@ const txIndex = `
 					"close_time": { "type": "date" },
 					"successful": { "type": "boolean" },
 					"result_code": { "type": "byte" },
-					"source_account_id": { "type": "keyword", "index": true }
+					"source_account_id": { "type": "keyword", "index": true },
+					"memo": {
+						"properties": {
+							"type": { "type": "byte" },
+							"value": { "type": "text" }
+						}
+					}
 				}
 			}
 		}
