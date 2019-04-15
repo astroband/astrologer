@@ -101,7 +101,6 @@ const opIndex = `
 						}
 					},
 					"destination_amount": { "type": "long" },
-					"starting_balance": { "type": "long" },
 					"offer_price": { "type": "long" },
 					"offer_id": { "type": "long" },
 					"trust_limit": { "type": "long" },

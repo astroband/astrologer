@@ -7,13 +7,14 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// Asset represents es-serializable asset
 type Asset struct {
 	Code   string `json:"code"`
 	Issuer string `json:"issuer,omitempty"`
 	Key    string `json:"key"`
 }
 
-// Transaction represents ES-serializable transaction
+// Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                 string    `json:"tx_id"`
 	TxIndex              byte      `json:"tx_idx"`
@@ -31,12 +32,12 @@ type Operation struct {
 	DestinationAccountID string    `json:"destination_account_id,omitempty"`
 	DestinationAsset     *Asset    `json:"destination_asset,omitempty"`
 	DestinationAmount    int       `json:"destination_amount,omitempty"`
-	StartingBalance      int       `json:"starting_balance,omitempty"`
 	OfferPrice           int       `json:"offer_price,omitempty"`
 	OfferID              int       `json:"offer_id,omitempty"`
 	TrustLimit           int       `json:"trust_limit,omitempty"`
 	Authorize            bool      `json:"authorize,omitempty"`
 	BumpTo               int       `json:"bump_to,omitempty"`
+	Path                 []*Asset  `json:"path,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }
@@ -70,6 +71,8 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newCreateAccount(o.Body.MustCreateAccountOp(), op)
 	case xdr.OperationTypePayment:
 		newPayment(o.Body.MustPaymentOp(), op)
+	case xdr.OperationTypePathPayment:
+		newPathPayment(o.Body.MustPathPaymentOp(), op)
 	}
 
 	return op
@@ -84,6 +87,21 @@ func newPayment(o xdr.PaymentOp, op *Operation) {
 	op.SourceAmount = int(o.Amount)
 	op.DestinationAccountID = o.Destination.Address()
 	op.SourceAsset = asset(&o.Asset)
+}
+
+func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
+	op.DestinationAccountID = o.Destination.Address()
+	op.DestinationAmount = int(o.DestAmount)
+	op.DestinationAsset = asset(&o.DestAsset)
+
+	op.SourceAmount = int(o.SendMax)
+	op.SourceAsset = asset(&o.SendAsset)
+
+	op.Path = make([]*Asset, len(o.Path))
+
+	for i, a := range o.Path {
+		op.Path[i] = asset(&a)
+	}
 }
 
 func asset(a *xdr.Asset) *Asset {
