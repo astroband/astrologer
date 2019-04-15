@@ -73,6 +73,8 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newPayment(o.Body.MustPaymentOp(), op)
 	case xdr.OperationTypePathPayment:
 		newPathPayment(o.Body.MustPathPaymentOp(), op)
+	case xdr.OperationTypeManageOffer:
+		newManageOffer(o.Body.MustManageOfferOp(), op)
 	}
 
 	return op
@@ -102,6 +104,14 @@ func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
 	for i, a := range o.Path {
 		op.Path[i] = asset(&a)
 	}
+}
+
+func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
+	op.SourceAccountID = int(o.Amount)
+	op.SourceAsset = asset(&o.Buying)
+	op.OfferID = int(o.OfferId)
+	op.OfferPrice = int(o.Price)
+	op.DestinationAsset = asset(&o.Selling)
 }
 
 func asset(a *xdr.Asset) *Asset {
