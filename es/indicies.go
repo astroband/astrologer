@@ -26,7 +26,7 @@ const ledgerHeaderIndex = `
 					"id_pool": { "type": "long" },
 					"base_fee": { "type": "long" },
 					"base_reserve": { "type": "long" },
-					"max_tx_set_size": { "type": "long" }					
+					"max_tx_set_size": { "type": "long" }
 				}
 			}
 		}
@@ -41,7 +41,7 @@ const txIndex = `
 					"id": { "type": "keyword", "index": true },
 					"idx": { "type": "integer" },
 					"seq": { "type": "long" },
-					"order": { "type": "keyword", "index": true },
+					"order": { "type": "long", "index": true },
 					"fee": { "type": "long" },
 					"fee_charged": { "type": "long" },
 					"operation_count": { "type": "byte" },
@@ -70,7 +70,7 @@ const opIndex = `
 					"tx_idx": { "type": "integer" },
 					"idx": { "type": "integer" },
 					"seq": { "type": "long" },
-					"order": { "type": "keyword", "index": true },
+					"order": { "type": "long", "index": true },
 					"close_time": { "type": "date" },
 					"successful": { "type": "boolean" },
 					"result_code": { "type": "byte" },
@@ -83,7 +83,7 @@ const opIndex = `
 					},
 					"type": { "type": "keyword", "index": true },
 					"source_account_id": { "type": "keyword", "index": true },
-					"source_asset": { 
+					"source_asset": {
 						"properties": {
 							"key": { "type": "keyword" },
 							"code": { "type": "keyword" },
