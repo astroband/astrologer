@@ -61,7 +61,7 @@ const txIndex = `
 	}
 `
 
-// TODO: PathPayment path, SetOptions options, DataEntry name/value
+// TODO: SetOptions options, DataEntry name/value
 const opIndex = `
 	{
 		"mappings": {
@@ -106,7 +106,14 @@ const opIndex = `
 					"offer_id": { "type": "long" },
 					"trust_limit": { "type": "long" },
 					"authorize": { "type": "boolean" },
-					"bump_to": { "type": "long" }
+					"bump_to": { "type": "long" },
+					"path": {
+						"properties": {
+							"key": { "type": "keyword" },
+							"code": { "type": "keyword" },
+							"issuer": { "type": "keyword" }
+						}
+					}
 				}
 			}
 		}
