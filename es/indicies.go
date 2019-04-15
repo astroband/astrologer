@@ -142,6 +142,13 @@ const opIndex = `
 							"revocable": { "type": "boolean" },
 							"immutable": { "type": "boolean" }
 						}
+					},
+					"signer": {
+						"properties": {
+							"type": { "type": "keyword" },
+							"hash": { "type": "keyword" },
+							"pre_hash": { "type": "keyword" }
+						}
 					}
 				}
 			}
