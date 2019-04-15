@@ -2,6 +2,7 @@ package es
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/xdr"
@@ -12,6 +13,12 @@ type Asset struct {
 	Code   string `json:"code"`
 	Issuer string `json:"issuer,omitempty"`
 	Key    string `json:"key"`
+}
+
+// Price represents Price struct from XDR
+type Price struct {
+	N int `json:"n"`
+	D int `json:"d"`
 }
 
 // Operation represents ES-serializable transaction
@@ -32,7 +39,8 @@ type Operation struct {
 	DestinationAccountID string    `json:"destination_account_id,omitempty"`
 	DestinationAsset     *Asset    `json:"destination_asset,omitempty"`
 	DestinationAmount    int       `json:"destination_amount,omitempty"`
-	OfferPrice           int       `json:"offer_price,omitempty"`
+	OfferPrice           float64   `json:"offer_price,omitempty"`
+	OfferPriceND         Price     `json:"offer_price_n_d,omitempty"`
 	OfferID              int       `json:"offer_id,omitempty"`
 	TrustLimit           int       `json:"trust_limit,omitempty"`
 	Authorize            bool      `json:"authorize,omitempty"`
@@ -75,6 +83,10 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newPathPayment(o.Body.MustPathPaymentOp(), op)
 	case xdr.OperationTypeManageOffer:
 		newManageOffer(o.Body.MustManageOfferOp(), op)
+	case xdr.OperationTypeCreatePassiveOffer:
+		newCreatePassiveOffer(o.Body.MustCreatePassiveOfferOp(), op)
+	case xdr.OperationTypeSetOptions:
+		newSetOptions(o.Body.MustAllowTrustOp(), op)
 	}
 
 	return op
@@ -107,11 +119,23 @@ func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
 }
 
 func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
-	op.SourceAccountID = int(o.Amount)
+	op.SourceAmount = int(o.Amount)
 	op.SourceAsset = asset(&o.Buying)
 	op.OfferID = int(o.OfferId)
-	op.OfferPrice = int(o.Price)
+	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
 	op.DestinationAsset = asset(&o.Selling)
+}
+
+func newCreatePassiveOffer(o xdr.CreatePassiveOfferOp, op *Operation) {
+	op.SourceAmount = int(o.Amount)
+	op.SourceAsset = asset(&o.Buying)
+	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+	op.OfferPriceND = Price{int(o.Price.N), int(o.Price.D)}
+	op.DestinationAsset = asset(&o.Selling)
+}
+
+func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
+	//o.
 }
 
 func asset(a *xdr.Asset) *Asset {
@@ -126,10 +150,12 @@ func asset(a *xdr.Asset) *Asset {
 	return &Asset{c, i, fmt.Sprintf("%s-%s", c, i)}
 }
 
+// DocID returns elastic document id
 func (op *Operation) DocID() string {
 	return op.Order
 }
 
+// IndexName returns operations index
 func (op *Operation) IndexName() string {
 	return opIndexName
 }

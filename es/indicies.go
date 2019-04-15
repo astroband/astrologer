@@ -101,7 +101,13 @@ const opIndex = `
 						}
 					},
 					"destination_amount": { "type": "long" },
-					"offer_price": { "type": "long" },
+					"offer_price": { "type": "double" },
+					"offer_price_n_d": {
+						"properties": {
+							"n": { type: "integer" },
+							"d": { type: "integer" }
+						}
+					},
 					"offer_id": { "type": "long" },
 					"trust_limit": { "type": "long" },
 					"authorize": { "type": "boolean" },
