@@ -118,6 +118,30 @@ const opIndex = `
 							"code": { "type": "keyword" },
 							"issuer": { "type": "keyword" }
 						}
+					},
+					"thresholds": {
+						"properties": {
+							"low": { "type": "byte" },
+							"medium": { "type": "byte" },
+							"high": { "type": "byte" },
+							"master": { "type": "byte" }
+						}
+					},
+					"home_domain": { "type": "keyword" },
+					"inflation_dest_id": { "type": "keyword" },
+					"set_flags": {
+						"properties": {
+							"required": { "type": "boolean" },
+							"revocable": { "type": "boolean" },
+							"immutable": { "type": "boolean" }
+						}
+					},
+					"clear_flags": {
+						"properties": {
+							"required": { "type": "boolean" },
+							"revocable": { "type": "boolean" },
+							"immutable": { "type": "boolean" }
+						}
 					}
 				}
 			}
