@@ -155,8 +155,13 @@ func newCreatePassiveOffer(o xdr.CreatePassiveOfferOp, op *Operation) {
 }
 
 func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
-	op.InflationDest = o.InflationDest.Address()
-	op.HomeDomain = string(*o.HomeDomain)
+	if o.InflationDest != nil {
+		op.InflationDest = o.InflationDest.Address()
+	}
+
+	if o.HomeDomain != nil {
+		op.HomeDomain = string(*o.HomeDomain)
+	}
 
 	if (o.LowThreshold != nil) || (o.MedThreshold != nil) || (o.HighThreshold != nil) || (o.MasterWeight != nil) {
 		op.Thresholds = &Thresholds{}
@@ -178,13 +183,20 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 		}
 	}
 
-	if op.SetFlags != nil {
+	if o.SetFlags != nil {
 		op.SetFlags = flags(int(*o.SetFlags))
 	}
 
-	if op.ClearFlags != nil {
+	if o.ClearFlags != nil {
 		op.ClearFlags = flags(int(*o.ClearFlags))
 	}
+
+	// TODO: IMPLEMENT SIGNERS
+	// if o.Signer != nil {
+	// 	o.Signer = &Signer{
+
+	// 	}
+	// }
 }
 
 func asset(a *xdr.Asset) *Asset {
