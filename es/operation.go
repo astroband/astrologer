@@ -36,6 +36,11 @@ type AccountFlags struct {
 	AuthImmutable bool `json:"immutable,omitempty"`
 }
 
+type DataEntry struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                 string        `json:"tx_id"`
@@ -66,6 +71,7 @@ type Operation struct {
 	InflationDest        string        `json:"inflation_dest_id,omitempty"`
 	SetFlags             *AccountFlags `json:"set_flags,omitempty"`
 	ClearFlags           *AccountFlags `json:"clear_flags,omitempty"`
+	Data                 *DataEntry    `json:"data,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }
@@ -107,6 +113,16 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newCreatePassiveOffer(o.Body.MustCreatePassiveOfferOp(), op)
 	case xdr.OperationTypeSetOptions:
 		newSetOptions(o.Body.MustSetOptionsOp(), op)
+	case xdr.OperationTypeChangeTrust:
+		newChangeTrust(o.Body.MustChangeTrustOp(), op)
+	case xdr.OperationTypeAllowTrust:
+		newAllowTrust(o.Body.MustAllowTrustOp(), op)
+	case xdr.OperationTypeAccountMerge:
+		newAccountMerge(o.Body.MustDestination(), op)
+	case xdr.OperationTypeManageData:
+		newManageData(o.Body.MustManageDataOp(), op)
+	case xdr.OperationTypeBumpSequence:
+		newBumpSequence(o.Body.MustBumpSequenceOp(), op)
 	}
 
 	return op
@@ -167,18 +183,22 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 		op.Thresholds = &Thresholds{}
 
 		if o.LowThreshold != nil {
+			op.Thresholds.Low = new(int)
 			*op.Thresholds.Low = int(*o.LowThreshold)
 		}
 
 		if o.LowThreshold != nil {
+			op.Thresholds.Medium = new(int)
 			*op.Thresholds.Medium = int(*o.MedThreshold)
 		}
 
 		if o.LowThreshold != nil {
+			op.Thresholds.High = new(int)
 			*op.Thresholds.High = int(*o.HighThreshold)
 		}
 
 		if o.MasterWeight != nil {
+			op.Thresholds.Master = new(int)
 			*op.Thresholds.Master = int(*o.MasterWeight)
 		}
 	}
@@ -199,6 +219,23 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 	// }
 }
 
+func newChangeTrust(o xdr.ChangeTrustOp, op *Operation) {
+	op.DestinationAmount = int(o.Limit)
+	op.DestinationAsset = asset(&o.Line)
+}
+
+func newAllowTrust(o xdr.AllowTrustOp, op *Operation) {
+	a := o.Asset.ToAsset(o.Trustor)
+
+	op.DestinationAsset = asset(&a)
+	op.DestinationAccountID = o.Trustor.Address()
+	op.Authorize = o.Authorize
+}
+
+func newAccountMerge(d xdr.AccountId, op *Operation) {
+	op.DestinationAccountID = d.Address()
+}
+
 func asset(a *xdr.Asset) *Asset {
 	var t, c, i string
 
@@ -209,6 +246,18 @@ func asset(a *xdr.Asset) *Asset {
 	}
 
 	return &Asset{c, i, fmt.Sprintf("%s-%s", c, i)}
+}
+
+func newBumpSequence(o xdr.BumpSequenceOp, op *Operation) {
+	op.BumpTo = int(o.BumpTo)
+}
+
+// TODO: Apply some magic to the value
+func newManageData(o xdr.ManageDataOp, op *Operation) {
+	op.Data = &DataEntry{Name: string(o.DataName)}
+	if o.DataValue != nil {
+		op.Data.Value = string(*o.DataValue)
+	}
 }
 
 func flags(f int) *AccountFlags {

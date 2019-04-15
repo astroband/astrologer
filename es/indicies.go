@@ -104,8 +104,8 @@ const opIndex = `
 					"offer_price": { "type": "double" },
 					"offer_price_n_d": {
 						"properties": {
-							"n": { type: "integer" },
-							"d": { type: "integer" }
+							"n": { "type": "integer" },
+							"d": { "type": "integer" }
 						}
 					},
 					"offer_id": { "type": "long" },
@@ -148,6 +148,12 @@ const opIndex = `
 							"type": { "type": "keyword" },
 							"hash": { "type": "keyword" },
 							"pre_hash": { "type": "keyword" }
+						}
+					},
+					"data": {
+						"properties": {
+							"name": { "type": "keyword" },
+							"value": { "type": "keyword" }
 						}
 					}
 				}
