@@ -66,11 +66,18 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 	}
 
 	switch t := o.Body.Type; t {
+	case xdr.OperationTypeCreateAccount:
+		newCreateAccount(o.Body.MustCreateAccountOp(), op)
 	case xdr.OperationTypePayment:
 		newPayment(o.Body.MustPaymentOp(), op)
 	}
 
 	return op
+}
+
+func newCreateAccount(o xdr.CreateAccountOp, op *Operation) {
+	op.SourceAmount = int(o.StartingBalance)
+	op.DestinationAccountID = o.Destination.Address()
 }
 
 func newPayment(o xdr.PaymentOp, op *Operation) {
