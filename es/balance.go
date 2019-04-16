@@ -100,6 +100,7 @@ func ExtractBalances(c []xdr.LedgerEntryChange) []*Balance {
 	return balances
 }
 
+// TODO: Balance key MUST exist (dups)
 // DocID balance es document id
 func (b *Balance) DocID() *string {
 	return nil
