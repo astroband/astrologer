@@ -168,6 +168,7 @@ const balanceIndex = `
 					"account_id": { "type": "keyword", "index": true },
 					"balance": { "type": "long" },
 					"source": { "type": "keyword" },
+					"created_at": { type: "date" },
 					"asset": {
 						"properties": {
 							"key": { "type": "keyword" },
