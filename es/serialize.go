@@ -18,11 +18,19 @@ func Serialize(obj Indexable, b *strings.Builder) {
 
 // SerializeForBuilk returns object serialized for elastic bulk indexing
 func SerializeForBulk(obj Indexable, b *strings.Builder) {
-	b.WriteString(fmt.Sprintf(
-		`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }`,
-		obj.IndexName(),
-		obj.DocID(),
-	))
+	id := obj.DocID()
+
+	if id != nil {
+		b.WriteString(fmt.Sprintf(
+			`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }`,
+			obj.IndexName(),
+			*id,
+		))
+	} else {
+		b.WriteString(fmt.Sprintf(
+			`{ "index": { "_index": "%s", "_type": "_doc" } }`, obj.IndexName(),
+		))
+	}
 
 	b.WriteString("\n")
 	Serialize(obj, b)

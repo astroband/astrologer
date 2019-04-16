@@ -31,6 +31,7 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry) *Balance {
 		AccountID: a.AccountId.Address(),
 		Balance:   int(a.Balance),
 		Source:    BalanceSourceMeta,
+		CreatedAt: time.Now(),
 		Asset:     *NewNativeAsset(),
 	}
 }
@@ -40,10 +41,12 @@ func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry) *Balance {
 		AccountID: t.AccountId.Address(),
 		Balance:   int(t.Balance),
 		Source:    BalanceSourceMeta,
+		CreatedAt: time.Now(),
 		Asset:     *NewAsset(&t.Asset),
 	}
 }
 
+// ExtractBalances returns balances extracted from metas
 func ExtractBalances(c []*xdr.LedgerEntryChange) []*Balance {
 	var prev = make(map[string]int)
 	var balances []*Balance
@@ -72,10 +75,19 @@ func ExtractBalances(c []*xdr.LedgerEntryChange) []*Balance {
 				balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine()))
 			}
 
-		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-			//const updated = change.MustUpdated()
+			// case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
+			// 	updated := change.MustUpdated().Data
 
-			//case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+			// 	switch x := updated.Type; x {
+			// 	case xdr.LedgerEntryTypeAccount:
+
+			// 		//updated.MusAccountId.Address()
+			// 		//balances = append(balances, NewBalanceFromAccountEntry(created.MustAccount()))
+			// 	case xdr.LedgerEntryTypeTrustline:
+			// 		//balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine()))
+			// 	}
+
+			// 	//case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 
 		}
 	}
@@ -84,9 +96,8 @@ func ExtractBalances(c []*xdr.LedgerEntryChange) []*Balance {
 }
 
 // DocID balance es document id
-func (b *Balance) DocID() string {
-	//return strconv.Itoa(h.Seq)
-	return "-"
+func (b *Balance) DocID() *string {
+	return nil
 }
 
 // IndexName balances index name

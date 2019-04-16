@@ -261,8 +261,8 @@ func flags(f int) *AccountFlags {
 }
 
 // DocID returns elastic document id
-func (op *Operation) DocID() string {
-	return op.Order
+func (op *Operation) DocID() *string {
+	return &op.Order
 }
 
 // IndexName returns operations index

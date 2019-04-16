@@ -43,10 +43,13 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 	}
 }
 
-func (h *LedgerHeader) DocID() string {
-	return strconv.Itoa(h.Seq)
+// DocID returns es id (seq number in this case)
+func (h *LedgerHeader) DocID() *string {
+	id := strconv.Itoa(h.Seq)
+	return &id
 }
 
+// IndexName returns index name
 func (h *LedgerHeader) IndexName() string {
 	return ledgerHeaderIndexName
 }

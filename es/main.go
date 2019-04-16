@@ -38,7 +38,7 @@ func NewAsset(a *xdr.Asset) *Asset {
 
 // Indexable represents object that can be indexed for ElasticSearch
 type Indexable interface {
-	DocID() string
+	DocID() *string
 	IndexName() string
 }
 

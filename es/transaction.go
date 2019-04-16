@@ -60,10 +60,12 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 	return tx
 }
 
-func (tx *Transaction) DocID() string {
-	return tx.ID
+// DocID return es transaction id (tx id in this case)
+func (tx *Transaction) DocID() *string {
+	return &tx.ID
 }
 
+// IndexName returns tx index name
 func (tx *Transaction) IndexName() string {
 	return txIndexName
 }
