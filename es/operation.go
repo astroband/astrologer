@@ -42,6 +42,7 @@ type DataEntry struct {
 	Value string `json:"value"`
 }
 
+// Signer represents signer as export
 type Signer struct {
 	Key    string `json:"key"`
 	Weight int    `json:"weight"`
