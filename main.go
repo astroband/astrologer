@@ -42,7 +42,7 @@ func export() {
 			for t := 0; t < len(txs); t++ {
 				txRow := &txs[t]
 				ops := txRow.Envelope.Tx.Operations
-				// metas := txRow.Meta.Operations
+				metas := txRow.Meta.V1.Operations // TODO: V1.Operations || MustOperations
 
 				tx := es.NewTransaction(txRow, h.CloseTime)
 				es.SerializeForBulk(tx, &b)
@@ -50,11 +50,13 @@ func export() {
 				for o := 0; o < len(ops); o++ {
 					op := es.NewOperation(tx, &ops[o], byte(o))
 					es.SerializeForBulk(op, &b)
+				}
 
-					// m := es.NewMeta(tx, &metas[o])
-					// for (n := 0; n < len(m); n++) {
-					// 	es.SerializeForBulk(m[n], &m)
-					// }
+				for o := 0; o < len(metas); o++ {
+					bl := es.ExtractBalances(metas[o].Changes)
+					for _, balance := range bl {
+						es.SerializeForBulk(balance, &b)
+					}
 				}
 			}
 

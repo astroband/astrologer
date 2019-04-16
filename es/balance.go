@@ -26,6 +26,7 @@ type Balance struct {
 	Asset     Asset         `json:"asset"`
 }
 
+// NewBalanceFromAccountEntry creates Balance from AccountEntry
 func NewBalanceFromAccountEntry(a xdr.AccountEntry) *Balance {
 	return &Balance{
 		AccountID: a.AccountId.Address(),
@@ -36,6 +37,7 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry) *Balance {
 	}
 }
 
+// NewBalanceFromTrustLineEntry creates Balance from TrustLineEntry
 func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry) *Balance {
 	return &Balance{
 		AccountID: t.AccountId.Address(),
@@ -47,7 +49,7 @@ func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry) *Balance {
 }
 
 // ExtractBalances returns balances extracted from metas
-func ExtractBalances(c []*xdr.LedgerEntryChange) []*Balance {
+func ExtractBalances(c []xdr.LedgerEntryChange) []*Balance {
 	var prev = make(map[string]int)
 	var balances []*Balance
 
