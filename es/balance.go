@@ -77,20 +77,23 @@ func ExtractBalances(c []xdr.LedgerEntryChange) []*Balance {
 				balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine()))
 			}
 
-			// case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-			// 	updated := change.MustUpdated().Data
+		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
+			updated := change.MustUpdated().Data
 
-			// 	switch x := updated.Type; x {
-			// 	case xdr.LedgerEntryTypeAccount:
-
-			// 		//updated.MusAccountId.Address()
-			// 		//balances = append(balances, NewBalanceFromAccountEntry(created.MustAccount()))
-			// 	case xdr.LedgerEntryTypeTrustline:
-			// 		//balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine()))
-			// 	}
-
-			// 	//case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
-
+			switch x := updated.Type; x {
+			case xdr.LedgerEntryTypeAccount:
+				account := updated.MustAccount()
+				oldBalance := prev[account.AccountId.Address()]
+				if oldBalance != int(account.Balance) {
+					balances = append(balances, NewBalanceFromAccountEntry(account))
+				}
+			case xdr.LedgerEntryTypeTrustline:
+				line := updated.MustTrustLine()
+				oldBalance := prev[line.AccountId.Address()]
+				if oldBalance != int(line.Balance) {
+					balances = append(balances, NewBalanceFromTrustLineEntry(line))
+				}
+			}
 		}
 	}
 

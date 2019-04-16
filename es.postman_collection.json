@@ -239,16 +239,34 @@
 			"response": []
 		},
 		{
-			"name": "test",
+			"name": "SetOptions having signer",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": ""
+					"raw": "{\n  \"query\": {\n  \t\"bool\": {\n  \t  \"must\": {\n\t\t\"term\" : { \"type\" : \"OperationTypeSetOptions\" },\t\n\t    \"exists\": { \"field\": \"set_flags\" }\n  \t  }\n  \t}\n  }\n}"
 				},
 				"url": {
-					"raw": ""
+					"raw": "localhost:9200/op/_search",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"op",
+						"_search"
+					]
 				}
 			},
 			"response": []
@@ -264,6 +282,84 @@
 				},
 				"url": {
 					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Highest 10 balances ever",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"query\": {\n\t\t\"match_all\": {}\n\t}\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/balance/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"balance",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Highest balance, specific account by minute",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"query\": {\n       \"term\": { \"account_id\": \"123\" }\n\t},\n    \"aggs\" : {\n        \"balance_over_hour\" : {\n            \"date_histogram\" : {\n                \"field\" : \"created_at\",\n                \"interval\" : \"hour\"\n            },\n\t        \"aggs\": {\n\t        \t\"avg_balance\": {\n\t        \t\t\"avg\": {\n\t        \t\t\t\"field\": \"balance\"\n\t        \t\t}\n\t        \t}\n\t        }\n        }\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9200/balance/_search?size=0",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"balance",
+						"_search"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "0"
+						}
+					]
 				}
 			},
 			"response": []
