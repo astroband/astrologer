@@ -167,6 +167,7 @@ func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
 	op.SourceAsset = asset(&o.Buying)
 	op.OfferID = int(o.OfferId)
 	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
 	op.DestinationAsset = asset(&o.Selling)
 }
 

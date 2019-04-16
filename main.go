@@ -50,6 +50,8 @@ func export() {
 					op := es.NewOperation(tx, &ops[o], byte(o))
 					es.SerializeForBulk(op, &b)
 				}
+
+				//metas := txRow.Meta.Operations
 			}
 
 			if !*config.Verbose {

@@ -16,7 +16,7 @@ func BulkIndex(body io.Reader) {
 	}
 
 	res, err := req.Do(context.Background(), config.ES)
-	defer res.Body.Close()
-
 	fatalIfError(res, err)
+
+	defer res.Body.Close()
 }

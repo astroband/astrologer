@@ -61,7 +61,6 @@ const txIndex = `
 	}
 `
 
-// TODO: SetOptions options, DataEntry name/value
 const opIndex = `
 	{
 		"mappings": {
@@ -161,11 +160,33 @@ const opIndex = `
 	}
 `
 
+const balanceIndex = `
+	{
+		"mappings": {
+			"_doc": {
+				"properties": {
+					"account_id": { "type": "keyword", "index": true },
+					"balance": { "type": "long" },
+					"source": { "type": "keyword" },
+					"asset": {
+						"properties": {
+							"key": { "type": "keyword" },
+							"code": { "type": "keyword" },
+							"issuer": { "type": "keyword" }
+						}
+					}
+				}
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
 	refreshIndex(txIndexName, txIndex)
 	refreshIndex(opIndexName, opIndex)
+	refreshIndex(balanceIndexName, balanceIndex)
 }
 
 func refreshIndex(name string, body string) {

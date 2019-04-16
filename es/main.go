@@ -9,6 +9,7 @@ import (
 var ledgerHeaderIndexName = "ledger"
 var txIndexName = "tx"
 var opIndexName = "op"
+var balanceIndexName = "balance"
 
 // Indexable represents object that can be indexed for ElasticSearch
 type Indexable interface {
