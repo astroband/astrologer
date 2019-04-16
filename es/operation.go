@@ -36,9 +36,15 @@ type AccountFlags struct {
 	AuthImmutable bool `json:"immutable,omitempty"`
 }
 
+// DataEntry represents data entry
 type DataEntry struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type Signer struct {
+	Key    string `json:"key"`
+	Weight int    `json:"weight"`
 }
 
 // Operation represents ES-serializable transaction
@@ -60,7 +66,7 @@ type Operation struct {
 	DestinationAsset     *Asset        `json:"destination_asset,omitempty"`
 	DestinationAmount    int           `json:"destination_amount,omitempty"`
 	OfferPrice           float64       `json:"offer_price,omitempty"`
-	OfferPriceND         Price         `json:"offer_price_n_d,omitempty"`
+	OfferPriceND         *Price        `json:"offer_price_n_d,omitempty"`
 	OfferID              int           `json:"offer_id,omitempty"`
 	TrustLimit           int           `json:"trust_limit,omitempty"`
 	Authorize            bool          `json:"authorize,omitempty"`
@@ -72,6 +78,7 @@ type Operation struct {
 	SetFlags             *AccountFlags `json:"set_flags,omitempty"`
 	ClearFlags           *AccountFlags `json:"clear_flags,omitempty"`
 	Data                 *DataEntry    `json:"data,omitempty"`
+	Signer               *Signer       `json:"signer,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }
@@ -166,7 +173,7 @@ func newCreatePassiveOffer(o xdr.CreatePassiveOfferOp, op *Operation) {
 	op.SourceAmount = int(o.Amount)
 	op.SourceAsset = asset(&o.Buying)
 	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
-	op.OfferPriceND = Price{int(o.Price.N), int(o.Price.D)}
+	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
 	op.DestinationAsset = asset(&o.Selling)
 }
 
@@ -192,7 +199,7 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 			*op.Thresholds.Medium = int(*o.MedThreshold)
 		}
 
-		if o.LowThreshold != nil {
+		if o.HighThreshold != nil {
 			op.Thresholds.High = new(int)
 			*op.Thresholds.High = int(*o.HighThreshold)
 		}
@@ -211,12 +218,12 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 		op.ClearFlags = flags(int(*o.ClearFlags))
 	}
 
-	// TODO: IMPLEMENT SIGNERS
-	// if o.Signer != nil {
-	// 	o.Signer = &Signer{
-
-	// 	}
-	// }
+	if o.Signer != nil {
+		op.Signer = &Signer{
+			o.Signer.Key.Address(),
+			int(o.Signer.Weight),
+		}
+	}
 }
 
 func newChangeTrust(o xdr.ChangeTrustOp, op *Operation) {

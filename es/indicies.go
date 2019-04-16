@@ -145,9 +145,8 @@ const opIndex = `
 					},
 					"signer": {
 						"properties": {
-							"type": { "type": "keyword" },
-							"hash": { "type": "keyword" },
-							"pre_hash": { "type": "keyword" }
+							"key": { "type": "keyword" },
+							"weight": { "type": "byte" }
 						}
 					},
 					"data": {
