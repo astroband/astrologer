@@ -187,12 +187,12 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 			*op.Thresholds.Low = int(*o.LowThreshold)
 		}
 
-		if o.LowThreshold != nil {
+		if o.MedThreshold != nil {
 			op.Thresholds.Medium = new(int)
 			*op.Thresholds.Medium = int(*o.MedThreshold)
 		}
 
-		if o.LowThreshold != nil {
+		if o.HighThreshold != nil {
 			op.Thresholds.High = new(int)
 			*op.Thresholds.High = int(*o.HighThreshold)
 		}
