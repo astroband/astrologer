@@ -53,7 +53,7 @@ func export() {
 				}
 
 				for o := 0; o < len(metas); o++ {
-					bl := es.ExtractBalances(metas[o].Changes)
+					bl := es.ExtractBalances(metas[o].Changes, h.CloseTime)
 					for _, balance := range bl {
 						es.SerializeForBulk(balance, &b)
 					}
