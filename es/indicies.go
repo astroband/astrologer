@@ -90,7 +90,7 @@ const opIndex = `
 							"issuer": { "type": "keyword" }
 						}
 					},
-					"source_amount": { "type": "long" },
+					"source_amount": { "type": "scaled_float", "scaling_factor": 10000000 },
 					"destination_account_id": { "type": "keyword", "index": true },
 					"destination_asset": {
 						"properties": {
@@ -99,7 +99,7 @@ const opIndex = `
 							"issuer": { "type": "keyword" }
 						}
 					},
-					"destination_amount": { "type": "long" },
+					"destination_amount": { "type": "scaled_float", "scaling_factor": 10000000 },
 					"offer_price": { "type": "double" },
 					"offer_price_n_d": {
 						"properties": {
@@ -108,7 +108,7 @@ const opIndex = `
 						}
 					},
 					"offer_id": { "type": "long" },
-					"trust_limit": { "type": "long" },
+					"trust_limit": { "type": "scaled_float", "scaling_factor": 10000000 },
 					"authorize": { "type": "boolean" },
 					"bump_to": { "type": "long" },
 					"path": {

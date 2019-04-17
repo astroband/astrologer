@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -55,14 +56,14 @@ type Operation struct {
 	Type                 string             `json:"type"`
 	SourceAccountID      string             `json:"source_account_id,omitempty"`
 	SourceAsset          *Asset             `json:"source_asset,omitempty"`
-	SourceAmount         int                `json:"source_amount,omitempty"`
+	SourceAmount         string             `json:"source_amount,omitempty"`
 	DestinationAccountID string             `json:"destination_account_id,omitempty"`
 	DestinationAsset     *Asset             `json:"destination_asset,omitempty"`
-	DestinationAmount    int                `json:"destination_amount,omitempty"`
+	DestinationAmount    string             `json:"destination_amount,omitempty"`
 	OfferPrice           float64            `json:"offer_price,omitempty"`
 	OfferPriceND         *Price             `json:"offer_price_n_d,omitempty"`
 	OfferID              int                `json:"offer_id,omitempty"`
-	TrustLimit           int                `json:"trust_limit,omitempty"`
+	TrustLimit           string             `json:"trust_limit,omitempty"`
 	Authorize            bool               `json:"authorize,omitempty"`
 	BumpTo               int                `json:"bump_to,omitempty"`
 	Path                 []*Asset           `json:"path,omitempty"`
@@ -130,22 +131,22 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 }
 
 func newCreateAccount(o xdr.CreateAccountOp, op *Operation) {
-	op.SourceAmount = int(o.StartingBalance)
+	op.SourceAmount = amount.String(o.StartingBalance)
 	op.DestinationAccountID = o.Destination.Address()
 }
 
 func newPayment(o xdr.PaymentOp, op *Operation) {
-	op.SourceAmount = int(o.Amount)
+	op.SourceAmount = amount.String(o.Amount)
 	op.DestinationAccountID = o.Destination.Address()
 	op.SourceAsset = NewAsset(&o.Asset)
 }
 
 func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
 	op.DestinationAccountID = o.Destination.Address()
-	op.DestinationAmount = int(o.DestAmount)
+	op.DestinationAmount = amount.String(o.DestAmount)
 	op.DestinationAsset = NewAsset(&o.DestAsset)
 
-	op.SourceAmount = int(o.SendMax)
+	op.SourceAmount = amount.String(o.SendMax)
 	op.SourceAsset = NewAsset(&o.SendAsset)
 
 	op.Path = make([]*Asset, len(o.Path))
@@ -156,7 +157,7 @@ func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
 }
 
 func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
-	op.SourceAmount = int(o.Amount)
+	op.SourceAmount = amount.String(o.Amount)
 	op.SourceAsset = NewAsset(&o.Buying)
 	op.OfferID = int(o.OfferId)
 	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
@@ -165,7 +166,7 @@ func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
 }
 
 func newCreatePassiveOffer(o xdr.CreatePassiveOfferOp, op *Operation) {
-	op.SourceAmount = int(o.Amount)
+	op.SourceAmount = amount.String(o.Amount)
 	op.SourceAsset = NewAsset(&o.Buying)
 	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
 	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
@@ -222,7 +223,7 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 }
 
 func newChangeTrust(o xdr.ChangeTrustOp, op *Operation) {
-	op.DestinationAmount = int(o.Limit)
+	op.DestinationAmount = amount.String(o.Limit)
 	op.DestinationAsset = NewAsset(&o.Line)
 }
 
