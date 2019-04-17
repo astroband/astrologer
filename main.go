@@ -55,7 +55,6 @@ func export() {
 
 				for o := 0; o < len(metas); o++ {
 					id := fmt.Sprintf("%v/%v/%v", h.Seq, t, o)
-					fmt.Println(id)
 					bl := es.ExtractBalances(metas[o].Changes, h.CloseTime, id)
 					for _, balance := range bl {
 						es.SerializeForBulk(balance, &b)
