@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -53,7 +54,9 @@ func export() {
 				}
 
 				for o := 0; o < len(metas); o++ {
-					bl := es.ExtractBalances(metas[o].Changes, h.CloseTime)
+					id := fmt.Sprintf("%v/%v/%v", h.Seq, t, o)
+					fmt.Println(id)
+					bl := es.ExtractBalances(metas[o].Changes, h.CloseTime, id)
 					for _, balance := range bl {
 						es.SerializeForBulk(balance, &b)
 					}

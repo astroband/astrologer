@@ -20,6 +20,7 @@ const (
 
 // Balance represents balance log entry
 type Balance struct {
+	ID        string        `json:"-"`
 	AccountID string        `json:"account_id"`
 	Balance   string        `json:"balance"`
 	CreatedAt time.Time     `json:"created_at"`
@@ -28,8 +29,9 @@ type Balance struct {
 }
 
 // NewBalanceFromAccountEntry creates Balance from AccountEntry
-func NewBalanceFromAccountEntry(a xdr.AccountEntry, now time.Time) *Balance {
+func NewBalanceFromAccountEntry(a xdr.AccountEntry, now time.Time, id string) *Balance {
 	return &Balance{
+		ID:        id,
 		AccountID: a.AccountId.Address(),
 		Balance:   amount.String(a.Balance),
 		Source:    BalanceSourceMeta,
@@ -39,8 +41,9 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry, now time.Time) *Balance {
 }
 
 // NewBalanceFromTrustLineEntry creates Balance from TrustLineEntry
-func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, now time.Time) *Balance {
+func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, now time.Time, id string) *Balance {
 	return &Balance{
+		ID:        id,
 		AccountID: t.AccountId.Address(),
 		Balance:   amount.String(t.Balance),
 		Source:    BalanceSourceMeta,
@@ -50,7 +53,7 @@ func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, now time.Time) *Balance 
 }
 
 // ExtractBalances returns balances extracted from metas
-func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time) []*Balance {
+func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time, id string) []*Balance {
 	var prev = make(map[string]xdr.Int64)
 	var balances []*Balance
 
@@ -73,9 +76,9 @@ func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time) []*Balance {
 
 			switch x := created.Type; x {
 			case xdr.LedgerEntryTypeAccount:
-				balances = append(balances, NewBalanceFromAccountEntry(created.MustAccount(), now))
+				balances = append(balances, NewBalanceFromAccountEntry(created.MustAccount(), now, id))
 			case xdr.LedgerEntryTypeTrustline:
-				balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine(), now))
+				balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine(), now, id))
 			}
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
@@ -86,13 +89,13 @@ func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time) []*Balance {
 				account := updated.MustAccount()
 				oldBalance := prev[account.AccountId.Address()]
 				if oldBalance != account.Balance {
-					balances = append(balances, NewBalanceFromAccountEntry(account, now))
+					balances = append(balances, NewBalanceFromAccountEntry(account, now, id))
 				}
 			case xdr.LedgerEntryTypeTrustline:
 				line := updated.MustTrustLine()
 				oldBalance := prev[line.AccountId.Address()]
 				if oldBalance != line.Balance {
-					balances = append(balances, NewBalanceFromTrustLineEntry(line, now))
+					balances = append(balances, NewBalanceFromTrustLineEntry(line, now, id))
 				}
 			}
 		}
@@ -101,10 +104,9 @@ func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time) []*Balance {
 	return balances
 }
 
-// TODO: Balance key MUST exist (dups)
 // DocID balance es document id
 func (b *Balance) DocID() *string {
-	return nil
+	return &b.ID
 }
 
 // IndexName balances index name
