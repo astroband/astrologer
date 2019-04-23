@@ -1,7 +1,6 @@
 package es
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gzigzigzeo/stellar-core-export/db"
@@ -18,7 +17,7 @@ type Transaction struct {
 	ID              string    `json:"id"`
 	Index           byte      `json:"idx"`
 	Seq             int       `json:"seq"`
-	Order           string    `json:"order"`
+	Order           int       `json:"order"`
 	Fee             int       `json:"fee"`
 	FeeCharged      int       `json:"fee_charged"`
 	OperationCount  int       `json:"operation_count"`
@@ -38,7 +37,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ID:              row.ID,
 		Index:           byte(row.Index),
 		Seq:             row.LedgerSeq,
-		Order:           fmt.Sprintf("%d:%d", row.LedgerSeq, row.Index),
+		Order:           row.LedgerSeq*100 + row.Index,
 		Fee:             int(row.Envelope.Tx.Fee),
 		FeeCharged:      int(row.Result.Result.FeeCharged),
 		OperationCount:  len(row.Envelope.Tx.Operations),
