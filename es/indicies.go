@@ -228,9 +228,11 @@ func deleteIndex(index string) {
 }
 
 func createIndex(index string, body string) {
+	itn := false
 	req := esapi.IndicesCreateRequest{
-		Index: index,
-		Body:  strings.NewReader(body),
+		Index:           index,
+		Body:            strings.NewReader(body),
+		IncludeTypeName: &itn,
 	}
 
 	res, err := req.Do(context.Background(), config.ES)
