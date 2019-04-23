@@ -70,6 +70,7 @@ type Ledger struct {
 // Transaction represents ledger transaction with all nested data
 type Transaction struct {
 	ID         string
+	Index      int
 	Order      int64
 	ResultCode int
 	Successful bool
@@ -85,12 +86,29 @@ type Source struct {
 	Fee       []*xdr.LedgerEntryChanges
 }
 
+// NewTransaction returns transaction representation
+func NewTransaction(t *xdr.TransactionEnvelope) {
+
+}
+
 // NewLedger return ledger struct filled out with all nested data
-func NewLedger(s Source) *Ledger {
-	return &Ledger{
-		ID:        strconv.Itoa(int(s.L.LedgerSeq)),
-		Order:     int64(s.L.LedgerSeq) << uint(ledgerShift),
-		CloseTime: s.CloseTime,
-		Header:    s.L,
+func NewLedger(s Source) (l *Ledger) {
+	l = &Ledger{
+		ID:           strconv.Itoa(int(s.L.LedgerSeq)),
+		Order:        Order(s.L.LedgerSeq),
+		CloseTime:    s.CloseTime,
+		Header:       s.L,
+		Transactions: make([]Transaction, len(s.Tx)),
 	}
+
+	for n, tx := range s.Tx {
+		//l[n] = NewTransaction()
+	}
+
+	return l
+}
+
+// Order returns order fields (see horizon's toid)
+func Order(ledger xdr.Uint32) int64 {
+	return int64(ledger) << uint(ledgerShift)
 }
