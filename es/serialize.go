@@ -1,38 +1,42 @@
 package es
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 )
 
 // Serialize returns object serialized for elastic indexing
-func Serialize(obj Indexable, b *strings.Builder) {
-	enc := json.NewEncoder(b)
-	err := enc.Encode(obj)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+// func Serialize(obj Indexable, b *bytes.Buffer) {
+// }
 
-// SerializeForBuilk returns object serialized for elastic bulk indexing
-func SerializeForBulk(obj Indexable, b *strings.Builder) {
+// SerializeForBulk returns object serialized for elastic bulk indexing
+func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
+	var meta string
+
 	id := obj.DocID()
 
 	if id != nil {
-		b.WriteString(fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }`,
+		meta = fmt.Sprintf(
+			`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }%s`,
 			obj.IndexName(),
 			*id,
-		))
+			"\n",
+		)
 	} else {
-		b.WriteString(fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_type": "_doc" } }`, obj.IndexName(),
-		))
+		meta = fmt.Sprintf(
+			`{ "index": { "_index": "%s", "_type": "_doc" } }%s`, obj.IndexName(), "\n",
+		)
 	}
 
-	b.WriteString("\n")
-	Serialize(obj, b)
-	b.WriteString("\n")
+	data, err := json.Marshal(obj)
+	if err != nil {
+		log.Fatal(err)
+	}
+	data = append(data, "\n"...)
+
+	b.Grow(len(meta) + len(data))
+	b.Write([]byte(meta))
+	b.Write(data)
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
@@ -31,7 +31,7 @@ func export() {
 	}
 
 	for i := 0; i < blocks; i++ {
-		var b strings.Builder
+		var b bytes.Buffer
 
 		rows := db.LedgerHeaderRowFetchBatch(i)
 
@@ -72,7 +72,14 @@ func export() {
 		}
 
 		if !*config.DryRun {
-			es.BulkIndex(strings.NewReader(b.String()))
+			res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+			if err != nil {
+				log.Fatal("Error bulk", err)
+			}
+
+			if res.IsError() {
+				log.Fatal("Error bulk", res)
+			}
 		}
 	}
 
