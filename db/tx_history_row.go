@@ -26,7 +26,6 @@ func TxHistoryRowForSeq(seq int) []TxHistoryRow {
 	txs := []TxHistoryRow{}
 
 	err := config.DB.Select(&txs, "SELECT * FROM txhistory WHERE ledgerseq = $1 ORDER BY txindex", seq)
-
 	if err != nil {
 		log.Fatal(err)
 	}

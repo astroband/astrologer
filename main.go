@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
@@ -21,6 +22,24 @@ func main() {
 	}
 }
 
+func worker(id int, jobs <-chan *bytes.Buffer) {
+	for b := range jobs {
+		res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+
+		if err != nil {
+			log.Fatal("Error bulk", err)
+		}
+
+		if res.IsError() {
+			if res.StatusCode == http.StatusTooManyRequests {
+
+			} else {
+				log.Fatal("Error bulk", res)
+			}
+		}
+	}
+}
+
 func export() {
 	count := db.LedgerHeaderRowCount()
 	bar := pb.StartNew(count)
@@ -28,6 +47,12 @@ func export() {
 	blocks := count / db.LedgerHeaderRowBatchSize
 	if count%db.LedgerHeaderRowBatchSize > 0 {
 		blocks = blocks + 1
+	}
+
+	jobs := make(chan *bytes.Buffer, 100)
+
+	for w := 1; w <= 3; w++ {
+		go worker(w, jobs)
 	}
 
 	for i := 0; i < blocks; i++ {
@@ -72,16 +97,11 @@ func export() {
 		}
 
 		if !*config.DryRun {
-			res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
-			if err != nil {
-				log.Fatal("Error bulk", err)
-			}
-
-			if res.IsError() {
-				log.Fatal("Error bulk", res)
-			}
+			jobs <- &b
 		}
 	}
+
+	close(jobs)
 
 	if !*config.Verbose {
 		bar.Finish()

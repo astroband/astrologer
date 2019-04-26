@@ -7,10 +7,6 @@ import (
 	"log"
 )
 
-// Serialize returns object serialized for elastic indexing
-// func Serialize(obj Indexable, b *bytes.Buffer) {
-// }
-
 // SerializeForBulk returns object serialized for elastic bulk indexing
 func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
 	var meta string
