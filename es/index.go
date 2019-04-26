@@ -11,8 +11,7 @@ import (
 // BulkIndex calls elasticsearch bulk indexing API
 func BulkIndex(body io.Reader) {
 	req := esapi.BulkRequest{
-		Body:    body,
-		Refresh: "true",
+		Body: body,
 	}
 
 	res, err := req.Do(context.Background(), config.ES)

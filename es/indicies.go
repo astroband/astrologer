@@ -1,12 +1,10 @@
 package es
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/gzigzigzeo/stellar-core-export/config"
 )
 
@@ -183,12 +181,7 @@ func CreateIndicies() {
 }
 
 func refreshIndex(name string, body string) {
-	req := esapi.IndicesGetRequest{
-		Index: []string{name},
-	}
-
-	res, err := req.Do(context.Background(), config.ES)
-	defer res.Body.Close()
+	res, err := config.ES.Indices.Get([]string{name})
 
 	if err != nil {
 		log.Fatal(err)
@@ -209,26 +202,17 @@ func refreshIndex(name string, body string) {
 }
 
 func deleteIndex(index string) {
-	req := esapi.IndicesDeleteRequest{
-		Index: []string{index},
-	}
-
-	res, err := req.Do(context.Background(), config.ES)
-	defer res.Body.Close()
-
+	res, err := config.ES.Indices.Delete([]string{index})
 	fatalIfError(res, err)
 }
 
 func createIndex(index string, body string) {
-	itn := false
-	req := esapi.IndicesCreateRequest{
-		Index:           index,
-		Body:            strings.NewReader(body),
-		IncludeTypeName: &itn,
-	}
+	create := config.ES.Indices.Create
 
-	res, err := req.Do(context.Background(), config.ES)
-	defer res.Body.Close()
-
+	res, err := create(
+		index,
+		create.WithBody(strings.NewReader(body)),
+		create.WithIncludeTypeName(false),
+	)
 	fatalIfError(res, err)
 }
