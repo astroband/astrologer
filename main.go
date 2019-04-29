@@ -37,6 +37,8 @@ func index(b *bytes.Buffer) {
 			log.Fatal("Error bulk", res)
 		}
 	}
+
+	res.Body.Close()
 }
 
 func export() {
