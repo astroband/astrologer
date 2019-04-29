@@ -9,6 +9,7 @@ import (
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
+	"github.com/ti/nasync"
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
@@ -22,20 +23,18 @@ func main() {
 	}
 }
 
-func worker(id int, jobs <-chan *bytes.Buffer) {
-	for b := range jobs {
-		res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+func index(b *bytes.Buffer) {
+	res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
 
-		if err != nil {
-			log.Fatal("Error bulk", err)
-		}
+	if err != nil {
+		log.Fatal("Error bulk", err)
+	}
 
-		if res.IsError() {
-			if res.StatusCode == http.StatusTooManyRequests {
-
-			} else {
-				log.Fatal("Error bulk", res)
-			}
+	if res.IsError() {
+		if res.StatusCode == http.StatusTooManyRequests {
+			log.Println("TOO MANY REQUESTS FOR ONE LEDGER, SKIPPING FOR NOW")
+		} else {
+			log.Fatal("Error bulk", res)
 		}
 	}
 }
@@ -49,11 +48,8 @@ func export() {
 		blocks = blocks + 1
 	}
 
-	jobs := make(chan *bytes.Buffer, 100)
-
-	for w := 1; w <= 3; w++ {
-		go worker(w, jobs)
-	}
+	async := nasync.New(10, 10)
+	defer async.Close()
 
 	for i := 0; i < blocks; i++ {
 		var b bytes.Buffer
@@ -97,11 +93,9 @@ func export() {
 		}
 
 		if !*config.DryRun {
-			jobs <- &b
+			async.Do(index, &b)
 		}
 	}
-
-	close(jobs)
 
 	if !*config.Verbose {
 		bar.Finish()

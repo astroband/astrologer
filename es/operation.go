@@ -17,10 +17,10 @@ type Price struct {
 
 // AccountThresholds represents account thresholds from XDR
 type AccountThresholds struct {
-	Low    *int `json:"low,omitempty"`
-	Medium *int `json:"medium,omitempty"`
-	High   *int `json:"high,omitempty"`
-	Master *int `json:"master,omitempty"`
+	Low    *byte `json:"low,omitempty"`
+	Medium *byte `json:"medium,omitempty"`
+	High   *byte `json:"high,omitempty"`
+	Master *byte `json:"master,omitempty"`
 }
 
 // AccountFlags represents account flags from XDR
@@ -186,23 +186,23 @@ func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
 		op.Thresholds = &AccountThresholds{}
 
 		if o.LowThreshold != nil {
-			op.Thresholds.Low = new(int)
-			*op.Thresholds.Low = int(*o.LowThreshold)
+			op.Thresholds.Low = new(byte)
+			*op.Thresholds.Low = byte(*o.LowThreshold)
 		}
 
 		if o.MedThreshold != nil {
-			op.Thresholds.Medium = new(int)
-			*op.Thresholds.Medium = int(*o.MedThreshold)
+			op.Thresholds.Medium = new(byte)
+			*op.Thresholds.Medium = byte(*o.MedThreshold)
 		}
 
 		if o.HighThreshold != nil {
-			op.Thresholds.High = new(int)
-			*op.Thresholds.High = int(*o.HighThreshold)
+			op.Thresholds.High = new(byte)
+			*op.Thresholds.High = byte(*o.HighThreshold)
 		}
 
 		if o.MasterWeight != nil {
-			op.Thresholds.Master = new(int)
-			*op.Thresholds.Master = int(*o.MasterWeight)
+			op.Thresholds.Master = new(byte)
+			*op.Thresholds.Master = byte(*o.MasterWeight)
 		}
 	}
 

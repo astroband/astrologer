@@ -21,3 +21,7 @@ branch = "master"
 [[constraint]]
 name = "gopkg.in/alecthomas/kingpin.v2"
 version = "v2"
+
+[[constraint]]
+name = "github.com/ti/nasync"
+branch = "master"
