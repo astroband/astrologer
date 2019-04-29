@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
@@ -28,24 +27,19 @@ func main() {
 	}
 }
 
-func index(b *bytes.Buffer) {
+func index(b *bytes.Buffer, n int) {
 	res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+	defer res.Body.Close()
 
-	if err != nil {
-		log.Fatal("Error bulk", err)
-	}
-
-	if res.IsError() {
-		if res.StatusCode == http.StatusTooManyRequests {
-			time.Sleep(10 * time.Second)
-			async.Do(index, b)
-			log.Println("Retrying...")
-		} else {
-			log.Fatal("Error bulk", res)
+	if err != nil || res.IsError() {
+		if n > 5 {
+			log.Fatal("5 retries for bulk failed, aborting")
 		}
-	}
 
-	res.Body.Close()
+		log.Println("Retrying...")
+		time.Sleep(10 * time.Second)
+		async.Do(index, b, n+1)
+	}
 }
 
 func export() {
@@ -101,7 +95,7 @@ func export() {
 		}
 
 		if !*config.DryRun {
-			async.Do(index, &b)
+			async.Do(index, &b, 0)
 		}
 	}
 
