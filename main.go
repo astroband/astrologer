@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
 	"github.com/ti/nasync"
 	"gopkg.in/cheggaaa/pb.v1"
+)
+
+var (
+	async = nasync.New(10, 10)
 )
 
 func main() {
@@ -32,7 +37,9 @@ func index(b *bytes.Buffer) {
 
 	if res.IsError() {
 		if res.StatusCode == http.StatusTooManyRequests {
-			log.Println("TOO MANY REQUESTS FOR ONE LEDGER, SKIPPING FOR NOW")
+			time.Sleep(10 * time.Second)
+			async.Do(index, b)
+			log.Println("Retrying...")
 		} else {
 			log.Fatal("Error bulk", res)
 		}
@@ -50,7 +57,6 @@ func export() {
 		blocks = blocks + 1
 	}
 
-	async := nasync.New(10, 10)
 	defer async.Close()
 
 	for i := 0; i < blocks; i++ {
