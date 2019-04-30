@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/Masterminds/squirrel"
+  packages = ["."]
+  revision = "fa735ea14f09f8685fcf5e75db091feb5a410730"
+  version = "v1.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/alecthomas/template"
   packages = [".","parse"]
@@ -30,6 +36,18 @@
   name = "github.com/jmoiron/sqlx"
   packages = [".","reflectx"]
   revision = "cdf62fdf55f66fb2484fe214f89c059f0bd3f567"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/lann/builder"
+  packages = ["."]
+  revision = "47ae307949d02aa1f1069fdafc00ca08e1dbabac"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/lann/ps"
+  packages = ["."]
+  revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
   branch = "master"
@@ -88,6 +106,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8b38aaadda3df40086545acf386df43c762818bcfd5537dfaafb4c8d6d96e52d"
+  inputs-digest = "849c9f5ebf7afc52b233e5a5880259156dd65bdcdacac42f066a7d8654bcfa83"
   solver-name = "gps-cdcl"
   solver-version = 1

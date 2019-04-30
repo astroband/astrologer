@@ -29,21 +29,24 @@ func main() {
 
 func index(b *bytes.Buffer, n int) {
 	res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
-	defer res.Body.Close()
+
+	if res != nil {
+		defer res.Body.Close()
+	}
 
 	if err != nil || res.IsError() {
 		if n > 5 {
 			log.Fatal("5 retries for bulk failed, aborting")
 		}
 
-		log.Println("Retrying...")
-		time.Sleep(10 * time.Second)
+		log.Println("Retrying ", n)
+		time.Sleep(5 * time.Second)
 		async.Do(index, b, n+1)
 	}
 }
 
 func export() {
-	count := db.LedgerHeaderRowCount()
+	count := db.LedgerHeaderRowCount(*config.Start)
 	bar := pb.StartNew(count)
 
 	blocks := count / db.LedgerHeaderRowBatchSize
@@ -56,7 +59,7 @@ func export() {
 	for i := 0; i < blocks; i++ {
 		var b bytes.Buffer
 
-		rows := db.LedgerHeaderRowFetchBatch(i)
+		rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
 
 		for n := 0; n < len(rows); n++ {
 			h := es.NewLedgerHeader(&rows[n])

@@ -27,6 +27,9 @@ var (
 		Default("http://localhost:9200").
 		URL()
 
+	// Start ledger to start with
+	Start = exportCommand.Arg("start", "Ledger to start indexing").Default("0").Int()
+
 	// Verbose print data
 	Verbose = exportCommand.Flag("verbose", "Print indexed data").Bool()
 
