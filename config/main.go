@@ -16,6 +16,7 @@ const Version string = "0.0.1"
 var (
 	createIndexCommand = kingpin.Command("create-index", "Create ES indexes")
 	exportCommand      = kingpin.Command("export", "Run export")
+	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
 
 	databaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").

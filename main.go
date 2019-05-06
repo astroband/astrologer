@@ -9,6 +9,7 @@ import (
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
+	"github.com/stellar/go/xdr"
 	"github.com/ti/nasync"
 	"gopkg.in/cheggaaa/pb.v1"
 )
@@ -24,6 +25,8 @@ func main() {
 		log.Println("Indicies created successfully!")
 	case "export":
 		export()
+	case "ingest":
+		ingest()
 	}
 }
 
@@ -67,9 +70,16 @@ func export() {
 
 			txs := db.TxHistoryRowForSeq(h.Seq)
 			for t := 0; t < len(txs); t++ {
+				var metas []xdr.OperationMeta
+
 				txRow := &txs[t]
 				ops := txRow.Envelope.Tx.Operations
-				metas := txRow.Meta.V1.Operations // TODO: V1.Operations || MustOperations
+
+				if v1, ok := txRow.Meta.GetV1(); ok {
+					metas = v1.Operations
+				} else {
+					metas, ok = txRow.Meta.GetOperations()
+				}
 
 				tx := es.NewTransaction(txRow, h.CloseTime)
 				es.SerializeForBulk(tx, &b)
@@ -105,4 +115,8 @@ func export() {
 	if !*config.Verbose {
 		bar.Finish()
 	}
+}
+
+func ingest() {
+
 }
