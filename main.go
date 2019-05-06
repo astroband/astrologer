@@ -2,14 +2,12 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
-	"github.com/stellar/go/xdr"
 	"github.com/ti/nasync"
 	"gopkg.in/cheggaaa/pb.v1"
 )
@@ -65,38 +63,9 @@ func export() {
 		rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
 
 		for n := 0; n < len(rows); n++ {
-			h := es.NewLedgerHeader(&rows[n])
-			es.SerializeForBulk(h, &b)
+			txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
 
-			txs := db.TxHistoryRowForSeq(h.Seq)
-			for t := 0; t < len(txs); t++ {
-				var metas []xdr.OperationMeta
-
-				txRow := &txs[t]
-				ops := txRow.Envelope.Tx.Operations
-
-				if v1, ok := txRow.Meta.GetV1(); ok {
-					metas = v1.Operations
-				} else {
-					metas, ok = txRow.Meta.GetOperations()
-				}
-
-				tx := es.NewTransaction(txRow, h.CloseTime)
-				es.SerializeForBulk(tx, &b)
-
-				for o := 0; o < len(ops); o++ {
-					op := es.NewOperation(tx, &ops[o], byte(o))
-					es.SerializeForBulk(op, &b)
-				}
-
-				for o := 0; o < len(metas); o++ {
-					id := fmt.Sprintf("%v:%v:%v", h.Seq, t, o)
-					bl := es.ExtractBalances(metas[o].Changes, h.CloseTime, id)
-					for _, balance := range bl {
-						es.SerializeForBulk(balance, &b)
-					}
-				}
-			}
+			es.MakeBulk(rows[n], txs, &b)
 
 			if !*config.Verbose {
 				bar.Increment()
