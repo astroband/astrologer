@@ -87,5 +87,17 @@ func export() {
 }
 
 func ingest() {
+	var h *db.LedgerHeaderRow
 
+	if *config.StartIngest == 0 {
+		h = db.LedgerHeaderLastRow()
+	} else {
+		h = db.LedgerHeaderNext(*config.StartIngest)
+	}
+
+	if h == nil {
+		log.Fatal("Nothing to ingest")
+	}
+
+	log.Println("Starting ingest from", h.LedgerSeq)
 }

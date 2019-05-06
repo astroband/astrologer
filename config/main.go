@@ -31,6 +31,9 @@ var (
 	// Start ledger to start with
 	Start = exportCommand.Arg("start", "Ledger to start indexing").Default("0").Int()
 
+	// StartIngest ledger to start with ingesting
+	StartIngest = ingestCommand.Arg("start", "Ledger to start ingesting").Int()
+
 	// Verbose print data
 	Verbose = exportCommand.Flag("verbose", "Print indexed data").Bool()
 

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/gzigzigzeo/stellar-core-export/config"
@@ -44,4 +45,38 @@ func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
 	}
 
 	return ledgers
+}
+
+// LedgerHeaderLastRow returns lastest ledger in the database
+func LedgerHeaderLastRow() *LedgerHeaderRow {
+	var h LedgerHeaderRow
+
+	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq DESC LIMIT 1")
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+
+		log.Fatal(err)
+	}
+
+	return &h
+}
+
+// LedgerHeaderNext returns next ledger to fetch
+func LedgerHeaderNext(seq int) *LedgerHeaderRow {
+	var h LedgerHeaderRow
+
+	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders WHERE ledgerseq > $1 ORDER BY ledgerseq ASC LIMIT 1", seq)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+
+		log.Fatal(err)
+	}
+
+	return &h
 }
