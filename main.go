@@ -89,6 +89,8 @@ func export() {
 func ingest() {
 	var h *db.LedgerHeaderRow
 
+	defer async.Close()
+
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
 	} else {
@@ -100,4 +102,28 @@ func ingest() {
 	}
 
 	log.Println("Starting ingest from", h.LedgerSeq)
+
+	for {
+		var b bytes.Buffer
+		var seq = h.LedgerSeq
+
+		txs := db.TxHistoryRowForSeq(seq)
+		es.MakeBulk(*h, txs, &b)
+
+		async.Do(index, &b, 0)
+
+		log.Println("Ledger", seq, "ingested.")
+
+		h = db.LedgerHeaderNext(seq)
+
+		for {
+			if h != nil {
+				break
+			}
+			time.Sleep(1 * time.Second)
+			h = db.LedgerHeaderNext(seq)
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
 }
