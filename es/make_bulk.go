@@ -18,6 +18,7 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, b *bytes.Buffer) {
 
 		txRow := &txs[t]
 		ops := txRow.Envelope.Tx.Operations
+		results := txRow.Result.Result.Result.Results
 
 		if v1, ok := txRow.Meta.GetV1(); ok {
 			metas = v1.Operations
@@ -31,10 +32,8 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, b *bytes.Buffer) {
 		for o := 0; o < len(ops); o++ {
 			op := NewOperation(tx, &ops[o], byte(o))
 
-			var r xdr.OperationResult
-			if txRow.Result.Result.Result.Results != nil {
-				r = (*txRow.Result.Result.Result.Results)[o]
-				AppendResult(op, &r)
+			if results != nil {
+				AppendResult(op, &(*results)[o])
 			}
 
 			SerializeForBulk(op, b)
