@@ -67,6 +67,7 @@ const opIndex = `
 				"close_time": { "type": "date" },
 				"successful": { "type": "boolean" },
 				"result_code": { "type": "byte" },
+				"inner_result_code": { "type": "byte" },
 				"tx_source_account_id": { "type": "keyword", "index": true },
 				"memo": {
 					"properties": {

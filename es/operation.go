@@ -52,6 +52,7 @@ type Operation struct {
 	CloseTime            time.Time          `json:"close_time"`
 	Succesful            bool               `json:"successful"`
 	ResultCode           int                `json:"result_code"`
+	InnerResultCode      int                `json:"inner_result_code"`
 	TxSourceAccountID    string             `json:"tx_source_account_id"`
 	Type                 string             `json:"type"`
 	SourceAccountID      string             `json:"source_account_id,omitempty"`
@@ -93,8 +94,6 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		Seq:               t.Seq,
 		Order:             t.Order*100 + int(n),
 		CloseTime:         t.CloseTime,
-		Succesful:         true, // TODO: Implement
-		ResultCode:        0,    // TODO: Implement
 		TxSourceAccountID: t.SourceAccountID,
 		Type:              o.Body.Type.String(),
 		SourceAccountID:   sourceAccountID,
