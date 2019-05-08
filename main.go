@@ -123,7 +123,5 @@ func ingest() {
 			time.Sleep(1 * time.Second)
 			h = db.LedgerHeaderNext(seq)
 		}
-
-		time.Sleep(100 * time.Millisecond)
 	}
 }
