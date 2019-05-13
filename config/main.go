@@ -21,11 +21,13 @@ var (
 	databaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").
 			Default("postgres://localhost/core?sslmode=disable").
+			OverrideDefaultFromEnvar("DATABASE_URL").
 			URL()
 
 	esURL = kingpin.
 		Flag("es-url", "ElasticSearch URL").
 		Default("http://localhost:9200").
+		OverrideDefaultFromEnvar("ES_URL").
 		URL()
 
 	// Start ledger to start with
