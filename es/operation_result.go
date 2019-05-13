@@ -1,6 +1,7 @@
 package es
 
 import (
+	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -76,6 +77,10 @@ func newAllowTrustResult(r xdr.AllowTrustResult, op *Operation) {
 func newAccountMergeResult(r xdr.AccountMergeResult, op *Operation) {
 	op.InnerResultCode = int(r.Code)
 	op.Succesful = r.Code == xdr.AccountMergeResultCodeAccountMergeSuccess
+
+	if b, ok := r.GetSourceAccountBalance(); ok {
+		op.ResultSourceAccountBalance = amount.String(b)
+	}
 }
 
 func newManageDataResult(r xdr.ManageDataResult, op *Operation) {

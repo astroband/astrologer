@@ -147,7 +147,8 @@ const opIndex = `
 						"name": { "type": "keyword" },
 						"value": { "type": "keyword" }
 					}
-				}
+				},
+				"result_source_account_balance": { "type": "scaled_float", "scaling_factor": 10000000 }
 			}
 		}
 	}
