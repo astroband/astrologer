@@ -94,7 +94,17 @@ func ingest() {
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
 	} else {
-		h = db.LedgerHeaderNext(*config.StartIngest)
+		if *config.StartIngest > 0 {
+			h = db.LedgerHeaderNext(*config.StartIngest)
+		} else {
+			last := db.LedgerHeaderLastRow()
+
+			if last == nil {
+				log.Fatal("Nothing to ingest")
+			}
+
+			h = db.LedgerHeaderNext(last.LedgerSeq + *config.StartIngest)
+		}
 	}
 
 	if h == nil {

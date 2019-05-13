@@ -30,7 +30,13 @@ You may use starting ledger number as second argument. There are also `--verbose
   ./stellar-core-export ingest
 ```
 
-Will start live ingest from lastest ledger. You may use starting ledger number as second argument.
+Will start live ingest from lastest ledger. You may use starting ledger number as second argument or specify some starting ledger in near past (useful for deployment):
+
+```
+  ./stellar-core-export ingest -- -100
+```
+
+Will start ingestion from current ledger -100
 
 # Postman
 
