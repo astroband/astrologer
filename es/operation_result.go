@@ -57,6 +57,24 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
 	op.InnerResultCode = int(r.Code)
 	op.Succesful = r.Code == xdr.ManageOfferResultCodeManageOfferSuccess
+
+	if s, ok := r.GetSuccess(); ok {
+		claims := make([]OfferClaim, len(s.OffersClaimed))
+		op.ResultOffersClaimed = &claims
+
+		for n := 0; n < len(s.OffersClaimed); n++ {
+			c := s.OffersClaimed[n]
+
+			claims[n] = OfferClaim{
+				AmountSold:   amount.String(c.AmountSold),
+				AmountBought: amount.String(c.AmountBought),
+				AssetSold:    *NewAsset(&c.AssetSold),
+				AssetBought:  *NewAsset(&c.AssetBought),
+				OfferID:      int64(c.OfferId),
+				SellerID:     c.SellerId.Address(),
+			}
+		}
+	}
 }
 
 func newSetOptionsResult(r xdr.SetOptionsResult, op *Operation) {

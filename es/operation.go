@@ -42,6 +42,16 @@ type Signer struct {
 	Weight int    `json:"weight"`
 }
 
+// OfferClaim represents result in ManageOffer []OffersClaimed
+type OfferClaim struct {
+	AmountSold   string `json:"amount_sold"`
+	AmountBought string `json:"amount_bought"`
+	AssetSold    Asset  `json:"asset_sold"`
+	AssetBought  Asset  `json:"asset_bought"`
+	OfferID      int64  `json:"offer_id"`
+	SellerID     string `json:"seller_id"`
+}
+
 // Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                       string             `json:"tx_id"`
@@ -76,6 +86,7 @@ type Operation struct {
 	Data                       *DataEntry         `json:"data,omitempty"`
 	Signer                     *Signer            `json:"signer,omitempty"`
 	ResultSourceAccountBalance string             `json:"result_source_account_balance,omitempty"`
+	ResultOffersClaimed        *[]OfferClaim      `json:"result_offers_claimed,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }
