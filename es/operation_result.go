@@ -1,6 +1,8 @@
 package es
 
 import (
+	"math/big"
+
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
@@ -59,19 +61,36 @@ func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
 	op.Succesful = r.Code == xdr.ManageOfferResultCodeManageOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
-		claims := make([]OfferClaim, len(s.OffersClaimed))
-		op.ResultOffersClaimed = &claims
+		if len(s.OffersClaimed) > 0 {
+			claims := make([]OfferClaim, len(s.OffersClaimed))
+			op.ResultOffersClaimed = &claims
 
-		for n := 0; n < len(s.OffersClaimed); n++ {
-			c := s.OffersClaimed[n]
+			for n := 0; n < len(s.OffersClaimed); n++ {
+				c := s.OffersClaimed[n]
 
-			claims[n] = OfferClaim{
-				AmountSold:   amount.String(c.AmountSold),
-				AmountBought: amount.String(c.AmountBought),
-				AssetSold:    *NewAsset(&c.AssetSold),
-				AssetBought:  *NewAsset(&c.AssetBought),
-				OfferID:      int64(c.OfferId),
-				SellerID:     c.SellerId.Address(),
+				claims[n] = OfferClaim{
+					AmountSold:   amount.String(c.AmountSold),
+					AmountBought: amount.String(c.AmountBought),
+					AssetSold:    *NewAsset(&c.AssetSold),
+					AssetBought:  *NewAsset(&c.AssetBought),
+					OfferID:      int64(c.OfferId),
+					SellerID:     c.SellerId.Address(),
+				}
+			}
+		}
+
+		o := r.Success.Offer.Offer
+		if o != nil {
+			p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+
+			op.ResultOffer = &Offer{
+				Amount:   amount.String(o.Amount),
+				Price:    p,
+				PriceND:  Price{int(o.Price.N), int(o.Price.D)},
+				Buying:   *NewAsset(&o.Buying),
+				Selling:  *NewAsset(&o.Selling),
+				OfferID:  int64(o.OfferId),
+				SellerID: o.SellerId.Address(),
 			}
 		}
 	}

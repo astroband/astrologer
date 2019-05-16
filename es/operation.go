@@ -52,41 +52,54 @@ type OfferClaim struct {
 	SellerID     string `json:"seller_id"`
 }
 
+// Offer represents offer in ManageOffer
+type Offer struct {
+	Amount   string  `json:"amount"`
+	Price    float64 `json:"price"`
+	PriceND  Price   `json:"price_n_d`
+	Selling  Asset   `json:"selling"`
+	Buying   Asset   `json:"buying"`
+	OfferID  int64   `json:"offer_id"`
+	SellerID string  `json:"seller_id"`
+}
+
 // Operation represents ES-serializable transaction
 type Operation struct {
-	TxID                       string             `json:"tx_id"`
-	TxIndex                    byte               `json:"tx_idx"`
-	Index                      byte               `json:"idx"`
-	Seq                        int                `json:"seq"`
-	Order                      int                `json:"order"`
-	CloseTime                  time.Time          `json:"close_time"`
-	Succesful                  bool               `json:"successful"`
-	ResultCode                 int                `json:"result_code"`
-	InnerResultCode            int                `json:"inner_result_code"`
-	TxSourceAccountID          string             `json:"tx_source_account_id"`
-	Type                       string             `json:"type"`
-	SourceAccountID            string             `json:"source_account_id,omitempty"`
-	SourceAsset                *Asset             `json:"source_asset,omitempty"`
-	SourceAmount               string             `json:"source_amount,omitempty"`
-	DestinationAccountID       string             `json:"destination_account_id,omitempty"`
-	DestinationAsset           *Asset             `json:"destination_asset,omitempty"`
-	DestinationAmount          string             `json:"destination_amount,omitempty"`
-	OfferPrice                 float64            `json:"offer_price,omitempty"`
-	OfferPriceND               *Price             `json:"offer_price_n_d,omitempty"`
-	OfferID                    int                `json:"offer_id,omitempty"`
-	TrustLimit                 string             `json:"trust_limit,omitempty"`
-	Authorize                  bool               `json:"authorize,omitempty"`
-	BumpTo                     int                `json:"bump_to,omitempty"`
-	Path                       []*Asset           `json:"path,omitempty"`
-	Thresholds                 *AccountThresholds `json:"thresholds,omitempty"`
-	HomeDomain                 string             `json:"home_domain,omitempty"`
-	InflationDest              string             `json:"inflation_dest_id,omitempty"`
-	SetFlags                   *AccountFlags      `json:"set_flags,omitempty"`
-	ClearFlags                 *AccountFlags      `json:"clear_flags,omitempty"`
-	Data                       *DataEntry         `json:"data,omitempty"`
-	Signer                     *Signer            `json:"signer,omitempty"`
-	ResultSourceAccountBalance string             `json:"result_source_account_balance,omitempty"`
-	ResultOffersClaimed        *[]OfferClaim      `json:"result_offers_claimed,omitempty"`
+	TxID                 string             `json:"tx_id"`
+	TxIndex              byte               `json:"tx_idx"`
+	Index                byte               `json:"idx"`
+	Seq                  int                `json:"seq"`
+	Order                int                `json:"order"`
+	CloseTime            time.Time          `json:"close_time"`
+	Succesful            bool               `json:"successful"`
+	ResultCode           int                `json:"result_code"`
+	InnerResultCode      int                `json:"inner_result_code"`
+	TxSourceAccountID    string             `json:"tx_source_account_id"`
+	Type                 string             `json:"type"`
+	SourceAccountID      string             `json:"source_account_id,omitempty"`
+	SourceAsset          *Asset             `json:"source_asset,omitempty"`
+	SourceAmount         string             `json:"source_amount,omitempty"`
+	DestinationAccountID string             `json:"destination_account_id,omitempty"`
+	DestinationAsset     *Asset             `json:"destination_asset,omitempty"`
+	DestinationAmount    string             `json:"destination_amount,omitempty"`
+	OfferPrice           float64            `json:"offer_price,omitempty"`
+	OfferPriceND         *Price             `json:"offer_price_n_d,omitempty"`
+	OfferID              int                `json:"offer_id,omitempty"`
+	TrustLimit           string             `json:"trust_limit,omitempty"`
+	Authorize            bool               `json:"authorize,omitempty"`
+	BumpTo               int                `json:"bump_to,omitempty"`
+	Path                 []*Asset           `json:"path,omitempty"`
+	Thresholds           *AccountThresholds `json:"thresholds,omitempty"`
+	HomeDomain           string             `json:"home_domain,omitempty"`
+	InflationDest        string             `json:"inflation_dest_id,omitempty"`
+	SetFlags             *AccountFlags      `json:"set_flags,omitempty"`
+	ClearFlags           *AccountFlags      `json:"clear_flags,omitempty"`
+	Data                 *DataEntry         `json:"data,omitempty"`
+	Signer               *Signer            `json:"signer,omitempty"`
+
+	ResultSourceAccountBalance string        `json:"result_source_account_balance,omitempty"`
+	ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
+	ResultOffer                *Offer        `json:"result_offer,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }
