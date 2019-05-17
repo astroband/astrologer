@@ -102,6 +102,10 @@ type Operation struct {
 	ResultOffer                *Offer        `json:"result_offer,omitempty"`
 	ResultOfferEffect          string        `json:"result_offer_effect,omitempty"`
 
+	ResultLastAmount      string `json:"result_last_amount,omitempty"`
+	ResultLastAsset       *Asset `json:"result_last_asset,omitempty"`
+	ResultLastDestination string `json:"result_last_destination,omitempty"`
+
 	*Memo `json:"memo,omitempty"`
 }
 

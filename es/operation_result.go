@@ -57,6 +57,10 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 
 	if s, ok := r.GetSuccess(); ok {
 		op.ResultOffersClaimed = appendOffersClaimed(s.Offers)
+
+		op.ResultLastAmount = amount.String(s.Last.Amount)
+		op.ResultLastAsset = NewAsset(&s.Last.Asset)
+		op.ResultLastDestination = s.Last.Destination.Address()
 	}
 }
 
