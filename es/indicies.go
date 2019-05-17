@@ -148,11 +148,42 @@ const opIndex = `
 						"value": { "type": "keyword" }
 					}
 				},
-				"result_source_account_balance": { "type": "scaled_float", "scaling_factor": 10000000 }
+				"result_source_account_balance": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"result_offer": {
+					"properties": {
+						"amount": { "type": "scaled_float", "scaling_factor": 10000000 },
+						"price": { "type": "scaled_float", "scaling_factor": 10000000 },
+						"price_n_d": {
+							"properties": {
+								"n": { "type": "integer" },
+								"d": { "type": "integer" }
+							}
+						},
+						"selling": {
+							"properties": {
+								"key": { "type": "keyword" },
+								"code": { "type": "keyword" },
+								"issuer": { "type": "keyword" }
+							}
+						},
+						"buying": {
+							"properties": {
+								"key": { "type": "keyword" },
+								"code": { "type": "keyword" },
+								"issuer": { "type": "keyword" }
+							}
+						},
+						"offer_id": { "type": "long" },
+						"seller_id": { "type": "keyword" }
+					}
+				},
+				"result_offer_effect": { "type": "keyword" }
 			}
 		}
 	}
 `
+
+//					ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
 
 const balanceIndex = `
 	{
