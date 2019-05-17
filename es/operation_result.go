@@ -77,20 +77,19 @@ func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
 					SellerID:     c.SellerId.Address(),
 				}
 			}
-		}
 
-		o := r.Success.Offer.Offer
-		if o != nil {
-			p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+			if o, ok := s.Offer.GetOffer(); ok {
+				p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
 
-			op.ResultOffer = &Offer{
-				Amount:   amount.String(o.Amount),
-				Price:    p,
-				PriceND:  Price{int(o.Price.N), int(o.Price.D)},
-				Buying:   *NewAsset(&o.Buying),
-				Selling:  *NewAsset(&o.Selling),
-				OfferID:  int64(o.OfferId),
-				SellerID: o.SellerId.Address(),
+				op.ResultOffer = &Offer{
+					Amount:   amount.String(o.Amount),
+					Price:    p,
+					PriceND:  Price{int(o.Price.N), int(o.Price.D)},
+					Buying:   *NewAsset(&o.Buying),
+					Selling:  *NewAsset(&o.Selling),
+					OfferID:  int64(o.OfferId),
+					SellerID: o.SellerId.Address(),
+				}
 			}
 		}
 	}
