@@ -30,6 +30,28 @@ var (
 		OverrideDefaultFromEnvar("ES_URL").
 		URL()
 
+	// IndexConcurrency How many tasks and goroutines to produce (all at once for now)
+	IndexConcurrency = kingpin.
+				Flag("index-concurrency", "Concurrency for indexing").
+				Short('c').
+				Default("3").
+				OverrideDefaultFromEnvar("INDEX_CONCURRENCY").
+				Int()
+
+	// FetchConcurrency How many tasks and goroutines to produce (all at once for now)
+	FetchConcurrency = exportCommand.
+				Flag("fetch-concurrency", "Concurrency for fetching").
+				Short('f').
+				Default("3").
+				OverrideDefaultFromEnvar("FETCH_CONCURRENCY").
+				Int()
+
+	// BatchSize Batch size for bulk export
+	BatchSize = exportCommand.
+			Flag("batch", "Ledger batch size").
+			Default("50").
+			Int()
+
 	// Start ledger to start with
 	Start = exportCommand.Arg("start", "Ledger to start indexing").Default("0").Int()
 

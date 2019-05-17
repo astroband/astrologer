@@ -9,7 +9,7 @@ import (
 )
 
 // LedgerHeaderRowBatchSize used in LedgerHeaderRowFetchBatch
-var LedgerHeaderRowBatchSize = 100
+var LedgerHeaderRowBatchSize = *config.BatchSize
 
 // LedgerHeaderRow is struct representing ledger in database
 type LedgerHeaderRow struct {

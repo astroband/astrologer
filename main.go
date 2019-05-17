@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	async = nasync.New(10, 10)
+	indexPool = nasync.New(*config.IndexConcurrency, *config.IndexConcurrency)
+	fetchPool = nasync.New(*config.FetchConcurrency, *config.FetchConcurrency)
 )
 
 func main() {
@@ -42,11 +43,38 @@ func index(b *bytes.Buffer, n int) {
 
 		log.Println("Retrying ", n)
 		time.Sleep(5 * time.Second)
-		async.Do(index, b, n+1)
+		indexPool.Do(index, b, n+1)
+	}
+}
+
+func fetch(i int, bar *pb.ProgressBar) {
+	var b bytes.Buffer
+
+	rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
+
+	for n := 0; n < len(rows); n++ {
+		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
+
+		es.MakeBulk(rows[n], txs, &b)
+
+		if !*config.Verbose {
+			bar.Increment()
+		}
+	}
+
+	if *config.Verbose {
+		log.Println(b.String())
+	}
+
+	if !*config.DryRun {
+		indexPool.Do(index, &b, 0)
 	}
 }
 
 func export() {
+	defer indexPool.Close()
+	defer fetchPool.Close()
+
 	count := db.LedgerHeaderRowCount(*config.Start)
 	bar := pb.StartNew(count)
 
@@ -55,30 +83,8 @@ func export() {
 		blocks = blocks + 1
 	}
 
-	defer async.Close()
-
 	for i := 0; i < blocks; i++ {
-		var b bytes.Buffer
-
-		rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
-
-		for n := 0; n < len(rows); n++ {
-			txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
-
-			es.MakeBulk(rows[n], txs, &b)
-
-			if !*config.Verbose {
-				bar.Increment()
-			}
-		}
-
-		if *config.Verbose {
-			log.Println(b.String())
-		}
-
-		if !*config.DryRun {
-			async.Do(index, &b, 0)
-		}
+		fetchPool.Do(fetch, i, bar)
 	}
 
 	if !*config.Verbose {
@@ -89,7 +95,7 @@ func export() {
 func ingest() {
 	var h *db.LedgerHeaderRow
 
-	defer async.Close()
+	defer indexPool.Close()
 
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
@@ -120,7 +126,7 @@ func ingest() {
 		txs := db.TxHistoryRowForSeq(seq)
 		es.MakeBulk(*h, txs, &b)
 
-		async.Do(index, &b, 0)
+		indexPool.Do(index, &b, 0)
 
 		log.Println("Ledger", seq, "ingested.")
 
