@@ -100,6 +100,7 @@ type Operation struct {
 	ResultSourceAccountBalance string        `json:"result_source_account_balance,omitempty"`
 	ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
 	ResultOffer                *Offer        `json:"result_offer,omitempty"`
+	ResultOfferEffect          string        `json:"result_offer_effect,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }

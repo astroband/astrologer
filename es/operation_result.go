@@ -90,6 +90,8 @@ func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
 					OfferID:  int64(o.OfferId),
 					SellerID: o.SellerId.Address(),
 				}
+
+				op.ResultOfferEffect = s.Offer.Effect.String()
 			}
 		}
 	}
