@@ -183,7 +183,9 @@ const opIndex = `
 	}
 `
 
-//					ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
+// TODO: ResultOffersClaimed should be defined, but I am not yet sure will it be practical to make it
+// nested or array
+// ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
 
 const balanceIndex = `
 	{
