@@ -105,6 +105,7 @@ type Operation struct {
 	ResultLastAmount      string `json:"result_last_amount,omitempty"`
 	ResultLastAsset       *Asset `json:"result_last_asset,omitempty"`
 	ResultLastDestination string `json:"result_last_destination,omitempty"`
+	ResultNoIssuer        *Asset `json:"result_no_issuer,omitempty"`
 
 	*Memo `json:"memo,omitempty"`
 }

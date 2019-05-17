@@ -62,6 +62,10 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 		op.ResultLastAsset = NewAsset(&s.Last.Asset)
 		op.ResultLastDestination = s.Last.Destination.Address()
 	}
+
+	if a, ok := r.GetNoIssuer(); ok {
+		op.ResultNoIssuer = NewAsset(&a)
+	}
 }
 
 func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
