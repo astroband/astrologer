@@ -71,14 +71,15 @@ func fetch(i int, bar *progressbar.ProgressBar) {
 }
 
 func export() {
-	count := db.LedgerHeaderRowCount(*config.Start)
+	count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
+
 	bar := progressbar.NewOptions(
 		count,
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionShowCount(),
 		progressbar.OptionThrottle(500*time.Millisecond),
 		progressbar.OptionSetRenderBlankState(true),
-		progressbar.OptionSetWidth(120),
+		progressbar.OptionSetWidth(100),
 	)
 
 	blocks := count / db.LedgerHeaderRowBatchSize

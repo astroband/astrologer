@@ -47,6 +47,9 @@ var (
 	// Start ledger to start with
 	Start = exportCommand.Arg("start", "Ledger to start indexing").Default("0").Int()
 
+	// Count ledgers
+	Count = exportCommand.Arg("coung", "Count of ledgers to ingest").Default("0").Int()
+
 	// StartIngest ledger to start with ingesting
 	StartIngest = ingestCommand.Arg("start", "Ledger to start ingesting").Int()
 

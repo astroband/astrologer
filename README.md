@@ -22,7 +22,9 @@ Use `--force` flag to force recreate from scratch.
   ./stellar-core-export export
 ```
 
-You may use starting ledger number as second argument. There are also `--verbose` and `--dry-run` flags for debug purposes.
+You may use starting ledger number as second argument and ledger count as third. Note that real ledger count will be related to `--batch` parameter value, eg. if you specify start 0, count 150 and batch 100, 200 ledgers will be exported.
+
+There are also `--verbose` and `--dry-run` flags for debug purposes.
 
 # Ingest
 

@@ -22,10 +22,16 @@ type LedgerHeaderRow struct {
 }
 
 // LedgerHeaderRowCount returns total ledgers count
-func LedgerHeaderRowCount(start int) int {
-	count := 0
-	config.DB.Get(&count, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", start)
-	return count
+func LedgerHeaderRowCount(start int, count int) int {
+	total := 0
+
+	if count == 0 {
+		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", start)
+	} else {
+		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1 AND ledgerseq <= $2", start, start+count-1)
+	}
+
+	return total
 }
 
 // LedgerHeaderRowFetchBatch gets bunch of ledgers
