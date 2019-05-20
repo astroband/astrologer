@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/Masterminds/squirrel"
-  packages = ["."]
-  revision = "fa735ea14f09f8685fcf5e75db091feb5a410730"
-  version = "v1.1"
-
-[[projects]]
   branch = "master"
   name = "github.com/alecthomas/template"
   packages = [".","parse"]
@@ -18,6 +12,12 @@
   name = "github.com/alecthomas/units"
   packages = ["."]
   revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
+  name = "github.com/borderstech/artifex"
+  packages = ["."]
+  revision = "39e20eb3448baa35af658eda9ee3e6d680d1bfe0"
+  version = "v0.3"
 
 [[projects]]
   branch = "master"
@@ -39,33 +39,27 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/lann/builder"
-  packages = ["."]
-  revision = "47ae307949d02aa1f1069fdafc00ca08e1dbabac"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/lann/ps"
-  packages = ["."]
-  revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
-
-[[projects]]
-  branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid"]
   revision = "d6156e141ac6c06345c7c73f450987a9ed4b751f"
 
 [[projects]]
-  name = "github.com/mattn/go-runewidth"
+  branch = "master"
+  name = "github.com/mitchellh/colorstring"
   packages = ["."]
-  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
-  version = "v0.0.4"
+  revision = "d06e56a500db4d08c33db0b79461e7c9beafca2d"
 
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
+
+[[projects]]
+  name = "github.com/schollz/progressbar"
+  packages = ["."]
+  revision = "6aa2ca5bbf34895dfac0f83003ddb34c9eea4f41"
+  version = "v2.13.0"
 
 [[projects]]
   branch = "master"
@@ -80,32 +74,14 @@
   revision = "0bc96f33a18ef2f963e75431dbed042129eb421b"
 
 [[projects]]
-  name = "github.com/ti/nasync"
-  packages = ["."]
-  revision = "fbdc899e4b68dad62952342ee3fb64a6db4d38dc"
-  version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
-
-[[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
   packages = ["."]
   revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
   version = "v2.2.6"
 
-[[projects]]
-  name = "gopkg.in/cheggaaa/pb.v1"
-  packages = ["."]
-  revision = "f907f6f5dd81f77c2bbc1cde92e4c5a04720cb11"
-  version = "v1.0.28"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "849c9f5ebf7afc52b233e5a5880259156dd65bdcdacac42f066a7d8654bcfa83"
+  inputs-digest = "c2b1ad00b23309dc93cca0e1ed7138c3c9a053901744cbb31d1267cafe874db9"
   solver-name = "gps-cdcl"
   solver-version = 1

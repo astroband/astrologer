@@ -3,10 +3,6 @@ name = "github.com/stellar/go"
 branch = "master"
 
 [[constraint]]
-name = "gopkg.in/cheggaaa/pb.v1"
-version = "v1"
-
-[[constraint]]
 name = "github.com/lib/pq"
 branch = "master"
 

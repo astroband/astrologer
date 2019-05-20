@@ -5,16 +5,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/borderstech/artifex"
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
-	"github.com/ti/nasync"
-	"gopkg.in/cheggaaa/pb.v1"
+	"github.com/schollz/progressbar"
 )
 
 var (
-	indexPool = nasync.New(*config.IndexConcurrency, *config.IndexConcurrency)
-	fetchPool = nasync.New(*config.FetchConcurrency, *config.FetchConcurrency)
+	indexPool = artifex.NewDispatcher(*config.IndexConcurrency, 500)
+	fetchPool = artifex.NewDispatcher(*config.FetchConcurrency, 10)
 )
 
 func main() {
@@ -41,13 +41,11 @@ func index(b *bytes.Buffer, n int) {
 			log.Fatal("5 retries for bulk failed, aborting")
 		}
 
-		log.Println("Retrying ", n)
-		time.Sleep(5 * time.Second)
-		indexPool.Do(index, b, n+1)
+		indexPool.DispatchIn(func() { index(b, n+1) }, 10*time.Second)
 	}
 }
 
-func fetch(i int, bar *pb.ProgressBar) {
+func fetch(i int, bar *progressbar.ProgressBar) {
 	var b bytes.Buffer
 
 	rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
@@ -58,7 +56,7 @@ func fetch(i int, bar *pb.ProgressBar) {
 		es.MakeBulk(rows[n], txs, &b)
 
 		if !*config.Verbose {
-			bar.Increment()
+			bar.Add(1)
 		}
 	}
 
@@ -67,16 +65,27 @@ func fetch(i int, bar *pb.ProgressBar) {
 	}
 
 	if !*config.DryRun {
-		indexPool.Do(index, &b, 0)
+		b := b
+		indexPool.Dispatch(func() { index(&b, 0) })
 	}
 }
 
 func export() {
-	defer indexPool.Close()
-	defer fetchPool.Close()
+	defer indexPool.Stop()
+	defer fetchPool.Stop()
+
+	fetchPool.Start()
+	indexPool.Start()
 
 	count := db.LedgerHeaderRowCount(*config.Start)
-	bar := pb.StartNew(count)
+	bar := progressbar.NewOptions(
+		count,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowCount(),
+		progressbar.OptionThrottle(500*time.Millisecond),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionSetWidth(120),
+	)
 
 	blocks := count / db.LedgerHeaderRowBatchSize
 	if count%db.LedgerHeaderRowBatchSize > 0 {
@@ -84,7 +93,8 @@ func export() {
 	}
 
 	for i := 0; i < blocks; i++ {
-		fetchPool.Do(fetch, i, bar)
+		i := i
+		fetchPool.Dispatch(func() { fetch(i, bar) })
 	}
 
 	if !*config.Verbose {
@@ -95,7 +105,7 @@ func export() {
 func ingest() {
 	var h *db.LedgerHeaderRow
 
-	defer indexPool.Close()
+	defer indexPool.Stop()
 
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
@@ -126,7 +136,7 @@ func ingest() {
 		txs := db.TxHistoryRowForSeq(seq)
 		es.MakeBulk(*h, txs, &b)
 
-		indexPool.Do(index, &b, 0)
+		indexPool.Dispatch(func() { index(&b, 0) })
 
 		log.Println("Ledger", seq, "ingested.")
 
