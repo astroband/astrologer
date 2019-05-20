@@ -1,17 +1,17 @@
-# stellar-core-export
+# Astrologer
 
 Exports historical data to ElasticSearch storage (some data are still WIP).
 
 # Installation
 
 ```
-  go get git@github.com/astroband/stellar-core-export
+  go get git@github.com/astroband/astrologer
 ```
 
 # Creating indexes
 
 ```
-  ./stellar-core-export create-indexes
+  ./astrologer create-indexes
 ```
 
 Use `--force` flag to force recreate from scratch.
@@ -19,7 +19,7 @@ Use `--force` flag to force recreate from scratch.
 # Export from scratch
 
 ```
-  ./stellar-core-export export
+  ./astrologer export
 ```
 
 You may use starting ledger number as second argument and ledger count as third. Note that real ledger count will be related to `--batch` parameter value, eg. if you specify start 0, count 150 and batch 100, 200 ledgers will be exported.
@@ -29,13 +29,13 @@ There are also `--verbose` and `--dry-run` flags for debug purposes.
 # Ingest
 
 ```
-  ./stellar-core-export ingest
+  ./astrologer ingest
 ```
 
 Will start live ingest from lastest ledger. You may use starting ledger number as second argument or specify some starting ledger in near past (useful for deployment):
 
 ```
-  ./stellar-core-export ingest -- -100
+  ./astrologer ingest -- -100
 ```
 
 Will start ingestion from current ledger -100

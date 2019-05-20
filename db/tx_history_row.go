@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/guregu/null"
-	"github.com/gzigzigzeo/stellar-core-export/config"
+	"github.com/astroband/astrologer/config"
 	"github.com/stellar/go/xdr"
 )
 

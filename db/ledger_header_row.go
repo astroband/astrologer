@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/gzigzigzeo/stellar-core-export/config"
+	"github.com/astroband/astrologer/config"
 	"github.com/stellar/go/xdr"
 )
 

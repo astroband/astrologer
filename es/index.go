@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/elastic/go-elasticsearch/esapi"
-	"github.com/gzigzigzeo/stellar-core-export/config"
+	"github.com/astroband/astrologer/config"
 )
 
 // BulkIndex calls elasticsearch bulk indexing API

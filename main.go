@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/gammazero/workerpool"
-	"github.com/gzigzigzeo/stellar-core-export/config"
-	"github.com/gzigzigzeo/stellar-core-export/db"
-	"github.com/gzigzigzeo/stellar-core-export/es"
+	"github.com/astroband/astrologer/config"
+	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/es"
 	"github.com/schollz/progressbar"
 )
 

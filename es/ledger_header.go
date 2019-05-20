@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gzigzigzeo/stellar-core-export/db"
+	"github.com/astroband/astrologer/db"
 )
 
 // LedgerHeader represents json-serializable struct for LedgerHeader to index

@@ -3,7 +3,7 @@ package es
 import (
 	"time"
 
-	"github.com/gzigzigzeo/stellar-core-export/db"
+	"github.com/astroband/astrologer/db"
 	"github.com/stellar/go/xdr"
 )
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gzigzigzeo/stellar-core-export/config"
+	"github.com/astroband/astrologer/config"
 )
 
 const ledgerHeaderIndex = `
