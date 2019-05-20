@@ -30,21 +30,13 @@ var (
 		OverrideDefaultFromEnvar("ES_URL").
 		URL()
 
-	// IndexConcurrency How many tasks and goroutines to produce (all at once for now)
-	IndexConcurrency = kingpin.
-				Flag("index-concurrency", "Concurrency for indexing").
-				Short('c').
-				Default("3").
-				OverrideDefaultFromEnvar("INDEX_CONCURRENCY").
-				Int()
-
-	// FetchConcurrency How many tasks and goroutines to produce (all at once for now)
-	FetchConcurrency = exportCommand.
-				Flag("fetch-concurrency", "Concurrency for fetching").
-				Short('f').
-				Default("3").
-				OverrideDefaultFromEnvar("FETCH_CONCURRENCY").
-				Int()
+	// Concurrency How many tasks and goroutines to produce (all at once for now)
+	Concurrency = kingpin.
+			Flag("concurrency", "Concurrency for indexing").
+			Short('c').
+			Default("5").
+			OverrideDefaultFromEnvar("CONCURRENCY").
+			Int()
 
 	// BatchSize Batch size for bulk export
 	BatchSize = exportCommand.

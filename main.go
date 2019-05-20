@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/borderstech/artifex"
+	"github.com/gammazero/workerpool"
 	"github.com/gzigzigzeo/stellar-core-export/config"
 	"github.com/gzigzigzeo/stellar-core-export/db"
 	"github.com/gzigzigzeo/stellar-core-export/es"
@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	indexPool = artifex.NewDispatcher(*config.IndexConcurrency, 500)
-	fetchPool = artifex.NewDispatcher(*config.FetchConcurrency, 10)
+	pool = workerpool.New(*config.Concurrency)
 )
 
 func main() {
@@ -41,7 +40,9 @@ func index(b *bytes.Buffer, n int) {
 			log.Fatal("5 retries for bulk failed, aborting")
 		}
 
-		indexPool.DispatchIn(func() { index(b, n+1) }, 10*time.Second)
+		time.Sleep(15 * time.Second)
+
+		index(b, n+1)
 	}
 }
 
@@ -65,18 +66,11 @@ func fetch(i int, bar *progressbar.ProgressBar) {
 	}
 
 	if !*config.DryRun {
-		b := b
-		indexPool.Dispatch(func() { index(&b, 0) })
+		index(&b, 0)
 	}
 }
 
 func export() {
-	defer indexPool.Stop()
-	defer fetchPool.Stop()
-
-	fetchPool.Start()
-	indexPool.Start()
-
 	count := db.LedgerHeaderRowCount(*config.Start)
 	bar := progressbar.NewOptions(
 		count,
@@ -94,8 +88,10 @@ func export() {
 
 	for i := 0; i < blocks; i++ {
 		i := i
-		fetchPool.Dispatch(func() { fetch(i, bar) })
+		pool.Submit(func() { fetch(i, bar) })
 	}
+
+	pool.StopWait()
 
 	if !*config.Verbose {
 		bar.Finish()
@@ -104,8 +100,6 @@ func export() {
 
 func ingest() {
 	var h *db.LedgerHeaderRow
-
-	defer indexPool.Stop()
 
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
@@ -136,7 +130,7 @@ func ingest() {
 		txs := db.TxHistoryRowForSeq(seq)
 		es.MakeBulk(*h, txs, &b)
 
-		indexPool.Dispatch(func() { index(&b, 0) })
+		pool.Submit(func() { index(&b, 0) })
 
 		log.Println("Ledger", seq, "ingested.")
 
