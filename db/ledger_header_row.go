@@ -21,6 +21,11 @@ type LedgerHeaderRow struct {
 	Data           xdr.LedgerHeader `db:"data"`
 }
 
+type Gap struct {
+	Start int `db:"gap_start"`
+	End   int `db:"gap_end"`
+}
+
 // LedgerHeaderRowCount returns total ledgers count
 func LedgerHeaderRowCount(start int, count int) int {
 	total := 0
@@ -70,6 +75,23 @@ func LedgerHeaderLastRow() *LedgerHeaderRow {
 	return &h
 }
 
+// LedgerHeaderFirstRow returns lastest first ledger in the database
+func LedgerHeaderFirstRow() *LedgerHeaderRow {
+	var h LedgerHeaderRow
+
+	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq ASC LIMIT 1")
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+
+		log.Fatal(err)
+	}
+
+	return &h
+}
+
 // LedgerHeaderNext returns next ledger to fetch
 func LedgerHeaderNext(seq int) *LedgerHeaderRow {
 	var h LedgerHeaderRow
@@ -85,4 +107,22 @@ func LedgerHeaderNext(seq int) *LedgerHeaderRow {
 	}
 
 	return &h
+}
+
+// LedgerHeaderGaps returns gap positions in ledgerheaders
+func LedgerHeaderGaps() (r []Gap) {
+	err := config.DB.Select(&r, `
+		SELECT ledgerseq + 1 AS gap_start, next_nr - 1 AS gap_end
+		FROM (
+  		SELECT ledgerseq, LEAD(ledgerseq) OVER (ORDER BY ledgerseq) AS next_nr
+  		FROM ledgerheaders
+		) nr
+		WHERE ledgerseq + 1 <> next_nr
+	`)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return r
 }

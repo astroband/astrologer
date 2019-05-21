@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/astroband/astrologer/commands"
 	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
@@ -18,6 +19,8 @@ var (
 
 func main() {
 	switch config.Command {
+	case "stats":
+		commands.Stats()
 	case "create-index":
 		es.CreateIndicies()
 		log.Println("Indicies created successfully!")
@@ -86,6 +89,8 @@ func export() {
 		progressbar.OptionSetRenderBlankState(true),
 		progressbar.OptionSetWidth(100),
 	)
+
+	bar.RenderBlank()
 
 	blocks := count / db.LedgerHeaderRowBatchSize
 	if count%db.LedgerHeaderRowBatchSize > 0 {
