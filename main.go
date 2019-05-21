@@ -10,7 +10,6 @@ import (
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
 	"github.com/gammazero/workerpool"
-	"github.com/schollz/progressbar"
 )
 
 var (
@@ -46,68 +45,6 @@ func index(b *bytes.Buffer, n int) {
 		time.Sleep(15 * time.Second)
 
 		index(b, n+1)
-	}
-}
-
-func fetch(i int, bar *progressbar.ProgressBar) {
-	var b bytes.Buffer
-
-	//*config.Start
-	rows := db.LedgerHeaderRowFetchBatch(i, 0)
-
-	for n := 0; n < len(rows); n++ {
-		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
-		fees := db.TxFeeHistoryRowsForRows(txs)
-
-		es.MakeBulk(rows[n], txs, fees, &b)
-
-		if !*config.Verbose {
-			bar.Add(1)
-		}
-	}
-
-	if *config.Verbose {
-		log.Println(b.String())
-	}
-
-	if !*config.DryRun {
-		index(&b, 0)
-	}
-}
-
-func export() {
-	//count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
-	count := 0
-
-	if count == 0 {
-		log.Fatal("Nothing to export!")
-	}
-
-	bar := progressbar.NewOptions(
-		count,
-		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionShowCount(),
-		progressbar.OptionThrottle(500*time.Millisecond),
-		progressbar.OptionSetRenderBlankState(true),
-		progressbar.OptionSetWidth(100),
-	)
-
-	bar.RenderBlank()
-
-	blocks := count / db.LedgerHeaderRowBatchSize
-	if count%db.LedgerHeaderRowBatchSize > 0 {
-		blocks = blocks + 1
-	}
-
-	for i := 0; i < blocks; i++ {
-		i := i
-		pool.Submit(func() { fetch(i, bar) })
-	}
-
-	pool.StopWait()
-
-	if !*config.Verbose {
-		bar.Finish()
 	}
 }
 
