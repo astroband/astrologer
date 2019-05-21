@@ -51,3 +51,19 @@ See `es.postman_collection.json`
 # Check cluster storage size
 
 ```curl localhost:9200/_cluster/stats?human\&pretty | more```
+
+# Stats
+
+```
+  ./astrologer stats
+
+  +----------+----------+--------+
+  |   MIN    |   MAX    | COUNT  |
+  +----------+----------+--------+
+  |       10 |       10 |      1 |
+  |       22 |       22 |      1 |
+  | 23268991 | 23368992 | 100002 |
+  +----------+----------+--------+
+  |             TOTAL   | 100004 |
+  +----------+----------+--------+
+```
