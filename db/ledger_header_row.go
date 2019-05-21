@@ -21,19 +21,20 @@ type LedgerHeaderRow struct {
 	Data           xdr.LedgerHeader `db:"data"`
 }
 
+// Gap represents gap in ledger sequence
 type Gap struct {
 	Start int `db:"gap_start"`
 	End   int `db:"gap_end"`
 }
 
-// LedgerHeaderRowCount returns total ledgers count
-func LedgerHeaderRowCount(start int, count int) int {
+// LedgerHeaderRowCount returns total ledgers count within given range
+func LedgerHeaderRowCount(first int, last int) int {
 	total := 0
 
-	if count == 0 {
-		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", start)
+	if last == 0 {
+		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", first)
 	} else {
-		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1 AND ledgerseq <= $2", start, start+count-1)
+		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1 AND ledgerseq <= $2", first, last)
 	}
 
 	return total

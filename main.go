@@ -25,7 +25,7 @@ func main() {
 		es.CreateIndicies()
 		log.Println("Indicies created successfully!")
 	case "export":
-		export()
+		commands.Export()
 	case "ingest":
 		ingest()
 	}
@@ -52,7 +52,8 @@ func index(b *bytes.Buffer, n int) {
 func fetch(i int, bar *progressbar.ProgressBar) {
 	var b bytes.Buffer
 
-	rows := db.LedgerHeaderRowFetchBatch(i, *config.Start)
+	//*config.Start
+	rows := db.LedgerHeaderRowFetchBatch(i, 0)
 
 	for n := 0; n < len(rows); n++ {
 		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
@@ -75,7 +76,8 @@ func fetch(i int, bar *progressbar.ProgressBar) {
 }
 
 func export() {
-	count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
+	//count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
+	count := 0
 
 	if count == 0 {
 		log.Fatal("Nothing to export!")

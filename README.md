@@ -19,7 +19,13 @@ Use `--force` flag to force recreate from scratch.
 # Export from scratch
 
 ```
-  ./astrologer export
+  ./astrologer export                 # Export everything
+  ./astrologer export 23269090        # Start at ledger 23269090
+  ./astrologer export 23269090 100    # 100 ledgers starting with 23269090
+  ./astrologer export +1000           # Skip first 1000 ledgers
+  ./astrologer export +1000 1000      # Skip first 1000 ledgers, limit to 1000
+  ./astrologer export -- -1000        # Last 1000 ledgers
+  ./astrologer export -- -1000 500    # 500 ledgers, offset -1000 from last
 ```
 
 You may use starting ledger number as second argument and ledger count as third. Note that real ledger count will be related to `--batch` parameter value, eg. if you specify start 0, count 150 and batch 100, 200 ledgers will be exported.
@@ -53,6 +59,8 @@ See `es.postman_collection.json`
 ```curl localhost:9200/_cluster/stats?human\&pretty | more```
 
 # Stats
+
+Reports ledger segments existing in database.
 
 ```
   ./astrologer stats
