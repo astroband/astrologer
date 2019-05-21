@@ -9,7 +9,7 @@ import (
 )
 
 // MakeBulk builds for bulk indexing
-func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, b *bytes.Buffer) {
+func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistoryRow, b *bytes.Buffer) {
 	h := NewLedgerHeader(&r)
 	SerializeForBulk(h, b)
 
@@ -40,11 +40,22 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, b *bytes.Buffer) {
 		}
 
 		for o := 0; o < len(metas); o++ {
-			id := fmt.Sprintf("%v:%v:%v", h.Seq, t, o)
-			bl := ExtractBalances(metas[o].Changes, h.CloseTime, id)
+			id := fmt.Sprintf("%v:%v:%v:changes", h.Seq, t, o)
+			bl := ExtractBalances(metas[o].Changes, h.CloseTime, id, BalanceSourceMeta)
 			for _, balance := range bl {
 				SerializeForBulk(balance, b)
 			}
+		}
+	}
+
+	for o := 0; o < len(fees); o++ {
+		fee := fees[o]
+
+		id := fmt.Sprintf("%v:%v:fees", fee.LedgerSeq, fee.Index)
+		bl := ExtractBalances(fee.Changes, h.CloseTime, id, BalanceSourceFee)
+
+		for _, balance := range bl {
+			SerializeForBulk(balance, b)
 		}
 	}
 }

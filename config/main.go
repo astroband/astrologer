@@ -41,6 +41,7 @@ var (
 	// BatchSize Batch size for bulk export
 	BatchSize = exportCommand.
 			Flag("batch", "Ledger batch size").
+			Short('b').
 			Default("50").
 			Int()
 

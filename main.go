@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/gammazero/workerpool"
 	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
+	"github.com/gammazero/workerpool"
 	"github.com/schollz/progressbar"
 )
 
@@ -53,8 +53,9 @@ func fetch(i int, bar *progressbar.ProgressBar) {
 
 	for n := 0; n < len(rows); n++ {
 		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
+		fees := db.TxFeeHistoryRowsForRows(txs)
 
-		es.MakeBulk(rows[n], txs, &b)
+		es.MakeBulk(rows[n], txs, fees, &b)
 
 		if !*config.Verbose {
 			bar.Add(1)
@@ -72,6 +73,10 @@ func fetch(i int, bar *progressbar.ProgressBar) {
 
 func export() {
 	count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
+
+	if count == 0 {
+		log.Fatal("Nothing to export!")
+	}
 
 	bar := progressbar.NewOptions(
 		count,
@@ -129,7 +134,8 @@ func ingest() {
 		var seq = h.LedgerSeq
 
 		txs := db.TxHistoryRowForSeq(seq)
-		es.MakeBulk(*h, txs, &b)
+		fees := db.TxFeeHistoryRowsForRows(txs)
+		es.MakeBulk(*h, txs, fees, &b)
 
 		pool.Submit(func() { index(&b, 0) })
 
