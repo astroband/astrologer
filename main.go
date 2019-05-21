@@ -21,8 +21,7 @@ func main() {
 	case "stats":
 		commands.Stats()
 	case "create-index":
-		es.CreateIndicies()
-		log.Println("Indicies created successfully!")
+		commands.CreateIndex()
 	case "export":
 		commands.Export()
 	case "ingest":
