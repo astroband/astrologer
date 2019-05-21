@@ -123,6 +123,10 @@ func parseNumberWithSign(value string) (r NumberWithSign, err error) {
 }
 
 func parseStart() {
+	if *start == "" {
+		return
+	}
+
 	s, err := parseNumberWithSign(*start)
 	if err != nil {
 		log.Fatal("Error parsing start value", err)

@@ -1,21 +1,28 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"math/rand"
+	"time"
+
+	"github.com/schollz/progressbar"
 
 	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/es"
 	"github.com/gammazero/workerpool"
 )
 
 var (
-	pool = workerpool.New(*config.Concurrency)
+	pool        = workerpool.New(*config.Concurrency)
+	bar         *progressbar.ProgressBar
+	first, last = getRange()
 )
 
 // Export command
 func Export() {
-	first, last := getRange()
 	total := db.LedgerHeaderRowCount(first, last)
 
 	if total == 0 {
@@ -23,6 +30,60 @@ func Export() {
 	}
 
 	fmt.Println("Exporting ledgers from", first, "to", last, "total", total)
+
+	createBar(total)
+
+	for i := 0; i < blockCount(total); i++ {
+		i := i
+		pool.Submit(func() { exportBlock(i) })
+	}
+
+	pool.StopWait()
+	finishBar()
+}
+
+func exportBlock(i int) {
+	var b bytes.Buffer
+
+	rows := db.LedgerHeaderRowFetchBatch(i, first)
+
+	for n := 0; n < len(rows); n++ {
+		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
+		fees := db.TxFeeHistoryRowsForRows(txs)
+
+		es.MakeBulk(rows[n], txs, fees, &b)
+
+		if !*config.Verbose {
+			bar.Add(1)
+		}
+	}
+
+	if *config.Verbose {
+		log.Println(b.String())
+	}
+
+	if !*config.DryRun {
+		index(&b, 0)
+	}
+}
+
+func index(b *bytes.Buffer, retry int) {
+	res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+
+	if res != nil {
+		defer res.Body.Close()
+	}
+
+	if err != nil || res.IsError() {
+		if retry > 5 {
+			log.Fatal("5 retries for bulk failed, aborting")
+		}
+
+		delay := time.Duration((rand.Intn(10) + 5))
+		time.Sleep(delay * time.Second)
+
+		index(b, retry+1)
+	}
 }
 
 // Parses range of export command
@@ -51,39 +112,31 @@ func getRange() (first int, last int) {
 	return first, last
 }
 
-// func (*Export) Do() {
-// count := db.LedgerHeaderRowCount(*config.Start, *config.Count)
+func createBar(count int) {
+	bar = progressbar.NewOptions(
+		count,
+		progressbar.OptionEnableColorCodes(false),
+		progressbar.OptionShowCount(),
+		progressbar.OptionThrottle(500*time.Millisecond),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionSetWidth(100),
+	)
 
-// if count == 0 {
-// 	log.Fatal("Nothing to export!")
-// }
+	bar.RenderBlank()
+}
 
-// bar := progressbar.NewOptions(
-// 	count,
-// 	progressbar.OptionEnableColorCodes(true),
-// 	progressbar.OptionShowCount(),
-// 	progressbar.OptionThrottle(500*time.Millisecond),
-// 	progressbar.OptionSetRenderBlankState(true),
-// 	progressbar.OptionSetWidth(100),
-// )
+func finishBar() {
+	if !*config.Verbose {
+		bar.Finish()
+	}
+}
 
-// bar.RenderBlank()
+func blockCount(count int) (blocks int) {
+	blocks = count / db.LedgerHeaderRowBatchSize
 
-// blocks := count / db.LedgerHeaderRowBatchSize
-// if count%db.LedgerHeaderRowBatchSize > 0 {
-// 	blocks = blocks + 1
-// }
+	if count%db.LedgerHeaderRowBatchSize > 0 {
+		blocks = blocks + 1
+	}
 
-// for i := 0; i < blocks; i++ {
-// 	i := i
-// 	pool.Submit(func() { fetch(i, bar) })
-// }
-
-// pool.StopWait()
-
-// if !*config.Verbose {
-// 	bar.Finish()
-// }
-
-// fmt.Println("Finished!")
-// }
+	return blocks
+}
