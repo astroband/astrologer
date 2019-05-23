@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/astroband/astrologer/config"
@@ -44,13 +45,16 @@ func LedgerHeaderRowCount(first int, last int) int {
 func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
 	ledgers := []LedgerHeaderRow{}
 	offset := n * LedgerHeaderRowBatchSize
+	low := offset + start
+	high := low + LedgerHeaderRowBatchSize - 1
+
+	fmt.Println(low, high)
 
 	err := config.DB.Select(
 		&ledgers,
-		"SELECT * FROM ledgerheaders WHERE ledgerseq >= $1 ORDER BY ledgerseq ASC OFFSET $2 LIMIT $3",
-		start,
-		offset,
-		LedgerHeaderRowBatchSize)
+		"SELECT * FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2 ORDER BY ledgerseq ASC",
+		low,
+		high)
 
 	if err != nil {
 		log.Fatal(err)
