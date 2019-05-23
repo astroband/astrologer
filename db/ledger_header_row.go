@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/astroband/astrologer/config"
@@ -47,8 +46,6 @@ func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
 	offset := n * LedgerHeaderRowBatchSize
 	low := offset + start
 	high := low + LedgerHeaderRowBatchSize - 1
-
-	fmt.Println(low, high)
 
 	err := config.DB.Select(
 		&ledgers,
