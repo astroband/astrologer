@@ -31,6 +31,12 @@ const ledgerHeaderIndex = `
 
 const txIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "order", 
+        "sort.order" : "desc" 
+			}		
+		},
 		"mappings": {
 			"properties": {
 				"id": { "type": "keyword", "index": true },
@@ -57,6 +63,12 @@ const txIndex = `
 
 const opIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "order", 
+        "sort.order" : "desc" 
+			}		
+		},
 		"mappings": {
 			"properties": {
 				"tx_id": { "type": "keyword", "index": true },
