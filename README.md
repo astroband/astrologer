@@ -11,7 +11,7 @@ Exports historical data to ElasticSearch storage (some data are still WIP).
 # Creating indexes
 
 ```
-  ./astrologer create-indexes
+  ./astrologer create-index
 ```
 
 Use `--force` flag to force recreate from scratch.
