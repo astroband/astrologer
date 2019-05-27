@@ -93,6 +93,7 @@ const opIndex = `
 					"properties": {
 						"key": { "type": "keyword" },
 						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -102,6 +103,7 @@ const opIndex = `
 					"properties": {
 						"key": { "type": "keyword" },
 						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -121,6 +123,7 @@ const opIndex = `
 					"properties": {
 						"key": { "type": "keyword" },
 						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -175,6 +178,7 @@ const opIndex = `
 							"properties": {
 								"key": { "type": "keyword" },
 								"code": { "type": "keyword" },
+								"native": { "type": "boolean" },
 								"issuer": { "type": "keyword" }
 							}
 						},
@@ -182,6 +186,7 @@ const opIndex = `
 							"properties": {
 								"key": { "type": "keyword" },
 								"code": { "type": "keyword" },
+								"native": { "type": "boolean" },
 								"issuer": { "type": "keyword" }
 							}
 						},
@@ -211,6 +216,7 @@ const balanceIndex = `
 					"properties": {
 						"key": { "type": "keyword" },
 						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				}

@@ -18,12 +18,15 @@ type Asset struct {
 	Code   string `json:"code"`
 	Issuer string `json:"issuer,omitempty"`
 	Key    string `json:"key"`
+	Native bool   `json:"native"`
 }
 
+// NewNativeAsset creates new native (XLM) Asset
 func NewNativeAsset() *Asset {
-	return &Asset{"native", "", "native"}
+	return &Asset{"native", "", "native", true}
 }
 
+// NewAsset creates new non-native asset
 func NewAsset(a *xdr.Asset) *Asset {
 	var t, c, i string
 
@@ -33,7 +36,7 @@ func NewAsset(a *xdr.Asset) *Asset {
 		return NewNativeAsset()
 	}
 
-	return &Asset{c, i, fmt.Sprintf("%s-%s", c, i)}
+	return &Asset{c, i, fmt.Sprintf("%s-%s", c, i), false}
 }
 
 // Indexable represents object that can be indexed for ElasticSearch

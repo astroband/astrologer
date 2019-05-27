@@ -12,11 +12,9 @@ import (
 	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
-	"github.com/gammazero/workerpool"
 )
 
 var (
-	pool        = workerpool.New(*config.Concurrency)
 	bar         *progressbar.ProgressBar
 	first, last = getRange()
 )
