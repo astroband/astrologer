@@ -141,10 +141,12 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newPayment(o.Body.MustPaymentOp(), op)
 	case xdr.OperationTypePathPayment:
 		newPathPayment(o.Body.MustPathPaymentOp(), op)
-	case xdr.OperationTypeManageOffer:
-		newManageOffer(o.Body.MustManageOfferOp(), op)
-	case xdr.OperationTypeCreatePassiveOffer:
-		newCreatePassiveOffer(o.Body.MustCreatePassiveOfferOp(), op)
+	case xdr.OperationTypeManageSellOffer:
+		newManageSellOffer(o.Body.MustManageSellOfferOp(), op)
+	case xdr.OperationTypeManageBuyOffer:
+		newManageBuyOffer(o.Body.MustManageBuyOfferOp(), op)
+	case xdr.OperationTypeCreatePassiveSellOffer:
+		newCreatePassiveSellOffer(o.Body.MustCreatePassiveSellOfferOp(), op)
 	case xdr.OperationTypeSetOptions:
 		newSetOptions(o.Body.MustSetOptionsOp(), op)
 	case xdr.OperationTypeChangeTrust:
@@ -188,7 +190,7 @@ func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
 	}
 }
 
-func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
+func newManageSellOffer(o xdr.ManageSellOfferOp, op *Operation) {
 	op.SourceAmount = amount.String(o.Amount)
 	op.SourceAsset = NewAsset(&o.Buying)
 	op.OfferID = int(o.OfferId)
@@ -197,7 +199,16 @@ func newManageOffer(o xdr.ManageOfferOp, op *Operation) {
 	op.DestinationAsset = NewAsset(&o.Selling)
 }
 
-func newCreatePassiveOffer(o xdr.CreatePassiveOfferOp, op *Operation) {
+func newManageBuyOffer(o xdr.ManageBuyOfferOp, op *Operation) {
+	op.SourceAmount = amount.String(o.BuyAmount)
+	op.SourceAsset = NewAsset(&o.Selling)
+	op.DestinationAsset = NewAsset(&o.Buying)
+	op.OfferID = int(o.OfferId)
+	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
+}
+
+func newCreatePassiveSellOffer(o xdr.CreatePassiveSellOfferOp, op *Operation) {
 	op.SourceAmount = amount.String(o.Amount)
 	op.SourceAsset = NewAsset(&o.Buying)
 	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
