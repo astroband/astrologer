@@ -14,7 +14,7 @@ var (
 	current = getStartLedger()
 )
 
-// Starts ingestion
+// Ingest Starts ingestion
 func Ingest() {
 	log.Println("Starting ingest from", current.LedgerSeq)
 
@@ -27,7 +27,7 @@ func Ingest() {
 
 		es.MakeBulk(*current, txs, fees, &b)
 
-		pool.Submit(func() { index(&b, 0) }) // index defined in commands/export.go
+		index(&b, 0) // Defined in export.go
 
 		log.Println("Ledger", seq, "ingested.")
 
