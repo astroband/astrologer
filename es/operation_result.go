@@ -58,7 +58,9 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 	if s, ok := r.GetSuccess(); ok {
 		op.ResultOffersClaimed = appendOffersClaimed(s.Offers)
 
-		op.AmountSent = (*op.ResultOffersClaimed)[0].AmountBought
+		if op.ResultOffersClaimed != nil {
+			op.AmountSent = (*op.ResultOffersClaimed)[0].AmountBought
+		}
 		op.ResultLastAmount = amount.String(s.Last.Amount)
 		op.AmountReceived = op.ResultLastAmount
 

@@ -59,8 +59,12 @@ func esMinMax() (min int, max int) {
 func esRanges(min int, max int) []interface{} {
 	var ranges []map[string]interface{}
 
-	for i := 0; i < max; i += 1000000 {
-		ranges = append(ranges, map[string]interface{}{"from": min + i, "to": min + i + 1000000})
+	for i := min; i < max; i += 1000000 {
+		to := i + 1000000
+		if to > max {
+			to = max
+		}
+		ranges = append(ranges, map[string]interface{}{"from": i, "to": to})
 	}
 
 	query := map[string]interface{}{
