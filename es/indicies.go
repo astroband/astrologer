@@ -33,9 +33,9 @@ const txIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order", 
-        "sort.order" : "desc" 
-			}		
+        "sort.field" : "order",
+        "sort.order" : "desc"
+			}
 		},
 		"mappings": {
 			"properties": {
@@ -50,6 +50,12 @@ const txIndex = `
 				"successful": { "type": "boolean" },
 				"result_code": { "type": "byte" },
 				"source_account_id": { "type": "keyword", "index": true },
+				"time_bounds": {
+					"properties": {
+						"min_time": { "type": "long" },
+						"max_time": { "type": "long" }
+					}
+				},
 				"memo": {
 					"properties": {
 						"type": { "type": "byte" },
@@ -65,9 +71,9 @@ const opIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order", 
-        "sort.order" : "desc" 
-			}		
+        "sort.field" : "order",
+        "sort.order" : "desc"
+			}
 		},
 		"mappings": {
 			"properties": {
