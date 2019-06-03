@@ -79,6 +79,8 @@ type Operation struct {
 	SourceAccountID      string             `json:"source_account_id,omitempty"`
 	SourceAsset          *Asset             `json:"source_asset,omitempty"`
 	SourceAmount         string             `json:"source_amount,omitempty"`
+	AmountReceived       string             `json:"amount_received,omitempty"`
+	AmountSent           string             `json:"amount_sent,omitempty"`
 	DestinationAccountID string             `json:"destination_account_id,omitempty"`
 	DestinationAsset     *Asset             `json:"destination_asset,omitempty"`
 	DestinationAmount    string             `json:"destination_amount,omitempty"`
