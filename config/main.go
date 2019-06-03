@@ -25,6 +25,7 @@ var (
 	exportCommand      = kingpin.Command("export", "Run export")
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
 	statsCommand       = kingpin.Command("stats", "Print database ledger statistics")
+	esStatsCommand     = kingpin.Command("es-stats", "Print ES ranges stats")
 
 	databaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").

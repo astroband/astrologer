@@ -20,5 +20,7 @@ func main() {
 		commands.Export()
 	case "ingest":
 		commands.Ingest()
+	case "es-stats":
+		commands.EsStats()
 	}
 }
