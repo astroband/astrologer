@@ -27,6 +27,7 @@ func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source Ba
 		Time:    t,
 		Source:  source,
 		ID:      id,
+		values:  make(AccountBalanceMap),
 	}
 }
 
@@ -121,64 +122,3 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 		}
 	}
 }
-
-// // ExtractBalances returns balances extracted from metas
-// func ExtractBalances(c []xdr.LedgerEntryChange, now time.Time, id string, source BalanceSource) []*Balance {
-// 	var prev AccountBalanceMap
-// 	var balances []*Balance
-
-// 	for _, change := range c {
-// 		switch t := change.Type; t {
-// 		case xdr.LedgerEntryChangeTypeLedgerEntryState:
-// 			processState(change, &prev)
-
-// 		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
-// 			balances = processCreated(change, balances, now, id, source)
-
-// 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-// 			updated := change.MustUpdated().Data
-
-// 			switch x := updated.Type; x {
-// 			case xdr.LedgerEntryTypeAccount:
-// 				account := updated.MustAccount()
-// 				oldBalance := prev[account.AccountId.Address()]
-// 				if oldBalance != account.Balance {
-// 					balances = append(balances, NewBalanceFromAccountEntry(account, now, id, source))
-// 				}
-// 			case xdr.LedgerEntryTypeTrustline:
-// 				line := updated.MustTrustLine()
-// 				oldBalance := prev[line.AccountId.Address()]
-// 				if oldBalance != line.Balance {
-// 					balances = append(balances, NewBalanceFromTrustLineEntry(line, now, id, source))
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return balances
-// }
-
-// func processState(change xdr.LedgerEntryChange, prev *AccountBalanceMap) {
-// 	state := change.MustState().Data
-
-// 	switch x := state.Type; x {
-// 	case xdr.LedgerEntryTypeAccount:
-// 		account := state.MustAccount()
-// 		(*prev)[account.AccountId.Address()] = account.Balance
-// 	case xdr.LedgerEntryTypeTrustline:
-// 		line := state.MustTrustLine()
-// 		(*prev)[line.AccountId.Address()] = line.Balance
-// 	}
-// }
-
-// func processCreated(change xdr.LedgerEntryChange, balances []*Balance, now time.Time, id string, source BalanceSource) []*Balance {
-// 	created := change.MustCreated().Data
-
-// 	switch x := created.Type; x {
-// 	case xdr.LedgerEntryTypeAccount:
-// 		balances = append(balances, NewBalanceFromAccountEntry(created.MustAccount(), now, id, source))
-// 	case xdr.LedgerEntryTypeTrustline:
-// 		balances = append(balances, NewBalanceFromTrustLineEntry(created.MustTrustLine(), now, id, source))
-// 	}
-// 	return balances
-// }
