@@ -83,7 +83,7 @@
   branch = "master"
   name = "github.com/stellar/go"
   packages = ["amount","crc16","strkey","support/errors","xdr"]
-  revision = "896cd425ccf9fe23ac05da8d0fd62d6680f46ceb"
+  revision = "3dd82e9a62131e1df9d5559801a9e6935cf700fe"
 
 [[projects]]
   branch = "master"
