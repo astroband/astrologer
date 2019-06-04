@@ -12,6 +12,11 @@ type Memo struct {
 	Value string `json:"value"`
 }
 
+type TimeBounds struct {
+	MinTime int64 `json:"min_time"`
+	MaxTime int64 `json:"max_time"`
+}
+
 // Transaction represents ES-serializable transaction
 type Transaction struct {
 	ID              string    `json:"id"`
@@ -26,7 +31,8 @@ type Transaction struct {
 	ResultCode      int       `json:"result_code"`
 	SourceAccountID string    `json:"source_account_id"`
 
-	*Memo `json:"memo,omitempty"`
+	*TimeBounds `json:"time_bounds,omitempty"`
+	*Memo       `json:"memo,omitempty"`
 }
 
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
@@ -53,6 +59,13 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		tx.Memo = &Memo{
 			Type:  int(row.Envelope.Tx.Memo.Type),
 			Value: value.String,
+		}
+	}
+
+	if row.Envelope.Tx.TimeBounds != nil {
+		tx.TimeBounds = &TimeBounds{
+			MinTime: int64(row.Envelope.Tx.TimeBounds.MinTime),
+			MaxTime: int64(row.Envelope.Tx.TimeBounds.MaxTime),
 		}
 	}
 

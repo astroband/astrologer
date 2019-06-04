@@ -30,6 +30,7 @@ func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	data = append(data, "\n"...)
 
 	b.Grow(len(meta) + len(data))
