@@ -7,11 +7,13 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// Memo represents transaction memo
 type Memo struct {
 	Type  int    `json:"type"`
 	Value string `json:"value"`
 }
 
+// TimeBounds represent transaction time bounds
 type TimeBounds struct {
 	MinTime int64 `json:"min_time"`
 	MaxTime int64 `json:"max_time"`
