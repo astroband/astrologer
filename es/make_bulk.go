@@ -41,7 +41,8 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 
 		for o := 0; o < len(metas); o++ {
 			id := fmt.Sprintf("%v:%v:%v:changes", h.Seq, t, o)
-			bl := ExtractBalances(metas[o].Changes, h.CloseTime, id, BalanceSourceMeta)
+			bl := NewBalanceExtractor(metas[o].Changes, h.CloseTime, BalanceSourceMeta, id).Extract()
+
 			for _, balance := range bl {
 				SerializeForBulk(balance, b)
 			}
@@ -52,7 +53,7 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 		fee := fees[o]
 
 		id := fmt.Sprintf("%v:%v:%v:fees", fee.LedgerSeq, fee.Index, o)
-		bl := ExtractBalances(fee.Changes, h.CloseTime, id, BalanceSourceFee)
+		bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, id).Extract()
 
 		for _, balance := range bl {
 			SerializeForBulk(balance, b)
