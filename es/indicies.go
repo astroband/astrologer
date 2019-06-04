@@ -210,6 +210,7 @@ const balanceIndex = `
 			"properties": {
 				"account_id": { "type": "keyword", "index": true },
 				"balance": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"amount": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"source": { "type": "keyword" },
 				"created_at": { "type": "date" },
 				"asset": {
