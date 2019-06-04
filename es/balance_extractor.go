@@ -74,7 +74,7 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 
 		e.balances = append(
 			e.balances,
-			NewBalanceFromAccountEntry(account, e.Time, id, e.Source),
+			NewBalanceFromAccountEntry(account, account.Balance, e.Time, id, e.Source),
 		)
 	case xdr.LedgerEntryTypeTrustline:
 		line := created.MustTrustLine()
@@ -82,7 +82,7 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 
 		e.balances = append(
 			e.balances,
-			NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source),
+			NewBalanceFromTrustLineEntry(line, line.Balance, e.Time, id, e.Source),
 		)
 	}
 }
@@ -98,10 +98,11 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != account.Balance {
 			id := e.ID + ":" + address
+			amount := account.Balance - oldBalance
 
 			e.balances = append(
 				e.balances,
-				NewBalanceFromAccountEntry(account, e.Time, id, e.Source),
+				NewBalanceFromAccountEntry(account, amount, e.Time, id, e.Source),
 			)
 		}
 	case xdr.LedgerEntryTypeTrustline:
@@ -111,10 +112,11 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != line.Balance {
 			id := e.ID + ":" + address
+			amount := line.Balance - oldBalance
 
 			e.balances = append(
 				e.balances,
-				NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source),
+				NewBalanceFromTrustLineEntry(line, amount, e.Time, id, e.Source),
 			)
 		}
 	}

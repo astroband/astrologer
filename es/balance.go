@@ -30,11 +30,12 @@ type Balance struct {
 }
 
 // NewBalanceFromAccountEntry creates Balance from AccountEntry
-func NewBalanceFromAccountEntry(a xdr.AccountEntry, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromAccountEntry(a xdr.AccountEntry, amt xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
 	return &Balance{
 		ID:        id,
 		AccountID: a.AccountId.Address(),
 		Balance:   amount.String(a.Balance),
+		Amount:    amount.String(amt),
 		Source:    source,
 		CreatedAt: now,
 		Asset:     *NewNativeAsset(),
@@ -42,11 +43,12 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry, now time.Time, id string, so
 }
 
 // NewBalanceFromTrustLineEntry creates Balance from TrustLineEntry
-func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, amt xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
 	return &Balance{
 		ID:        id,
 		AccountID: t.AccountId.Address(),
 		Balance:   amount.String(t.Balance),
+		Amount:    amount.String(amt),
 		Source:    source,
 		CreatedAt: now,
 		Asset:     *NewAsset(&t.Asset),
