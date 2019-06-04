@@ -99,11 +99,11 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != account.Balance {
 			id := e.ID + ":" + address
-			amount := account.Balance - oldBalance
+			diff := account.Balance - oldBalance
 
 			e.balances = append(
 				e.balances,
-				NewBalanceFromAccountEntry(account, amount, e.Time, id, e.Source),
+				NewBalanceFromAccountEntry(account, diff, e.Time, id, e.Source),
 			)
 		}
 	case xdr.LedgerEntryTypeTrustline:
@@ -113,11 +113,11 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != line.Balance {
 			id := e.ID + ":" + address
-			amount := line.Balance - oldBalance
+			diff := line.Balance - oldBalance
 
 			e.balances = append(
 				e.balances,
-				NewBalanceFromTrustLineEntry(line, amount, e.Time, id, e.Source),
+				NewBalanceFromTrustLineEntry(line, diff, e.Time, id, e.Source),
 			)
 		}
 	}
