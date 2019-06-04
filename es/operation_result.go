@@ -19,10 +19,12 @@ func AppendResult(op *Operation, r *xdr.OperationResult) {
 			newPaymentResult(r.Tr.MustPaymentResult(), op)
 		case xdr.OperationTypePathPayment:
 			newPathPaymentResult(r.Tr.MustPathPaymentResult(), op)
-		case xdr.OperationTypeManageOffer:
-			newManageOfferResult(r.Tr.MustManageOfferResult(), op)
-		case xdr.OperationTypeCreatePassiveOffer:
-			newManageOfferResult(r.Tr.MustCreatePassiveOfferResult(), op)
+		case xdr.OperationTypeManageSellOffer:
+			newManageSellOfferResult(r.Tr.MustManageSellOfferResult(), op)
+		case xdr.OperationTypeManageBuyOffer:
+			newManageBuyOfferResult(r.Tr.MustManageBuyOfferResult(), op)
+		case xdr.OperationTypeCreatePassiveSellOffer:
+			newManageSellOfferResult(r.Tr.MustCreatePassiveSellOfferResult(), op)
 		case xdr.OperationTypeSetOptions:
 			newSetOptionsResult(r.Tr.MustSetOptionsResult(), op)
 		case xdr.OperationTypeChangeTrust:
@@ -73,28 +75,41 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 	}
 }
 
-func newManageOfferResult(r xdr.ManageOfferResult, op *Operation) {
+func newManageSellOfferResult(r xdr.ManageSellOfferResult, op *Operation) {
 	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.ManageOfferResultCodeManageOfferSuccess
+	op.Succesful = r.Code == xdr.ManageSellOfferResultCodeManageSellOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
-		op.ResultOffersClaimed = appendOffersClaimed(s.OffersClaimed)
+		newManageOfferResult(s, op)
+	}
+}
 
-		if o, ok := s.Offer.GetOffer(); ok {
-			p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+func newManageBuyOfferResult(r xdr.ManageBuyOfferResult, op *Operation) {
+	op.InnerResultCode = int(r.Code)
+	op.Succesful = r.Code == xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess
 
-			op.ResultOffer = &Offer{
-				Amount:   amount.String(o.Amount),
-				Price:    p,
-				PriceND:  Price{int(o.Price.N), int(o.Price.D)},
-				Buying:   *NewAsset(&o.Buying),
-				Selling:  *NewAsset(&o.Selling),
-				OfferID:  int64(o.OfferId),
-				SellerID: o.SellerId.Address(),
-			}
+	if s, ok := r.GetSuccess(); ok {
+		newManageOfferResult(s, op)
+	}
+}
 
-			op.ResultOfferEffect = s.Offer.Effect.String()
+func newManageOfferResult(s xdr.ManageOfferSuccessResult, op *Operation) {
+	op.ResultOffersClaimed = appendOffersClaimed(s.OffersClaimed)
+
+	if o, ok := s.Offer.GetOffer(); ok {
+		p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
+
+		op.ResultOffer = &Offer{
+			Amount:   amount.String(o.Amount),
+			Price:    p,
+			PriceND:  Price{int(o.Price.N), int(o.Price.D)},
+			Buying:   *NewAsset(&o.Buying),
+			Selling:  *NewAsset(&o.Selling),
+			OfferID:  int64(o.OfferId),
+			SellerID: o.SellerId.Address(),
 		}
+
+		op.ResultOfferEffect = s.Offer.Effect.String()
 	}
 }
 
