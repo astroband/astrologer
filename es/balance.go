@@ -14,8 +14,8 @@ const (
 	// BalanceSourceFee marks record came from tx_fee_meta
 	BalanceSourceFee BalanceSource = "Fee"
 
-	// BalanceSourcePayment marks record came from payment
-	BalanceSourcePayment BalanceSource = "Payment"
+	// BalanceSourceMeta marks record came from payment
+	BalanceSourceMeta BalanceSource = "Meta"
 )
 
 // Balance represents balance log entry

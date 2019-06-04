@@ -17,7 +17,7 @@ type BalanceExtractor struct {
 	ID      string
 
 	values   AccountBalanceMap
-	balances []Balance
+	balances []*Balance
 }
 
 // NewBalanceExtractor constructs and returns instance of BalanceExtractor
@@ -31,7 +31,7 @@ func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source Ba
 }
 
 // Extract balances from current changes list
-func (e *BalanceExtractor) Extract() []Balance {
+func (e *BalanceExtractor) Extract() []*Balance {
 	for _, change := range e.Changes {
 		switch t := change.Type; t {
 		case xdr.LedgerEntryChangeTypeLedgerEntryState:
@@ -39,7 +39,6 @@ func (e *BalanceExtractor) Extract() []Balance {
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
 			e.created(change)
-
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 			e.updated(change)
@@ -75,7 +74,7 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 
 		e.balances = append(
 			e.balances,
-			*NewBalanceFromAccountEntry(account, e.Time, id, e.Source),
+			NewBalanceFromAccountEntry(account, e.Time, id, e.Source),
 		)
 	case xdr.LedgerEntryTypeTrustline:
 		line := created.MustTrustLine()
@@ -83,7 +82,7 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 
 		e.balances = append(
 			e.balances,
-			*NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source),
+			NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source),
 		)
 	}
 }
@@ -95,23 +94,27 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 	case xdr.LedgerEntryTypeAccount:
 		account := updated.MustAccount()
 		address := account.AccountId.Address()
-		oldBalance := prev[address]
+		oldBalance := e.values[address]
 
 		if oldBalance != account.Balance {
+			id := e.ID + ":" + address
+
 			e.balances = append(
-				e.balances, 
-				*NewBalanceFromAccountEntry(account, e.Time, id, e.Source)
+				e.balances,
+				NewBalanceFromAccountEntry(account, e.Time, id, e.Source),
 			)
 		}
 	case xdr.LedgerEntryTypeTrustline:
 		line := updated.MustTrustLine()
 		address := line.AccountId.Address()
-		oldBalance := prev[address]
+		oldBalance := e.values[address]
 
 		if oldBalance != line.Balance {
+			id := e.ID + ":" + address
+
 			e.balances = append(
-				balances,
-				*NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source)
+				e.balances,
+				NewBalanceFromTrustLineEntry(line, e.Time, id, e.Source),
 			)
 		}
 	}
