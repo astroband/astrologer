@@ -20,44 +20,45 @@ const (
 
 // Balance represents balance log entry
 type Balance struct {
-	ID        string        `json:"-"`
-	AccountID string        `json:"account_id"`
-	Value     string        `json:"value"`
-	Diff      string        `json:"diff"`
-	CreatedAt time.Time     `json:"created_at"`
-	Source    BalanceSource `json:"source"`
-	Asset     Asset         `json:"asset"`
+	PagingToken PagingToken   `json:"paging_token"`
+	AccountID   string        `json:"account_id"`
+	Value       string        `json:"value"`
+	Diff        string        `json:"diff"`
+	CreatedAt   time.Time     `json:"created_at"`
+	Source      BalanceSource `json:"source"`
+	Asset       Asset         `json:"asset"`
 }
 
 // NewBalanceFromAccountEntry creates Balance from AccountEntry
-func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Time, pagingToken PagingToken, source BalanceSource) *Balance {
 	return &Balance{
-		ID:        id,
-		AccountID: a.AccountId.Address(),
-		Value:     amount.String(a.Balance),
-		Diff:      amount.String(diff),
-		Source:    source,
-		CreatedAt: now,
-		Asset:     *NewNativeAsset(),
+		PagingToken: pagingToken,
+		AccountID:   a.AccountId.Address(),
+		Value:       amount.String(a.Balance),
+		Diff:        amount.String(diff),
+		Source:      source,
+		CreatedAt:   now,
+		Asset:       *NewNativeAsset(),
 	}
 }
 
 // NewBalanceFromTrustLineEntry creates Balance from TrustLineEntry
-func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, diff xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, diff xdr.Int64, now time.Time, pagingToken PagingToken, source BalanceSource) *Balance {
 	return &Balance{
-		ID:        id,
-		AccountID: t.AccountId.Address(),
-		Value:     amount.String(t.Balance),
-		Diff:      amount.String(diff),
-		Source:    source,
-		CreatedAt: now,
-		Asset:     *NewAsset(&t.Asset),
+		PagingToken: pagingToken,
+		AccountID:   t.AccountId.Address(),
+		Value:       amount.String(t.Balance),
+		Diff:        amount.String(diff),
+		Source:      source,
+		CreatedAt:   now,
+		Asset:       *NewAsset(&t.Asset),
 	}
 }
 
 // DocID balance es document id
 func (b *Balance) DocID() *string {
-	return &b.ID
+	s := b.PagingToken.String()
+	return &s
 }
 
 // IndexName balances index name

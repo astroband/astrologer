@@ -2,7 +2,6 @@ package es
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/astroband/astrologer/db"
 	"github.com/stellar/go/xdr"
@@ -40,8 +39,8 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 		}
 
 		for o := 0; o < len(metas); o++ {
-			id := fmt.Sprintf("%v:%v:%v:changes", h.Seq, t, o)
-			bl := NewBalanceExtractor(metas[o].Changes, h.CloseTime, BalanceSourceMeta, id).Extract()
+			pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: tx.Index, OperationOrder: uint8(o + 1), AuxOrder1: 1}
+			bl := NewBalanceExtractor(metas[o].Changes, h.CloseTime, BalanceSourceMeta, pagingToken).Extract()
 
 			for _, balance := range bl {
 				SerializeForBulk(balance, b)
@@ -52,8 +51,8 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 	for o := 0; o < len(fees); o++ {
 		fee := fees[o]
 
-		id := fmt.Sprintf("%v:%v:%v:fees", fee.LedgerSeq, fee.Index, o)
-		bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, id).Extract()
+		pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: uint8(o), OperationOrder: 255, AuxOrder1: 2}
+		bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, pagingToken).Extract()
 
 		for _, balance := range bl {
 			SerializeForBulk(balance, b)

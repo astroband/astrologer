@@ -12,7 +12,7 @@ const ledgerHeaderIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "seq",
+        "sort.field" : "paging_token",
         "sort.order" : "desc"
 			}
 		},
@@ -22,6 +22,7 @@ const ledgerHeaderIndex = `
 				"prev_hash": { "type": "keyword", "index": false },
 				"bucket_list_hash": { "type": "keyword", "index": false },
 				"seq": { "type": "long" },
+				"paging_token": { "type": "long" },
 				"close_time": { "type": "date" },
 				"version": { "type": "long" },
 				"total_coins": { "type": "long" },
@@ -39,7 +40,7 @@ const txIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order",
+        "sort.field" : "paging_token",
         "sort.order" : "desc"
 			}
 		},
@@ -48,7 +49,7 @@ const txIndex = `
 				"id": { "type": "keyword", "index": true },
 				"idx": { "type": "integer" },
 				"seq": { "type": "long" },
-				"order": { "type": "long", "index": true },
+				"paging_token": { "type": "long", "index": true },
 				"fee": { "type": "long" },
 				"fee_charged": { "type": "long" },
 				"operation_count": { "type": "byte" },
@@ -77,7 +78,7 @@ const opIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order",
+        "sort.field" : "paging_token",
         "sort.order" : "desc"
 			}
 		},
@@ -87,7 +88,7 @@ const opIndex = `
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
 				"seq": { "type": "long" },
-				"order": { "type": "long", "index": true },
+				"paging_token": { "type": "long", "index": true },
 				"close_time": { "type": "date" },
 				"successful": { "type": "boolean" },
 				"result_code": { "type": "byte" },
@@ -212,14 +213,17 @@ const opIndex = `
 	}
 `
 
-// TODO: ResultOffersClaimed should be defined, but I am not yet sure will it be practical to make it
-// nested or array
-// ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
-
 const balanceIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
+				"paging_token": { "type": "long", "index": true },
 				"account_id": { "type": "keyword", "index": true },
 				"value": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"diff": { "type": "scaled_float", "scaling_factor": 10000000 },
