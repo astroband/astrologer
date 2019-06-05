@@ -15,11 +15,11 @@ type Order struct {
 }
 
 var (
-	ledgerShift      uint
-	transactionShift uint = 32
-	operationShift   uint = 40
-	aux1Shift        uint = 48
-	aux2Shift        uint = 56
+	ledgerShift      uint = 32
+	transactionShift uint = 24
+	operationShift   uint = 16
+	aux1Shift        uint = 8
+	aux2Shift        uint
 )
 
 // UInt64 returns integers value from order
