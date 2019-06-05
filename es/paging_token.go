@@ -5,9 +5,9 @@ import (
 	"strconv"
 )
 
-// Order represents numerical order of objects. Transaction 0 of the ledger 1 and the ledger itself
-// might have the same order.
-type Order struct {
+// PagingToken represents numerical order / id of objects.
+// Transaction 0 of the ledger 1 and the ledger itself will have the same order, so, start orders from 1.
+type PagingToken struct {
 	LedgerSeq        int
 	TransactionOrder uint8
 	OperationOrder   uint8
@@ -24,7 +24,7 @@ var (
 )
 
 // UInt64 returns integers value from order
-func (o Order) UInt64() (result uint64) {
+func (o PagingToken) UInt64() (result uint64) {
 	result = result | (uint64(o.LedgerSeq) << ledgerShift)
 	result = result | (uint64(o.TransactionOrder) << transactionShift)
 	result = result | (uint64(o.OperationOrder) << operationShift)
@@ -35,17 +35,17 @@ func (o Order) UInt64() (result uint64) {
 }
 
 // String returns string representation of order
-func (o Order) String() (result string) {
+func (o PagingToken) String() (result string) {
 	return strconv.FormatUint(o.UInt64(), 10)
 }
 
 // MarshalJSON marshals to int
-func (o Order) MarshalJSON() ([]byte, error) {
+func (o PagingToken) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.UInt64())
 }
 
-// Add merges with other order
-func (o Order) Add(n Order) (result Order) {
+// Merge merges with other order
+func (o PagingToken) Merge(n PagingToken) (result PagingToken) {
 	if o.LedgerSeq != 0 {
 		result.LedgerSeq = o.LedgerSeq
 	} else {

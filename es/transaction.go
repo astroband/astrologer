@@ -21,17 +21,17 @@ type TimeBounds struct {
 
 // Transaction represents ES-serializable transaction
 type Transaction struct {
-	ID              string    `json:"id"`
-	Index           byte      `json:"idx"`
-	Seq             int       `json:"seq"`
-	Order           Order     `json:"order"`
-	Fee             int       `json:"fee"`
-	FeeCharged      int       `json:"fee_charged"`
-	OperationCount  int       `json:"operation_count"`
-	CloseTime       time.Time `json:"close_time"`
-	Successful      bool      `json:"succesful"`
-	ResultCode      int       `json:"result_code"`
-	SourceAccountID string    `json:"source_account_id"`
+	ID              string      `json:"id"`
+	Index           byte        `json:"idx"`
+	Seq             int         `json:"seq"`
+	PagingToken     PagingToken `json:"paging_token"`
+	Fee             int         `json:"fee"`
+	FeeCharged      int         `json:"fee_charged"`
+	OperationCount  int         `json:"operation_count"`
+	CloseTime       time.Time   `json:"close_time"`
+	Successful      bool        `json:"succesful"`
+	ResultCode      int         `json:"result_code"`
+	SourceAccountID string      `json:"source_account_id"`
 
 	*TimeBounds `json:"time_bounds,omitempty"`
 	*Memo       `json:"memo,omitempty"`
@@ -45,7 +45,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ID:              row.ID,
 		Index:           byte(row.Index),
 		Seq:             row.LedgerSeq,
-		Order:           Order{LedgerSeq: row.LedgerSeq, TransactionOrder: uint8(row.Index)},
+		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: uint8(row.Index)},
 		Fee:             int(row.Envelope.Tx.Fee),
 		FeeCharged:      int(row.Result.Result.FeeCharged),
 		OperationCount:  len(row.Envelope.Tx.Operations),
