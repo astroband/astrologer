@@ -10,6 +10,12 @@ import (
 
 const ledgerHeaderIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "seq",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
 				"hash": { "type": "keyword", "index": true },
