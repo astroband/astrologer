@@ -48,14 +48,14 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 		}
 	}
 
-	// for o := 0; o < len(fees); o++ {
-	// 	fee := fees[o]
+	for o := 0; o < len(fees); o++ {
+		fee := fees[o]
 
-	// 	order := Order{LedgerSeq: h.Seq, TransactionOrder: tx.Index, OperationOrder: o, AuxOrder1: 1}
-	// 	bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, order).Extract()
+		order := Order{LedgerSeq: h.Seq, TransactionOrder: uint8(o), OperationOrder: 255, AuxOrder1: 1}
+		bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, order).Extract()
 
-	// 	for _, balance := range bl {
-	// 		SerializeForBulk(balance, b)
-	// 	}
-	// }
+		for _, balance := range bl {
+			SerializeForBulk(balance, b)
+		}
+	}
 }
