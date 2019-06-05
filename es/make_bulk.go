@@ -39,7 +39,7 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 		}
 
 		for o := 0; o < len(metas); o++ {
-			pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: tx.Index, OperationOrder: uint8(o), AuxOrder1: 0}
+			pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: tx.Index, OperationOrder: uint8(o + 1), AuxOrder1: 1}
 			bl := NewBalanceExtractor(metas[o].Changes, h.CloseTime, BalanceSourceMeta, pagingToken).Extract()
 
 			for _, balance := range bl {
@@ -51,7 +51,7 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 	for o := 0; o < len(fees); o++ {
 		fee := fees[o]
 
-		pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: uint8(o), OperationOrder: 255, AuxOrder1: 1}
+		pagingToken := PagingToken{LedgerSeq: h.Seq, TransactionOrder: uint8(o), OperationOrder: 255, AuxOrder1: 2}
 		bl := NewBalanceExtractor(fee.Changes, h.CloseTime, BalanceSourceFee, pagingToken).Extract()
 
 		for _, balance := range bl {

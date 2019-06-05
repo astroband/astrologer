@@ -39,10 +39,10 @@ func (e *BalanceExtractor) Extract() []*Balance {
 			e.state(change)
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
-			e.created(change, byte(n))
+			e.created(change, byte(n+1))
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-			e.updated(change, byte(n))
+			e.updated(change, byte(n+1))
 		}
 	}
 

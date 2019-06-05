@@ -124,7 +124,7 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		TxIndex:           t.Index,
 		Index:             n,
 		Seq:               t.Seq,
-		PagingToken:       PagingToken{LedgerSeq: t.Seq, TransactionOrder: t.Index, OperationOrder: n},
+		PagingToken:       PagingToken{LedgerSeq: t.Seq, TransactionOrder: t.Index + 1, OperationOrder: n + 1},
 		CloseTime:         t.CloseTime,
 		TxSourceAccountID: t.SourceAccountID,
 		Type:              o.Body.Type.String(),

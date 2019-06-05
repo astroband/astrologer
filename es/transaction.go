@@ -45,7 +45,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ID:              row.ID,
 		Index:           byte(row.Index),
 		Seq:             row.LedgerSeq,
-		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: uint8(row.Index)},
+		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: uint8(row.Index + 1)},
 		Fee:             int(row.Envelope.Tx.Fee),
 		FeeCharged:      int(row.Result.Result.FeeCharged),
 		OperationCount:  len(row.Envelope.Tx.Operations),
