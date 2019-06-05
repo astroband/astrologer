@@ -2,7 +2,6 @@ package es
 
 import (
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/stellar/go/amount"
@@ -69,7 +68,7 @@ type Operation struct {
 	TxIndex              byte               `json:"tx_idx"`
 	Index                byte               `json:"idx"`
 	Seq                  int                `json:"seq"`
-	Order                int                `json:"order"`
+	Order                Order              `json:"order"`
 	CloseTime            time.Time          `json:"close_time"`
 	Succesful            bool               `json:"successful"`
 	ResultCode           int                `json:"result_code"`
@@ -125,7 +124,7 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		TxIndex:           t.Index,
 		Index:             n,
 		Seq:               t.Seq,
-		Order:             t.Order*100 + int(n),
+		Order:             Order{LedgerSeq: t.Seq, TransactionOrder: t.Index, OperationOrder: n},
 		CloseTime:         t.CloseTime,
 		TxSourceAccountID: t.SourceAccountID,
 		Type:              o.Body.Type.String(),
@@ -306,8 +305,8 @@ func flags(f int) *AccountFlags {
 
 // DocID returns elastic document id
 func (op *Operation) DocID() *string {
-	strOrder := strconv.Itoa(op.Order)
-	return &strOrder
+	s := op.Order.String()
+	return &s
 }
 
 // IndexName returns operations index

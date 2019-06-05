@@ -21,6 +21,7 @@ const (
 // Balance represents balance log entry
 type Balance struct {
 	ID        string        `json:"-"`
+	Order     Order         `json:"order"`
 	AccountID string        `json:"account_id"`
 	Value     string        `json:"value"`
 	Diff      string        `json:"diff"`

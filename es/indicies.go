@@ -12,7 +12,7 @@ const ledgerHeaderIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "seq",
+        "sort.field" : "order",
         "sort.order" : "desc"
 			}
 		},
@@ -22,6 +22,7 @@ const ledgerHeaderIndex = `
 				"prev_hash": { "type": "keyword", "index": false },
 				"bucket_list_hash": { "type": "keyword", "index": false },
 				"seq": { "type": "long" },
+				"order": { "type": "long" },
 				"close_time": { "type": "date" },
 				"version": { "type": "long" },
 				"total_coins": { "type": "long" },
@@ -212,14 +213,17 @@ const opIndex = `
 	}
 `
 
-// TODO: ResultOffersClaimed should be defined, but I am not yet sure will it be practical to make it
-// nested or array
-// ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
-
 const balanceIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "order",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
+				"order": { "type": "long", "index": true },
 				"account_id": { "type": "keyword", "index": true },
 				"value": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"diff": { "type": "scaled_float", "scaling_factor": 10000000 },

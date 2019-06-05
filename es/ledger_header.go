@@ -1,7 +1,6 @@
 package es
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/astroband/astrologer/db"
@@ -13,6 +12,7 @@ type LedgerHeader struct {
 	PrevHash       string    `json:"prev_hash"`
 	BucketListHash string    `json:"bucket_list_hash"`
 	Seq            int       `json:"seq"`
+	Order          Order     `json:"order"`
 	CloseTime      time.Time `json:"close_time"`
 	Version        int       `json:"version"`
 	TotalCoins     int       `json:"total_coins"`
@@ -31,6 +31,7 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 		PrevHash:       row.PrevHash,
 		BucketListHash: row.BucketListHash,
 		Seq:            row.LedgerSeq,
+		Order:          Order{LedgerSeq: row.LedgerSeq},
 		CloseTime:      time.Unix(row.CloseTime, 0),
 		Version:        int(row.Data.LedgerVersion),
 		TotalCoins:     int(row.Data.TotalCoins),
@@ -45,8 +46,8 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 
 // DocID returns es id (seq number in this case)
 func (h *LedgerHeader) DocID() *string {
-	id := strconv.Itoa(h.Seq)
-	return &id
+	s := h.Order.String()
+	return &s
 }
 
 // IndexName returns index name
