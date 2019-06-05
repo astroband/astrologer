@@ -72,7 +72,7 @@ func index(b *bytes.Buffer, retry int) {
 		defer res.Body.Close()
 	}
 
-	if err != nil || res.IsError() {
+	if err != nil || (res != nil && res.IsError()) {
 		if retry > 5 {
 			log.Fatal("5 retries for bulk failed, aborting")
 		}
