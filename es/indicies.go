@@ -206,10 +206,6 @@ const opIndex = `
 	}
 `
 
-// TODO: ResultOffersClaimed should be defined, but I am not yet sure will it be practical to make it
-// nested or array
-// ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
-
 const balanceIndex = `
 	{
 		"mappings": {
@@ -231,12 +227,43 @@ const balanceIndex = `
 	}
 `
 
+const tradesIndex = `
+	{
+		"mappings": {
+			"properties": {
+				"account_id": { "type": "keyword", "index": true },
+				"offer_id": { "type": "long" },
+				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"asset_sold": {
+					"properties": {
+						"key": { "type": "keyword" },
+						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
+						"issuer": { "type": "keyword" }
+					}
+				},
+				"asset_bought": {
+					"properties": {
+						"key": { "type": "keyword" },
+						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
+						"issuer": { "type": "keyword" }
+					}
+				},
+				"time": { "type": "date" }
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
 	refreshIndex(txIndexName, txIndex)
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
+	refreshIndex(tradesIndexName, tradesIndex)
 }
 
 func refreshIndex(name string, body string) {
