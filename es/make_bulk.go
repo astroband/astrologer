@@ -29,7 +29,7 @@ func MakeBulk(r db.LedgerHeaderRow, txs []db.TxHistoryRow, fees []db.TxFeeHistor
 		SerializeForBulk(tx, b)
 
 		for o := 0; o < len(ops); o++ {
-			op := NewOperation(tx, &ops[o], byte(o))
+			op := NewOperation(tx, &ops[o], results, byte(o))
 
 			if results != nil {
 				AppendResult(op, &(*results)[o])

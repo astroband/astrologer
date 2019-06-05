@@ -73,13 +73,7 @@ func (m *BulkMaker) makeOperationsWithResults() {
 		results := row.Result.Result.Result.Results
 
 		for oIndex, o := range operations {
-			op := NewOperation(t, &o, byte(oIndex))
-
-			if results != nil {
-				r := &(*results)[oIndex]
-				AppendResult(op, r)
-			}
-
+			op := NewOperation(t, &o, results, byte(oIndex))
 			SerializeForBulk(op, m.buffer)
 		}
 	}

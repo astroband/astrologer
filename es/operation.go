@@ -112,7 +112,7 @@ type Operation struct {
 }
 
 // NewOperation creates Operation from xdr.Operation
-func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
+func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n byte) *Operation {
 	sourceAccountID := t.SourceAccountID
 
 	if o.SourceAccount != nil {
@@ -158,6 +158,11 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newManageData(o.Body.MustManageDataOp(), op)
 	case xdr.OperationTypeBumpSequence:
 		newBumpSequence(o.Body.MustBumpSequenceOp(), op)
+	}
+
+	if r != nil {
+		result := &(*r)[n]
+		AppendResult(op, result)
 	}
 
 	return op
