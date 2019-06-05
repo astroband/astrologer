@@ -5,7 +5,8 @@ import (
 	"strconv"
 )
 
-// Order represents numerical order of objects
+// Order represents numerical order of objects. Transaction 0 of the ledger 1 and the ledger itself
+// might have the same order.
 type Order struct {
 	LedgerSeq        int
 	TransactionOrder uint8
