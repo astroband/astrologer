@@ -39,6 +39,7 @@ func NewBulkMaker(l db.LedgerHeaderRow, t []db.TxHistoryRow, f []db.TxFeeHistory
 func (m *BulkMaker) Make() {
 	m.makeLedger()
 	m.makeTransactions()
+	m.makeOperations()
 }
 
 func (m *BulkMaker) makeLedger() {
@@ -49,6 +50,31 @@ func (m *BulkMaker) makeTransactions() {
 	for _, transaction := range m.transactions {
 		SerializeForBulk(transaction, m.buffer)
 	}
+}
+
+func (m *BulkMaker) makeOperations() {
+	for tIndex, t := range m.transactions {
+		row := m.transactionRows[tIndex]
+		operations := row.Envelope.Tx.Operations
+
+		for oIndex, o := range operations {
+			op := NewOperation(t, &o, byte(oIndex))
+			SerializeForBulk(op, m.buffer)
+		}
+	}
+	// for t := 0; t < len(txs); t++ {
+	// 	var metas []xdr.OperationMeta
+
+	// 	txRow := &txs[t]
+	// 	ops := txRow.Envelope.Tx.Operations
+	// 	results := txRow.Result.Result.Result.Results
+
+	// 	if v1, ok := txRow.Meta.GetV1(); ok {
+	// 		metas = v1.Operations
+	// 	} else {
+	// 		metas, ok = txRow.Meta.GetOperations()
+	// 	}
+
 }
 
 // for t := 0; t < len(txs); t++ {
