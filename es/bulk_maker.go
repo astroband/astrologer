@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/stellar/go/xdr"
 )
 
 // BulkMaker creates es bulk from ledger data
@@ -39,7 +40,8 @@ func NewBulkMaker(l db.LedgerHeaderRow, t []db.TxHistoryRow, f []db.TxFeeHistory
 func (m *BulkMaker) Make() {
 	m.makeLedger()
 	m.makeTransactions()
-	m.makeOperations()
+	m.makeOperationsWithResults()
+	m.makeBalancesFromMetas()
 }
 
 func (m *BulkMaker) makeLedger() {
@@ -52,29 +54,53 @@ func (m *BulkMaker) makeTransactions() {
 	}
 }
 
-func (m *BulkMaker) makeOperations() {
+func (m *BulkMaker) makeOperationsWithResults() {
 	for tIndex, t := range m.transactions {
 		row := m.transactionRows[tIndex]
 		operations := row.Envelope.Tx.Operations
+		results := row.Result.Result.Result.Results
 
 		for oIndex, o := range operations {
 			op := NewOperation(t, &o, byte(oIndex))
+
+			if results != nil {
+				r := &(*results)[oIndex]
+				AppendResult(op, r)
+			}
+
 			SerializeForBulk(op, m.buffer)
 		}
 	}
-	// for t := 0; t < len(txs); t++ {
-	// 	var metas []xdr.OperationMeta
+}
 
-	// 	txRow := &txs[t]
-	// 	ops := txRow.Envelope.Tx.Operations
-	// 	results := txRow.Result.Result.Result.Results
+func (m *BulkMaker) makeBalancesFromMetas() {
+	for tIndex, row := range m.transactionRows {
+		var metas []xdr.OperationMeta
 
-	// 	if v1, ok := txRow.Meta.GetV1(); ok {
-	// 		metas = v1.Operations
-	// 	} else {
-	// 		metas, ok = txRow.Meta.GetOperations()
-	// 	}
+		if v1, ok := row.Meta.GetV1(); ok {
+			metas = v1.Operations
+		} else {
+			metas, ok = row.Meta.GetOperations()
+			if !ok {
+				return
+			}
+		}
 
+		for oIndex, e := range metas {
+			pagingToken := PagingToken{
+				LedgerSeq:        m.ledgerHeader.Seq,
+				TransactionOrder: uint8(tIndex + 1),
+				OperationOrder:   uint8(oIndex + 1),
+				AuxOrder1:        1,
+			}
+
+			b := NewBalanceExtractor(e.Changes, m.ledgerHeader.CloseTime, BalanceSourceMeta, pagingToken).Extract()
+
+			for _, balance := range b {
+				SerializeForBulk(balance, m.buffer)
+			}
+		}
+	}
 }
 
 // for t := 0; t < len(txs); t++ {
@@ -90,17 +116,17 @@ func (m *BulkMaker) makeOperations() {
 // 		metas, ok = txRow.Meta.GetOperations()
 // 	}
 
-// 	tx := NewTransaction(txRow, h.CloseTime)
-// 	SerializeForBulk(tx, b)
+// for t := 0; t < len(txs); t++ {
+// 	var metas []xdr.OperationMeta
 
-// 	for o := 0; o < len(ops); o++ {
-// 		op := NewOperation(tx, &ops[o], byte(o))
+// 	txRow := &txs[t]
+// 	ops := txRow.Envelope.Tx.Operations
+// 	results := txRow.Result.Result.Result.Results
 
-// 		if results != nil {
-// 			AppendResult(op, &(*results)[o])
-// 		}
-
-// 		SerializeForBulk(op, b)
+// 	if v1, ok := txRow.Meta.GetV1(); ok {
+// 		metas = v1.Operations
+// 	} else {
+// 		metas, ok = txRow.Meta.GetOperations()
 // 	}
 
 // 	for o := 0; o < len(metas); o++ {
