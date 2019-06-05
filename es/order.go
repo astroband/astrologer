@@ -43,37 +43,37 @@ func (o Order) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.UInt64())
 }
 
-// // Merge merges with other order
-// func (o Order) Merge(n Order) (result Order) {
-// 	if o.LedgerSeq != 0 {
-// 		result.LedgerSeq = o.LedgerSeq
-// 	} else {
-// 		result.LedgerSeq = n.LedgerSeq
-// 	}
+// Add merges with other order
+func (o Order) Add(n Order) (result Order) {
+	if o.LedgerSeq != 0 {
+		result.LedgerSeq = o.LedgerSeq
+	} else {
+		result.LedgerSeq = n.LedgerSeq
+	}
 
-// 	if o.TransactionOrder != 0 {
-// 		result.TransactionOrder = o.TransactionOrder
-// 	} else {
-// 		result.TransactionOrder = n.TransactionOrder
-// 	}
+	if o.TransactionOrder != 0 {
+		result.TransactionOrder = o.TransactionOrder
+	} else {
+		result.TransactionOrder = n.TransactionOrder
+	}
 
-// 	if o.OperationOrder != 0 {
-// 		result.OperationOrder = o.OperationOrder
-// 	} else {
-// 		result.OperationOrder = n.OperationOrder
-// 	}
+	if o.OperationOrder != 0 {
+		result.OperationOrder = o.OperationOrder
+	} else {
+		result.OperationOrder = n.OperationOrder
+	}
 
-// 	if o.AuxOrder1 != 0 {
-// 		result.AuxOrder1 = o.AuxOrder1
-// 	} else {
-// 		result.AuxOrder1 = n.AuxOrder1
-// 	}
+	if o.AuxOrder1 != 0 {
+		result.AuxOrder1 = o.AuxOrder1
+	} else {
+		result.AuxOrder1 = n.AuxOrder1
+	}
 
-// 	if o.AuxOrder2 != 0 {
-// 		result.AuxOrder2 = o.AuxOrder2
-// 	} else {
-// 		result.AuxOrder2 = n.AuxOrder2
-// 	}
+	if o.AuxOrder2 != 0 {
+		result.AuxOrder2 = o.AuxOrder2
+	} else {
+		result.AuxOrder2 = n.AuxOrder2
+	}
 
-// 	return result
-// }
+	return result
+}

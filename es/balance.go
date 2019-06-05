@@ -20,7 +20,6 @@ const (
 
 // Balance represents balance log entry
 type Balance struct {
-	ID        string        `json:"-"`
 	Order     Order         `json:"order"`
 	AccountID string        `json:"account_id"`
 	Value     string        `json:"value"`
@@ -31,9 +30,9 @@ type Balance struct {
 }
 
 // NewBalanceFromAccountEntry creates Balance from AccountEntry
-func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Time, order Order, source BalanceSource) *Balance {
 	return &Balance{
-		ID:        id,
+		Order:     order,
 		AccountID: a.AccountId.Address(),
 		Value:     amount.String(a.Balance),
 		Diff:      amount.String(diff),
@@ -44,9 +43,9 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Tim
 }
 
 // NewBalanceFromTrustLineEntry creates Balance from TrustLineEntry
-func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, diff xdr.Int64, now time.Time, id string, source BalanceSource) *Balance {
+func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, diff xdr.Int64, now time.Time, order Order, source BalanceSource) *Balance {
 	return &Balance{
-		ID:        id,
+		Order:     order,
 		AccountID: t.AccountId.Address(),
 		Value:     amount.String(t.Balance),
 		Diff:      amount.String(diff),
@@ -58,7 +57,8 @@ func NewBalanceFromTrustLineEntry(t xdr.TrustLineEntry, diff xdr.Int64, now time
 
 // DocID balance es document id
 func (b *Balance) DocID() *string {
-	return &b.ID
+	s := b.Order.String()
+	return &s
 }
 
 // IndexName balances index name
