@@ -25,7 +25,7 @@ func Ingest() {
 		txs := db.TxHistoryRowForSeq(seq)
 		fees := db.TxFeeHistoryRowsForRows(txs)
 
-		es.MakeBulk(*current, txs, fees, &b)
+		es.NewBulkMaker(*current, txs, fees, &b).Make()
 
 		index(&b, 0) // Defined in export.go
 
