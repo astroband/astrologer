@@ -49,7 +49,7 @@ func exportBlock(i int) {
 		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
 		fees := db.TxFeeHistoryRowsForRows(txs)
 
-		es.MakeBulk(rows[n], txs, fees, &b)
+		es.NewBulkMaker(rows[n], txs, fees, &b).Make()
 
 		if !*config.Verbose {
 			bar.Add(1)
@@ -72,7 +72,7 @@ func index(b *bytes.Buffer, retry int) {
 		defer res.Body.Close()
 	}
 
-	if err != nil || res.IsError() {
+	if err != nil || (res != nil && res.IsError()) {
 		if retry > 5 {
 			log.Fatal("5 retries for bulk failed, aborting")
 		}

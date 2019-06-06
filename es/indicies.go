@@ -10,12 +10,19 @@ import (
 
 const ledgerHeaderIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
 				"hash": { "type": "keyword", "index": true },
 				"prev_hash": { "type": "keyword", "index": false },
 				"bucket_list_hash": { "type": "keyword", "index": false },
 				"seq": { "type": "long" },
+				"paging_token": { "type": "long" },
 				"close_time": { "type": "date" },
 				"version": { "type": "long" },
 				"total_coins": { "type": "long" },
@@ -33,7 +40,7 @@ const txIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order",
+        "sort.field" : "paging_token",
         "sort.order" : "desc"
 			}
 		},
@@ -42,7 +49,7 @@ const txIndex = `
 				"id": { "type": "keyword", "index": true },
 				"idx": { "type": "integer" },
 				"seq": { "type": "long" },
-				"order": { "type": "long", "index": true },
+				"paging_token": { "type": "long", "index": true },
 				"fee": { "type": "long" },
 				"fee_charged": { "type": "long" },
 				"operation_count": { "type": "byte" },
@@ -71,7 +78,7 @@ const opIndex = `
 	{
 		"settings": {
 			"index" : {
-        "sort.field" : "order",
+        "sort.field" : "paging_token",
         "sort.order" : "desc"
 			}
 		},
@@ -81,7 +88,7 @@ const opIndex = `
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
 				"seq": { "type": "long" },
-				"order": { "type": "long", "index": true },
+				"paging_token": { "type": "long", "index": true },
 				"close_time": { "type": "date" },
 				"successful": { "type": "boolean" },
 				"result_code": { "type": "byte" },
@@ -208,10 +215,18 @@ const opIndex = `
 
 const balanceIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
+				"paging_token": { "type": "long", "index": true },
 				"account_id": { "type": "keyword", "index": true },
-				"balance": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"value": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"diff": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"source": { "type": "keyword" },
 				"created_at": { "type": "date" },
 				"asset": {

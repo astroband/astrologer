@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/astroband/astrologer/config"
+	"github.com/elastic/go-elasticsearch/esapi"
 )
 
 // BulkIndex calls elasticsearch bulk indexing API

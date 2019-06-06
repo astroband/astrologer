@@ -2,7 +2,6 @@ package es
 
 import (
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/stellar/go/amount"
@@ -69,7 +68,7 @@ type Operation struct {
 	TxIndex              byte               `json:"tx_idx"`
 	Index                byte               `json:"idx"`
 	Seq                  int                `json:"seq"`
-	Order                int                `json:"order"`
+	PagingToken          PagingToken        `json:"paging_token"`
 	CloseTime            time.Time          `json:"close_time"`
 	Succesful            bool               `json:"successful"`
 	ResultCode           int                `json:"result_code"`
@@ -113,7 +112,7 @@ type Operation struct {
 }
 
 // NewOperation creates Operation from xdr.Operation
-func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
+func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n byte) *Operation {
 	sourceAccountID := t.SourceAccountID
 
 	if o.SourceAccount != nil {
@@ -125,7 +124,7 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		TxIndex:           t.Index,
 		Index:             n,
 		Seq:               t.Seq,
-		Order:             t.Order*100 + int(n),
+		PagingToken:       PagingToken{LedgerSeq: t.Seq, TransactionOrder: t.Index + 1, OperationOrder: n + 1},
 		CloseTime:         t.CloseTime,
 		TxSourceAccountID: t.SourceAccountID,
 		Type:              o.Body.Type.String(),
@@ -159,6 +158,11 @@ func NewOperation(t *Transaction, o *xdr.Operation, n byte) *Operation {
 		newManageData(o.Body.MustManageDataOp(), op)
 	case xdr.OperationTypeBumpSequence:
 		newBumpSequence(o.Body.MustBumpSequenceOp(), op)
+	}
+
+	if r != nil {
+		result := &(*r)[n]
+		AppendResult(op, result)
 	}
 
 	return op
@@ -306,8 +310,8 @@ func flags(f int) *AccountFlags {
 
 // DocID returns elastic document id
 func (op *Operation) DocID() *string {
-	strOrder := strconv.Itoa(op.Order)
-	return &strOrder
+	s := op.PagingToken.String()
+	return &s
 }
 
 // IndexName returns operations index
