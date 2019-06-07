@@ -41,10 +41,10 @@ func (e *TradeExtractor) Extract() (trades []Trade) {
 		// 	result = newPathPaymentResult(r.Tr.MustPathPaymentResult())
 		case xdr.OperationTypeManageSellOffer:
 			trades = e.fetchFromManageSellOffer(e.result.Tr.MustManageSellOfferResult())
+		case xdr.OperationTypeCreatePassiveSellOffer:
+			trades = e.fetchFromManageSellOffer(e.result.Tr.MustCreatePassiveSellOfferResult())
 		case xdr.OperationTypeManageBuyOffer:
 			trades = e.fetchFromManageBuyOffer(e.result.Tr.MustManageBuyOfferResult())
-			// case xdr.OperationTypeCreatePassiveSellOffer:
-			// 	result = newManageSellOfferResult(r.Tr.MustCreatePassiveSellOfferResult())
 		}
 	}
 
