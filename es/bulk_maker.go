@@ -51,7 +51,7 @@ func NewBulkMaker(l db.LedgerHeaderRow, t []db.TxHistoryRow, f []db.TxFeeHistory
 func (m *BulkMaker) Make() {
 	m.makeLedger()
 	m.makeTransactions()
-	m.makeOperationsWithResults()
+	m.makeOperationsWithResultsAndTrades()
 	m.makeBalancesFromMetas()
 	m.makeBalancesFromFeeHistory()
 }
@@ -66,7 +66,7 @@ func (m *BulkMaker) makeTransactions() {
 	}
 }
 
-func (m *BulkMaker) makeOperationsWithResults() {
+func (m *BulkMaker) makeOperationsWithResultsAndTrades() {
 	for tIndex, t := range m.transactions {
 		row := m.transactionRows[tIndex]
 		operations := row.Envelope.Tx.Operations
@@ -76,7 +76,20 @@ func (m *BulkMaker) makeOperationsWithResults() {
 			op := NewOperation(t, &o, results, byte(oIndex))
 			SerializeForBulk(op, m.buffer)
 
-			//trades := GetTradesFromResults(results, byte(oIndex))
+			pagingToken := PagingToken{
+				LedgerSeq:        m.seq,
+				TransactionOrder: uint8(tIndex + 1),
+				OperationOrder:   uint8(oIndex + 1),
+			}
+
+			extractor := NewTradeExtractor(results, oIndex, m.closeTime, pagingToken)
+
+			if extractor != nil {
+				trades := extractor.Extract()
+				for _, trade := range trades {
+					SerializeForBulk(&trade, m.buffer)
+				}
+			}
 		}
 	}
 }

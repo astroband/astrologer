@@ -2,9 +2,6 @@ package es
 
 import (
 	"time"
-
-	"github.com/stellar/go/amount"
-	"github.com/stellar/go/xdr"
 )
 
 // Trade represents trade entry
@@ -20,56 +17,6 @@ type Trade struct {
 	BuyerID         string      `json:"buyer_id"`
 	Price           string      `json:"price"`
 	LedgerCloseTime time.Time   `json:"ledger_close_time"`
-}
-
-func NewTradesFromResult(r *xdr.OperationResult, opIndex int, closeTime time.Time) (trades []Trade) {
-	if r == nil {
-		return trades
-	}
-
-	if r.Code == xdr.OperationResultCodeOpInner {
-		switch t := r.Tr.Type; t {
-		// case xdr.OperationTypePathPayment:
-		// 	result = newPathPaymentResult(r.Tr.MustPathPaymentResult())
-		case xdr.OperationTypeManageSellOffer:
-			trades = fetchTradesFromManageSellOffer(r.Tr.MustManageSellOfferResult(), closeTime)
-			// case xdr.OperationTypeManageBuyOffer:
-			// 	result = fetchTradesFromManageBuyOffer(r.Tr.MustManageBuyOfferResult())
-			// case xdr.OperationTypeCreatePassiveSellOffer:
-			// 	result = newManageSellOfferResult(r.Tr.MustCreatePassiveSellOfferResult())
-		}
-	}
-
-	return trades
-}
-
-func fetchTradesFromManageSellOffer(r xdr.ManageSellOfferResult, closeTime time.Time) (trades []Trade) {
-	success := r.MustSuccess()
-	offer := success.Offer.MustOffer()
-
-	claims := success.OffersClaimed
-	if len(claims) == 0 {
-		return trades
-	}
-
-	trades = make([]Trade, len(claims))
-	for i, claim := range claims {
-		trades[i] = Trade{
-			PagingToken:     PagingToken{},
-			Sold:            amount.String(claim.AmountSold),
-			Bought:          amount.String(claim.AmountBought),
-			AssetSold:       *NewAsset(&claim.AssetSold),
-			AssetBought:     *NewAsset(&claim.AssetBought),
-			SoldOfferID:     int64(offer.OfferId),
-			BoughtOfferID:   int64(claim.OfferId),
-			SellerID:        offer.SellerId.Address(),
-			BuyerID:         claim.SellerId.Address(),
-			Price:           amount.String(claim.AmountSold / claim.AmountSold),
-			LedgerCloseTime: closeTime,
-		}
-	}
-
-	return trades
 }
 
 // DocID balance es document id
