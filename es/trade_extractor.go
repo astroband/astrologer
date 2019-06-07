@@ -8,6 +8,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// TradeExtractor is used to extract trade index entries
 type TradeExtractor struct {
 	result      *xdr.OperationResult
 	index       int
@@ -15,6 +16,7 @@ type TradeExtractor struct {
 	pagingToken PagingToken
 }
 
+// NewTradeExtractor creates new TradesExtractor or returns nil if result is inappropriate
 func NewTradeExtractor(r *[]xdr.OperationResult, index int, closeTime time.Time, pagingToken PagingToken) *TradeExtractor {
 	if r == nil {
 		return nil
@@ -30,6 +32,7 @@ func NewTradeExtractor(r *[]xdr.OperationResult, index int, closeTime time.Time,
 	}
 }
 
+// Extract returns trades entries
 func (e *TradeExtractor) Extract() (trades []Trade) {
 	if e.result == nil {
 		return trades
