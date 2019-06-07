@@ -1,7 +1,6 @@
 package es
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/stellar/go/amount"
@@ -154,7 +153,7 @@ func appendOffersClaimed(c []xdr.ClaimOfferAtom) *[]OfferClaim {
 		for n := 0; n < len(c); n++ {
 			c := c[n]
 
-			fmt.Println("SOLD:", c.AssetSold, "BOUGHT:", c.AssetBought)
+			//fmt.Println("SOLD:", c.AssetSold, "BOUGHT:", c.AssetBought)
 
 			claims[n] = OfferClaim{
 				AmountSold:   amount.String(c.AmountSold),
@@ -165,7 +164,7 @@ func appendOffersClaimed(c []xdr.ClaimOfferAtom) *[]OfferClaim {
 				SellerID:     c.SellerId.Address(),
 			}
 		}
-		fmt.Println("---")
+		//fmt.Println("---")
 
 		return &claims
 	}

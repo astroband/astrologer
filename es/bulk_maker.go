@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	fakeOperationIndex       uint8 = 255
+	lastOperationIndex       uint8 = 255
 	balanceFromMetaAux1Order uint8 = 1
 	balanceFromFeeAux1Order  uint8 = 2
 )
@@ -101,7 +101,6 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 				OperationOrder:   uint8(oIndex + 1),
 				AuxOrder1:        balanceFromMetaAux1Order,
 			}
-
 			b := NewBalanceExtractor(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken).Extract()
 
 			for _, balance := range b {
@@ -116,7 +115,7 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 		pagingToken := PagingToken{
 			LedgerSeq:        m.seq,
 			TransactionOrder: uint8(tIndex + 1),
-			OperationOrder:   fakeOperationIndex,
+			OperationOrder:   lastOperationIndex,
 			AuxOrder1:        balanceFromFeeAux1Order,
 		}
 
