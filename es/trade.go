@@ -14,15 +14,15 @@ type Trade struct {
 	Bought          string      `json:"bought"`
 	AssetSold       Asset       `json:"asset_sold"`
 	AssetBought     Asset       `json:"asset_bought"`
-	SoldOfferID     int         `json:"sold_offer_id"`
-	BoughtOfferID   int         `json:"bought_offer_id"`
+	SoldOfferID     int64       `json:"sold_offer_id"`
+	BoughtOfferID   int64       `json:"bought_offer_id"`
 	SellerID        string      `json:"seller_id"`
 	BuyerID         string      `json:"buyer_id"`
 	Price           string      `json:"price"`
 	LedgerCloseTime time.Time   `json:"ledger_close_time"`
 }
 
-func NewTradesFromResult(r *xdr.OperationResult, opIndex int) (trades []Trade) {
+func NewTradesFromResult(r *xdr.OperationResult, opIndex int, closeTime time.Time) (trades []Trade) {
 	if r == nil {
 		return trades
 	}
@@ -32,7 +32,7 @@ func NewTradesFromResult(r *xdr.OperationResult, opIndex int) (trades []Trade) {
 		// case xdr.OperationTypePathPayment:
 		// 	result = newPathPaymentResult(r.Tr.MustPathPaymentResult())
 		case xdr.OperationTypeManageSellOffer:
-			trades = fetchTradesFromManageSellOffer(r.Tr.MustManageSellOfferResult())
+			trades = fetchTradesFromManageSellOffer(r.Tr.MustManageSellOfferResult(), closeTime)
 			// case xdr.OperationTypeManageBuyOffer:
 			// 	result = fetchTradesFromManageBuyOffer(r.Tr.MustManageBuyOfferResult())
 			// case xdr.OperationTypeCreatePassiveSellOffer:
@@ -43,11 +43,9 @@ func NewTradesFromResult(r *xdr.OperationResult, opIndex int) (trades []Trade) {
 	return trades
 }
 
-func fetchTradesFromManageSellOffer(r xdr.ManageSellOfferResult) (trades []Trade) {
-	success, ok := r.GetSuccess()
-	if !ok {
-		return trades
-	}
+func fetchTradesFromManageSellOffer(r xdr.ManageSellOfferResult, closeTime time.Time) (trades []Trade) {
+	success := r.MustSuccess()
+	offer := success.Offer.MustOffer()
 
 	claims := success.OffersClaimed
 	if len(claims) == 0 {
@@ -57,17 +55,17 @@ func fetchTradesFromManageSellOffer(r xdr.ManageSellOfferResult) (trades []Trade
 	trades = make([]Trade, len(claims))
 	for i, claim := range claims {
 		trades[i] = Trade{
-			PagingToken: PagingToken{},
-			Sold:        amount.String(claim.AmountSold),
-			Bought:      amount.String(claim.AmountBought),
-			AssetSold:   *NewAsset(&claim.AssetSold),
-			AssetBought: *NewAsset(&claim.AssetBought),
-			// SoldOfferID:
-			// BoguthOfferID:
-			// SellerID:
-			// BuyerID:
-			// Price:
-			// LedgerCloseTime:
+			PagingToken:     PagingToken{},
+			Sold:            amount.String(claim.AmountSold),
+			Bought:          amount.String(claim.AmountBought),
+			AssetSold:       *NewAsset(&claim.AssetSold),
+			AssetBought:     *NewAsset(&claim.AssetBought),
+			SoldOfferID:     int64(offer.OfferId),
+			BoughtOfferID:   int64(claim.OfferId),
+			SellerID:        offer.SellerId.Address(),
+			BuyerID:         claim.SellerId.Address(),
+			Price:           amount.String(claim.AmountSold / claim.AmountSold),
+			LedgerCloseTime: closeTime,
 		}
 	}
 
