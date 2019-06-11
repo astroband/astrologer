@@ -40,8 +40,8 @@ func (e *TradeExtractor) Extract() (trades []Trade) {
 
 	if e.result.Code == xdr.OperationResultCodeOpInner {
 		switch t := e.result.Tr.Type; t {
-		// case xdr.OperationTypePathPayment:
-		// 	result = newPathPaymentResult(r.Tr.MustPathPaymentResult())
+		case xdr.OperationTypePathPayment:
+			trades = e.fetchFromPathPayment(e.result.Tr.MustPathPaymentResult())
 		case xdr.OperationTypeManageSellOffer:
 			trades = e.fetchFromManageSellOffer(e.result.Tr.MustManageSellOfferResult())
 		case xdr.OperationTypeCreatePassiveSellOffer:
@@ -55,6 +55,10 @@ func (e *TradeExtractor) Extract() (trades []Trade) {
 }
 
 func (e *TradeExtractor) fetchFromManageSellOffer(result xdr.ManageSellOfferResult) (trades []Trade) {
+	if result.Code != xdr.ManageSellOfferResultCodeManageSellOfferSuccess {
+		return trades
+	}
+
 	success, ok := result.GetSuccess()
 	if !ok {
 		return trades
@@ -74,6 +78,10 @@ func (e *TradeExtractor) fetchFromManageSellOffer(result xdr.ManageSellOfferResu
 }
 
 func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult) (trades []Trade) {
+	if result.Code != xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess {
+		return trades
+	}
+
 	success, ok := result.GetSuccess()
 	if !ok {
 		return trades
@@ -111,6 +119,26 @@ func (e *TradeExtractor) fetchFromOffer(offer xdr.OfferEntry, claims []xdr.Claim
 			LedgerCloseTime: e.closeTime,
 		}
 	}
+
+	return trades
+}
+
+func (e *TradeExtractor) fetchFromPathPayment(result xdr.PathPaymentResult) (trades []Trade) {
+	if result.Code != xdr.PathPaymentResultCodePathPaymentSuccess {
+		return trades
+	}
+
+	success, ok := result.GetSuccess()
+	if !ok {
+		return trades
+	}
+
+	claims := success.Offers
+	if len(claims) == 0 {
+		return trades
+	}
+
+	fmt.Println(claims)
 
 	return trades
 }
