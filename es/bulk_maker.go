@@ -2,7 +2,6 @@ package es
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 
 	"github.com/astroband/astrologer/db"
@@ -83,10 +82,7 @@ func (m *BulkMaker) makeOperationsWithResultsAndTrades() {
 				OperationOrder:   uint8(oIndex + 1),
 			}
 
-			extractor := NewTradeExtractor(results, oIndex, m.closeTime, pagingToken)
-			fmt.Println(row.ID)
-			fmt.Println("------------------------------- FOLLOWING:")
-
+			extractor := NewTradeExtractor(results, op, oIndex, m.closeTime, pagingToken)
 			if extractor != nil {
 				trades := extractor.Extract()
 				for _, trade := range trades {
