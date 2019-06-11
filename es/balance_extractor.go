@@ -18,6 +18,7 @@ type BalanceExtractor struct {
 
 	values   AccountBalanceMap
 	balances []*Balance
+	index    int
 }
 
 // NewBalanceExtractor constructs and returns instance of BalanceExtractor
@@ -28,21 +29,22 @@ func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source Ba
 		source:          source,
 		basePagingToken: basePagingToken,
 		values:          make(AccountBalanceMap),
+		index:           0,
 	}
 }
 
 // Extract balances from current changes list
 func (e *BalanceExtractor) Extract() []*Balance {
-	for n, change := range e.changes {
+	for _, change := range e.changes {
 		switch t := change.Type; t {
 		case xdr.LedgerEntryChangeTypeLedgerEntryState:
 			e.state(change)
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
-			e.created(change, n+1)
+			e.created(change)
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-			e.updated(change, n+1)
+			e.updated(change)
 		}
 	}
 
@@ -65,9 +67,10 @@ func (e *BalanceExtractor) state(change xdr.LedgerEntryChange) {
 	}
 }
 
-func (e *BalanceExtractor) created(change xdr.LedgerEntryChange, n int) {
+func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 	created := change.MustCreated().Data
-	pagingToken := PagingToken{AuxOrder2: n}.Merge(e.basePagingToken)
+	e.index++
+	pagingToken := PagingToken{EffectIndex: e.index}.Merge(e.basePagingToken)
 
 	switch x := created.Type; x {
 	case xdr.LedgerEntryTypeAccount:
@@ -87,10 +90,10 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange, n int) {
 	}
 }
 
-func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange, n int) {
+func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 	updated := change.MustUpdated().Data
-
-	pagingToken := PagingToken{AuxOrder2: n}.Merge(e.basePagingToken)
+	e.index++
+	pagingToken := PagingToken{EffectIndex: e.index}.Merge(e.basePagingToken)
 
 	switch x := updated.Type; x {
 	case xdr.LedgerEntryTypeAccount:

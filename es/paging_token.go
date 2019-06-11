@@ -11,16 +11,16 @@ type PagingToken struct {
 	LedgerSeq        int
 	TransactionOrder int
 	OperationOrder   int
-	AuxOrder1        int
-	AuxOrder2        int
+	EffectGroup      int
+	EffectIndex      int
 }
 
 var (
 	ledgerFormat      = "%012d"
 	transactionFormat = "%04d"
 	operationFormat   = "%04d"
-	aux1Format        = "%04d"
-	aux2Format        = "%04d"
+	effectGroupFormat = "%04d"
+	effectIndexFormat = "%04d"
 )
 
 // String returns string representation of order
@@ -28,8 +28,8 @@ func (o PagingToken) String() (result string) {
 	return fmt.Sprintf(ledgerFormat, o.LedgerSeq) + "-" +
 		fmt.Sprintf(transactionFormat, o.TransactionOrder) + "-" +
 		fmt.Sprintf(operationFormat, o.OperationOrder) + "-" +
-		fmt.Sprintf(aux1Format, o.AuxOrder1) + "-" +
-		fmt.Sprintf(aux2Format, o.AuxOrder2)
+		fmt.Sprintf(effectGroupFormat, o.EffectGroup) + "-" +
+		fmt.Sprintf(effectIndexFormat, o.EffectIndex)
 }
 
 // MarshalJSON marshals to int
@@ -57,16 +57,16 @@ func (o PagingToken) Merge(n PagingToken) (result PagingToken) {
 		result.OperationOrder = n.OperationOrder
 	}
 
-	if o.AuxOrder1 != 0 {
-		result.AuxOrder1 = o.AuxOrder1
+	if o.EffectGroup != 0 {
+		result.EffectGroup = o.EffectGroup
 	} else {
-		result.AuxOrder1 = n.AuxOrder1
+		result.EffectGroup = n.EffectGroup
 	}
 
-	if o.AuxOrder2 != 0 {
-		result.AuxOrder2 = o.AuxOrder2
+	if o.EffectIndex != 0 {
+		result.EffectIndex = o.EffectIndex
 	} else {
-		result.AuxOrder2 = n.AuxOrder2
+		result.EffectIndex = n.EffectIndex
 	}
 
 	return result
