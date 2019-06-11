@@ -22,7 +22,7 @@ type TimeBounds struct {
 // Transaction represents ES-serializable transaction
 type Transaction struct {
 	ID              string      `json:"id"`
-	Index           byte        `json:"idx"`
+	Index           int         `json:"idx"`
 	Seq             int         `json:"seq"`
 	PagingToken     PagingToken `json:"paging_token"`
 	Fee             int         `json:"fee"`
@@ -43,9 +43,9 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 
 	tx := &Transaction{
 		ID:              row.ID,
-		Index:           byte(row.Index),
+		Index:           row.Index,
 		Seq:             row.LedgerSeq,
-		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: uint8(row.Index + 1)},
+		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index + 1},
 		Fee:             int(row.Envelope.Tx.Fee),
 		FeeCharged:      int(row.Result.Result.FeeCharged),
 		OperationCount:  len(row.Envelope.Tx.Operations),

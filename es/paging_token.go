@@ -2,46 +2,39 @@ package es
 
 import (
 	"encoding/json"
-	"strconv"
+	"fmt"
 )
 
 // PagingToken represents numerical order / id of objects.
 // Transaction 0 of the ledger 1 and the ledger itself will have the same order, so, start orders from 1.
 type PagingToken struct {
 	LedgerSeq        int
-	TransactionOrder uint8
-	OperationOrder   uint8
-	AuxOrder1        uint8
-	AuxOrder2        uint8
+	TransactionOrder int
+	OperationOrder   int
+	AuxOrder1        int
+	AuxOrder2        int
 }
 
 var (
-	ledgerShift      uint = 32
-	transactionShift uint = 24
-	operationShift   uint = 16
-	aux1Shift        uint = 8
-	aux2Shift        uint
+	ledgerFormat      = "%012d"
+	transactionFormat = "%04d"
+	operationFormat   = "%04d"
+	aux1Format        = "%04d"
+	aux2Format        = "%04d"
 )
-
-// UInt64 returns integers value from order
-func (o PagingToken) UInt64() (result uint64) {
-	result = result | (uint64(o.LedgerSeq) << ledgerShift)
-	result = result | (uint64(o.TransactionOrder) << transactionShift)
-	result = result | (uint64(o.OperationOrder) << operationShift)
-	result = result | (uint64(o.AuxOrder1) << aux1Shift)
-	result = result | (uint64(o.AuxOrder2) << aux2Shift)
-
-	return result
-}
 
 // String returns string representation of order
 func (o PagingToken) String() (result string) {
-	return strconv.FormatUint(o.UInt64(), 10)
+	return fmt.Sprintf(ledgerFormat, o.LedgerSeq) + "-" +
+		fmt.Sprintf(transactionFormat, o.TransactionOrder) + "-" +
+		fmt.Sprintf(operationFormat, o.OperationOrder) + "-" +
+		fmt.Sprintf(aux1Format, o.AuxOrder1) + "-" +
+		fmt.Sprintf(aux2Format, o.AuxOrder2)
 }
 
 // MarshalJSON marshals to int
 func (o PagingToken) MarshalJSON() ([]byte, error) {
-	return json.Marshal(o.UInt64())
+	return json.Marshal(o.String())
 }
 
 // Merge merges with other order

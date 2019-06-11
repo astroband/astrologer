@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	fakeOperationIndex      uint8 = 255
-	balanceFromMetaAuxOrder uint8 = 1
-	balanceFromFeeAuxOrder  uint8 = 2
+	fakeOperationIndex      = 999
+	balanceFromMetaAuxOrder = 1
+	balanceFromFeeAuxOrder  = 2
 )
 
 // BulkMaker creates es bulk from ledger data
@@ -73,7 +73,7 @@ func (m *BulkMaker) makeOperationsWithResults() {
 		results := row.Result.Result.Result.Results
 
 		for oIndex, o := range operations {
-			op := NewOperation(t, &o, results, byte(oIndex))
+			op := NewOperation(t, &o, results, oIndex)
 			SerializeForBulk(op, m.buffer)
 		}
 	}
@@ -95,8 +95,8 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 		for oIndex, e := range metas {
 			pagingToken := PagingToken{
 				LedgerSeq:        m.seq,
-				TransactionOrder: uint8(tIndex + 1),
-				OperationOrder:   uint8(oIndex + 1),
+				TransactionOrder: tIndex + 1,
+				OperationOrder:   oIndex + 1,
 				AuxOrder1:        balanceFromMetaAuxOrder,
 			}
 
@@ -113,7 +113,7 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 	for tIndex, fee := range m.fees {
 		pagingToken := PagingToken{
 			LedgerSeq:        m.seq,
-			TransactionOrder: uint8(tIndex + 1),
+			TransactionOrder: tIndex + 1,
 			OperationOrder:   fakeOperationIndex,
 			AuxOrder1:        balanceFromFeeAuxOrder,
 		}

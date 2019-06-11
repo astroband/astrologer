@@ -39,10 +39,10 @@ func (e *BalanceExtractor) Extract() []*Balance {
 			e.state(change)
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
-			e.created(change, byte(n+1))
+			e.created(change, n+1)
 
 		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-			e.updated(change, byte(n+1))
+			e.updated(change, n+1)
 		}
 	}
 
@@ -65,7 +65,7 @@ func (e *BalanceExtractor) state(change xdr.LedgerEntryChange) {
 	}
 }
 
-func (e *BalanceExtractor) created(change xdr.LedgerEntryChange, n byte) {
+func (e *BalanceExtractor) created(change xdr.LedgerEntryChange, n int) {
 	created := change.MustCreated().Data
 	pagingToken := PagingToken{AuxOrder2: n}.Merge(e.basePagingToken)
 
@@ -87,7 +87,7 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange, n byte) {
 	}
 }
 
-func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange, n byte) {
+func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange, n int) {
 	updated := change.MustUpdated().Data
 
 	pagingToken := PagingToken{AuxOrder2: n}.Merge(e.basePagingToken)
