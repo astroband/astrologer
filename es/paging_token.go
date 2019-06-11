@@ -21,6 +21,12 @@ var (
 	operationFormat   = "%04d"
 	effectGroupFormat = "%04d"
 	effectIndexFormat = "%04d"
+
+	// BalanceEffectPagingTokenGroup represents balance entry taken from result meta
+	BalanceEffectPagingTokenGroup = 1
+
+	// FeeEffectPagingTokenGroup represents balance entry taken from fee meta
+	FeeEffectPagingTokenGroup = 2
 )
 
 // String returns string representation of order
