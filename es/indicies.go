@@ -264,8 +264,7 @@ const tradesIndex = `
 						"issuer": { "type": "keyword" }
 					}
 				},
-				"sold_offer_id": { "type": "long" },
-				"bought_offer_id": { "type": "long" },
+				"offer_id": { "type": "long" },
 				"seller": { "type": "keyword", "index": true },
 				"buyer": { "type": "keyword", "index": true },
 				"price": { "type": "scaled_float", "scaling_factor": 10000000 },

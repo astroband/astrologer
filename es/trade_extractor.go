@@ -72,19 +72,13 @@ func (e *TradeExtractor) fetchFromManageSellOffer(result xdr.ManageSellOfferResu
 		return trades
 	}
 
-	trades = e.fetchFromManageOffer(claims, e.operation.SourceAccountID, true)
-
-	if e.operation.TxID == "278d693fde6e7ef879dc81779c858e479e96210d095d1ee3170ce35d432655ee" {
-		fmt.Println(claims)
-		for _, t := range trades {
-			fmt.Println(t.AssetSold, t.AssetBought, t.Sold, t.Bought, t.Price, t.SellerID, t.BuyerID)
-		}
-	}
-
-	return trades //e.fetchFromManageOffer(claims, e.operation.SourceAccountID, true)
+	return e.fetchFromManageOffer(claims, e.operation.SourceAccountID)
 }
 
 func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult) (trades []Trade) {
+	fmt.Println("BUUUUUUUUY")
+	fmt.Println(e.operation.TxID)
+
 	if result.Code != xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess {
 		return trades
 	}
@@ -99,36 +93,41 @@ func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult
 		return trades
 	}
 
-	return e.fetchFromManageOffer(claims, e.operation.SourceAccountID, false)
+	return e.fetchFromManageOffer(claims, e.operation.SourceAccountID)
 }
 
-func (e *TradeExtractor) fetchFromManageOffer(claims []xdr.ClaimOfferAtom, accountID string, sell bool) (trades []Trade) {
-	trades = make([]Trade, len(claims))
+func (e *TradeExtractor) fetchFromManageOffer(claims []xdr.ClaimOfferAtom, accountID string) (trades []Trade) {
 	for i, claim := range claims {
-		var price float64
-
-		trade := Trade{
+		tradeA := Trade{
 			PagingToken:     PagingToken{AuxOrder1: uint8(i)}.Merge(e.pagingToken),
-			Sold:            amount.String(claim.AmountSold),
-			Bought:          amount.String(claim.AmountBought),
-			AssetSold:       *NewAsset(&claim.AssetSold),
-			AssetBought:     *NewAsset(&claim.AssetBought),
+			OfferID:         int64(claim.OfferId),
 			LedgerCloseTime: e.closeTime,
 		}
 
-		if sell {
-			trade.SellerID = accountID
-			trade.BuyerID = claim.SellerId.Address()
-			price = float64(claim.AmountSold) / float64(claim.AmountBought)
-		} else {
-			trade.BuyerID = accountID
-			trade.SellerID = claim.SellerId.Address()
-			price = float64(claim.AmountBought) / float64(claim.AmountSold)
+		tradeB := Trade{
+			PagingToken:     PagingToken{AuxOrder1: uint8(i)}.Merge(e.pagingToken),
+			OfferID:         int64(claim.OfferId),
+			LedgerCloseTime: e.closeTime,
 		}
 
-		trade.Price = strconv.FormatFloat(price, 'f', 7, 64)
+		tradeA.Sold = amount.String(claim.AmountSold)
+		tradeA.Bought = amount.String(claim.AmountBought)
+		tradeA.AssetSold = *NewAsset(&claim.AssetSold)
+		tradeA.AssetBought = *NewAsset(&claim.AssetBought)
+		tradeA.SellerID = accountID
+		tradeA.BuyerID = claim.SellerId.Address()
+		tradeA.Price = strconv.FormatFloat(float64(claim.AmountSold)/float64(claim.AmountBought), 'f', 7, 64)
 
-		trades[i] = trade
+		tradeB.Sold = amount.String(claim.AmountBought)
+		tradeB.Bought = amount.String(claim.AmountSold)
+		tradeB.AssetSold = *NewAsset(&claim.AssetBought)
+		tradeB.AssetBought = *NewAsset(&claim.AssetSold)
+		tradeB.SellerID = claim.SellerId.Address()
+		tradeB.BuyerID = accountID
+		tradeB.Price = strconv.FormatFloat(float64(claim.AmountBought)/float64(claim.AmountSold), 'f', 7, 64)
+
+		trades = append(trades, tradeA)
+		trades = append(trades, tradeB)
 	}
 
 	return trades

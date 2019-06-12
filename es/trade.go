@@ -11,8 +11,7 @@ type Trade struct {
 	Bought          string      `json:"bought"`
 	AssetSold       Asset       `json:"asset_sold"`
 	AssetBought     Asset       `json:"asset_bought"`
-	SoldOfferID     int64       `json:"sold_offer_id"`
-	BoughtOfferID   int64       `json:"bought_offer_id"`
+	OfferID         int64       `json:"sold_offer_id"`
 	SellerID        string      `json:"seller_id"`
 	BuyerID         string      `json:"buyer_id"`
 	Price           string      `json:"price"`
