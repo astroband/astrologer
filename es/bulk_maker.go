@@ -8,11 +8,6 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var (
-	balanceEffect = 1
-	feeEffect     = 2
-)
-
 // BulkMaker creates es bulk from ledger data
 type BulkMaker struct {
 	ledgerRow       db.LedgerHeaderRow
@@ -50,7 +45,7 @@ func NewBulkMaker(l db.LedgerHeaderRow, t []db.TxHistoryRow, f []db.TxFeeHistory
 func (m *BulkMaker) Make() {
 	m.makeLedger()
 	m.makeTransactions()
-	m.makeOperationsWithResults()
+	m.makeOperationsWithResultsAndTrades()
 	m.makeBalancesFromMetas()
 	m.makeBalancesFromFeeHistory()
 }
@@ -65,7 +60,7 @@ func (m *BulkMaker) makeTransactions() {
 	}
 }
 
-func (m *BulkMaker) makeOperationsWithResults() {
+func (m *BulkMaker) makeOperationsWithResultsAndTrades() {
 	for tIndex, t := range m.transactions {
 		row := m.transactionRows[tIndex]
 		operations := row.Envelope.Tx.Operations
@@ -74,6 +69,20 @@ func (m *BulkMaker) makeOperationsWithResults() {
 		for oIndex, o := range operations {
 			op := NewOperation(t, &o, results, oIndex)
 			SerializeForBulk(op, m.buffer)
+
+			pagingToken := PagingToken{
+				LedgerSeq:        m.seq,
+				TransactionOrder: tIndex + 1,
+				OperationOrder:   oIndex + 1,
+			}
+
+			extractor := NewTradeExtractor(results, op, oIndex, m.closeTime, pagingToken)
+			if extractor != nil {
+				trades := extractor.Extract()
+				for _, trade := range trades {
+					SerializeForBulk(&trade, m.buffer)
+				}
+			}
 		}
 	}
 }
@@ -96,9 +105,8 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 				LedgerSeq:        m.seq,
 				TransactionOrder: tIndex + 1,
 				OperationOrder:   oIndex + 1,
-				EffectGroup:      balanceEffect,
+				EffectGroup:      BalanceEffectPagingTokenGroup,
 			}
-
 			b := NewBalanceExtractor(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken).Extract()
 
 			for _, balance := range b {
@@ -114,7 +122,7 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 			LedgerSeq:        m.seq,
 			TransactionOrder: tIndex + 1,
 			OperationOrder:   0,
-			EffectGroup:      feeEffect,
+			EffectGroup:      FeeEffectPagingTokenGroup,
 		}
 
 		bl := NewBalanceExtractor(fee.Changes, m.closeTime, BalanceSourceFee, pagingToken).Extract()

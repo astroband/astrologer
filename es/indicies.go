@@ -242,12 +242,45 @@ const balanceIndex = `
 	}
 `
 
+const tradesIndex = `
+	{
+		"mappings": {
+			"properties": {
+				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"asset_sold": {
+					"properties": {
+						"key": { "type": "keyword" },
+						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
+						"issuer": { "type": "keyword" }
+					}
+				},
+				"asset_bought": {
+					"properties": {
+						"key": { "type": "keyword" },
+						"code": { "type": "keyword" },
+						"native": { "type": "boolean" },
+						"issuer": { "type": "keyword" }
+					}
+				},
+				"offer_id": { "type": "long" },
+				"seller": { "type": "keyword", "index": true },
+				"buyer": { "type": "keyword", "index": true },
+				"price": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"time": { "type": "date" }
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
 	refreshIndex(txIndexName, txIndex)
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
+	refreshIndex(tradesIndexName, tradesIndex)
 }
 
 func refreshIndex(name string, body string) {

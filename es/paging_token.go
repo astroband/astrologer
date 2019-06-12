@@ -27,6 +27,9 @@ var (
 
 	// FeeEffectPagingTokenGroup represents balance entry taken from fee meta
 	FeeEffectPagingTokenGroup = 2
+
+	// TradeEffectPagingTokenGroup represent trade effects
+	TradeEffectPagingTokenGroup = 3
 )
 
 // String returns string representation of order
