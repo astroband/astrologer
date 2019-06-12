@@ -9,9 +9,8 @@ import (
 )
 
 var (
-	lastOperationIndex       uint8 = 255
-	balanceFromMetaAux1Order uint8 = 1
-	balanceFromFeeAux1Order  uint8 = 2
+	balanceEffect = 1
+	feeEffect     = 2
 )
 
 // BulkMaker creates es bulk from ledger data
@@ -73,13 +72,13 @@ func (m *BulkMaker) makeOperationsWithResultsAndTrades() {
 		results := row.Result.Result.Result.Results
 
 		for oIndex, o := range operations {
-			op := NewOperation(t, &o, results, byte(oIndex))
+			op := NewOperation(t, &o, results, oIndex)
 			SerializeForBulk(op, m.buffer)
 
 			pagingToken := PagingToken{
 				LedgerSeq:        m.seq,
-				TransactionOrder: uint8(tIndex + 1),
-				OperationOrder:   uint8(oIndex + 1),
+				TransactionOrder: tIndex + 1,
+				OperationOrder:   oIndex + 1,
 			}
 
 			extractor := NewTradeExtractor(results, op, oIndex, m.closeTime, pagingToken)
@@ -109,9 +108,9 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 		for oIndex, e := range metas {
 			pagingToken := PagingToken{
 				LedgerSeq:        m.seq,
-				TransactionOrder: uint8(tIndex + 1),
-				OperationOrder:   uint8(oIndex + 1),
-				AuxOrder1:        balanceFromMetaAux1Order,
+				TransactionOrder: tIndex + 1,
+				OperationOrder:   oIndex + 1,
+				EffectGroup:      balanceEffect,
 			}
 			b := NewBalanceExtractor(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken).Extract()
 
@@ -126,9 +125,9 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 	for tIndex, fee := range m.fees {
 		pagingToken := PagingToken{
 			LedgerSeq:        m.seq,
-			TransactionOrder: uint8(tIndex + 1),
-			OperationOrder:   lastOperationIndex,
-			AuxOrder1:        balanceFromFeeAux1Order,
+			TransactionOrder: tIndex + 1,
+			OperationOrder:   0,
+			EffectGroup:      feeEffect,
 		}
 
 		bl := NewBalanceExtractor(fee.Changes, m.closeTime, BalanceSourceFee, pagingToken).Extract()

@@ -65,8 +65,8 @@ type Offer struct {
 // Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                 string             `json:"tx_id"`
-	TxIndex              byte               `json:"tx_idx"`
-	Index                byte               `json:"idx"`
+	TxIndex              int                `json:"tx_idx"`
+	Index                int                `json:"idx"`
 	Seq                  int                `json:"seq"`
 	PagingToken          PagingToken        `json:"paging_token"`
 	CloseTime            time.Time          `json:"close_time"`
@@ -112,7 +112,7 @@ type Operation struct {
 }
 
 // NewOperation creates Operation from xdr.Operation
-func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n byte) *Operation {
+func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
 	sourceAccountID := t.SourceAccountID
 
 	if o.SourceAccount != nil {

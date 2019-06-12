@@ -15,6 +15,7 @@ type TradeExtractor struct {
 	closeTime   time.Time
 	pagingToken PagingToken
 	operation   *Operation
+	tokenIndex  int
 }
 
 // NewTradeExtractor creates new TradesExtractor or returns nil if result is inappropriate
@@ -93,18 +94,24 @@ func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult
 }
 
 func (e *TradeExtractor) fetchFromManageOffer(claims []xdr.ClaimOfferAtom, accountID string) (trades []Trade) {
-	for i, claim := range claims {
+	for _, claim := range claims {
+		pagingTokenA := PagingToken{EffectGroup: TradeEffectPagingTokenGroup, EffectIndex: e.tokenIndex + 1}.Merge(e.pagingToken)
+
 		tradeA := Trade{
-			PagingToken:     PagingToken{AuxOrder1: uint8(i)}.Merge(e.pagingToken),
+			PagingToken:     pagingTokenA,
 			OfferID:         int64(claim.OfferId),
 			LedgerCloseTime: e.closeTime,
 		}
 
+		pagingTokenB := PagingToken{EffectGroup: TradeEffectPagingTokenGroup, EffectIndex: e.tokenIndex + 2}.Merge(e.pagingToken)
+
 		tradeB := Trade{
-			PagingToken:     PagingToken{AuxOrder1: uint8(i)}.Merge(e.pagingToken),
+			PagingToken:     pagingTokenB,
 			OfferID:         int64(claim.OfferId),
 			LedgerCloseTime: e.closeTime,
 		}
+
+		e.tokenIndex += 2
 
 		tradeA.Sold = amount.String(claim.AmountSold)
 		tradeA.Bought = amount.String(claim.AmountBought)
