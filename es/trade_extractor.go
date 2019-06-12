@@ -1,7 +1,6 @@
 package es
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -76,9 +75,6 @@ func (e *TradeExtractor) fetchFromManageSellOffer(result xdr.ManageSellOfferResu
 }
 
 func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult) (trades []Trade) {
-	fmt.Println("BUUUUUUUUY")
-	fmt.Println(e.operation.TxID)
-
 	if result.Code != xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess {
 		return trades
 	}
