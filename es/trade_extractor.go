@@ -72,7 +72,7 @@ func (e *TradeExtractor) fetchFromManageSellOffer(result xdr.ManageSellOfferResu
 		return trades
 	}
 
-	return e.fetchFromManageOffer(claims, e.operation.SourceAccountID)
+	return e.fetchClaims(claims, e.operation.SourceAccountID)
 }
 
 func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult) (trades []Trade) {
@@ -90,10 +90,28 @@ func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult
 		return trades
 	}
 
-	return e.fetchFromManageOffer(claims, e.operation.SourceAccountID)
+	return e.fetchClaims(claims, e.operation.SourceAccountID)
 }
 
-func (e *TradeExtractor) fetchFromManageOffer(claims []xdr.ClaimOfferAtom, accountID string) (trades []Trade) {
+func (e *TradeExtractor) fetchFromPathPayment(result xdr.PathPaymentResult) (trades []Trade) {
+	if result.Code != xdr.PathPaymentResultCodePathPaymentSuccess {
+		return trades
+	}
+
+	success, ok := result.GetSuccess()
+	if !ok {
+		return trades
+	}
+
+	claims := success.Offers
+	if len(claims) == 0 {
+		return trades
+	}
+
+	return e.fetchClaims(claims, e.operation.SourceAccountID)
+}
+
+func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID string) (trades []Trade) {
 	for _, claim := range claims {
 		pagingTokenA := PagingToken{EffectGroup: TradeEffectPagingTokenGroup, EffectIndex: e.tokenIndex + 1}.Merge(e.pagingToken)
 
@@ -134,27 +152,4 @@ func (e *TradeExtractor) fetchFromManageOffer(claims []xdr.ClaimOfferAtom, accou
 	}
 
 	return trades
-}
-
-func (e *TradeExtractor) fetchFromPathPayment(result xdr.PathPaymentResult) (trades []Trade) {
-	return trades
-	// if result.Code != xdr.PathPaymentResultCodePathPaymentSuccess {
-	// 	return trades
-	// }
-
-	// success, ok := result.GetSuccess()
-	// if !ok {
-	// 	return trades
-	// }
-
-	// claims := success.Offers
-	// if len(claims) == 0 {
-	// 	return trades
-	// }
-
-	// for _, c := range claims {
-	// 	fmt.Println(c.AssetSold, c.AssetBought)
-	// }
-
-	// return trades
 }
