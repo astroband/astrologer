@@ -8,11 +8,6 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var (
-	balanceEffect = 1
-	feeEffect     = 2
-)
-
 // BulkMaker creates es bulk from ledger data
 type BulkMaker struct {
 	ledgerRow       db.LedgerHeaderRow
@@ -110,7 +105,7 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 				LedgerSeq:        m.seq,
 				TransactionOrder: tIndex + 1,
 				OperationOrder:   oIndex + 1,
-				EffectGroup:      balanceEffect,
+				EffectGroup:      BalanceEffectPagingTokenGroup,
 			}
 			b := NewBalanceExtractor(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken).Extract()
 
@@ -127,7 +122,7 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 			LedgerSeq:        m.seq,
 			TransactionOrder: tIndex + 1,
 			OperationOrder:   0,
-			EffectGroup:      feeEffect,
+			EffectGroup:      FeeEffectPagingTokenGroup,
 		}
 
 		bl := NewBalanceExtractor(fee.Changes, m.closeTime, BalanceSourceFee, pagingToken).Extract()
