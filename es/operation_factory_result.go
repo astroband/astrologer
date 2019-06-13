@@ -2,100 +2,103 @@ package es
 
 import (
 	"math/big"
+	"strings"
 
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
 // AppendResult Appends operation result
-func AppendResult(op *Operation, r *xdr.OperationResult) {
-	op.ResultCode = int(r.Code)
+func (f *operationFactory) assignResult() {
+	r := f.result
+
+	f.operation.ResultCode = int(r.Code)
 
 	if r.Code == xdr.OperationResultCodeOpInner {
 		switch t := r.Tr.Type; t {
 		case xdr.OperationTypeCreateAccount:
-			newCreateAccountResult(r.Tr.MustCreateAccountResult(), op)
+			f.assignCreateAccountResult(r.Tr.MustCreateAccountResult())
 		case xdr.OperationTypePayment:
-			newPaymentResult(r.Tr.MustPaymentResult(), op)
+			f.assignPaymentResult(r.Tr.MustPaymentResult())
 		case xdr.OperationTypePathPayment:
-			newPathPaymentResult(r.Tr.MustPathPaymentResult(), op)
+			f.assignPathPaymentResult(r.Tr.MustPathPaymentResult())
 		case xdr.OperationTypeManageSellOffer:
-			newManageSellOfferResult(r.Tr.MustManageSellOfferResult(), op)
+			f.assignManageSellOfferResult(r.Tr.MustManageSellOfferResult())
 		case xdr.OperationTypeManageBuyOffer:
-			newManageBuyOfferResult(r.Tr.MustManageBuyOfferResult(), op)
+			f.assignManageBuyOfferResult(r.Tr.MustManageBuyOfferResult())
 		case xdr.OperationTypeCreatePassiveSellOffer:
-			newManageSellOfferResult(r.Tr.MustCreatePassiveSellOfferResult(), op)
+			f.assignManageSellOfferResult(r.Tr.MustCreatePassiveSellOfferResult())
 		case xdr.OperationTypeSetOptions:
-			newSetOptionsResult(r.Tr.MustSetOptionsResult(), op)
+			f.assignSetOptionsResult(r.Tr.MustSetOptionsResult())
 		case xdr.OperationTypeChangeTrust:
-			newChangeTrustResult(r.Tr.MustChangeTrustResult(), op)
+			f.assignChangeTrustResult(r.Tr.MustChangeTrustResult())
 		case xdr.OperationTypeAllowTrust:
-			newAllowTrustResult(r.Tr.MustAllowTrustResult(), op)
+			f.assignAllowTrustResult(r.Tr.MustAllowTrustResult())
 		case xdr.OperationTypeAccountMerge:
-			newAccountMergeResult(r.Tr.MustAccountMergeResult(), op)
+			f.assignAccountMergeResult(r.Tr.MustAccountMergeResult())
 		case xdr.OperationTypeManageData:
-			newManageDataResult(r.Tr.MustManageDataResult(), op)
+			f.assignManageDataResult(r.Tr.MustManageDataResult())
 		case xdr.OperationTypeBumpSequence:
-			newBumpSequenceResult(r.Tr.MustBumpSeqResult(), op)
+			f.assignBumpSequenceResult(r.Tr.MustBumpSeqResult())
 		}
 	} else {
-		op.Succesful = false
+		f.operation.Succesful = false
 	}
 }
 
-func newCreateAccountResult(r xdr.CreateAccountResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.CreateAccountResultCodeCreateAccountSuccess
+func (f *operationFactory) assignCreateAccountResult(r xdr.CreateAccountResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.CreateAccountResultCodeCreateAccountSuccess
 }
 
-func newPaymentResult(r xdr.PaymentResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.PaymentResultCodePaymentSuccess
+func (f *operationFactory) assignPaymentResult(r xdr.PaymentResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.PaymentResultCodePaymentSuccess
 }
 
-func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.PathPaymentResultCodePathPaymentSuccess
+func (f *operationFactory) assignPathPaymentResult(r xdr.PathPaymentResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.PathPaymentResultCodePathPaymentSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		if len(s.Offers) > 0 {
-			op.AmountSent = amount.String(s.Offers[0].AmountBought)
+			f.operation.AmountSent = amount.String(s.Offers[0].AmountBought)
 		}
-		op.ResultLastAmount = amount.String(s.Last.Amount)
-		op.AmountReceived = op.ResultLastAmount
+		f.operation.ResultLastAmount = amount.String(s.Last.Amount)
+		f.operation.AmountReceived = f.operation.ResultLastAmount
 
-		op.ResultLastAsset = NewAsset(&s.Last.Asset)
-		op.ResultLastDestination = s.Last.Destination.Address()
+		f.operation.ResultLastAsset = NewAsset(&s.Last.Asset)
+		f.operation.ResultLastDestination = s.Last.Destination.Address()
 	}
 
 	if a, ok := r.GetNoIssuer(); ok {
-		op.ResultNoIssuer = NewAsset(&a)
+		f.operation.ResultNoIssuer = NewAsset(&a)
 	}
 }
 
-func newManageSellOfferResult(r xdr.ManageSellOfferResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.ManageSellOfferResultCodeManageSellOfferSuccess
+func (f *operationFactory) assignManageSellOfferResult(r xdr.ManageSellOfferResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.ManageSellOfferResultCodeManageSellOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
-		newManageOfferResult(s, op)
+		f.assignManageOfferResult(s)
 	}
 }
 
-func newManageBuyOfferResult(r xdr.ManageBuyOfferResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess
+func (f *operationFactory) assignManageBuyOfferResult(r xdr.ManageBuyOfferResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
-		newManageOfferResult(s, op)
+		f.assignManageOfferResult(s)
 	}
 }
 
-func newManageOfferResult(s xdr.ManageOfferSuccessResult, op *Operation) {
+func (f *operationFactory) assignManageOfferResult(s xdr.ManageOfferSuccessResult) {
 	if o, ok := s.Offer.GetOffer(); ok {
 		p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
 
-		op.ResultOffer = &Offer{
+		f.operation.ResultOffer = &Offer{
 			Amount:   amount.String(o.Amount),
 			Price:    p,
 			PriceND:  Price{int(o.Price.N), int(o.Price.D)},
@@ -105,40 +108,42 @@ func newManageOfferResult(s xdr.ManageOfferSuccessResult, op *Operation) {
 			SellerID: o.SellerId.Address(),
 		}
 
-		op.ResultOfferEffect = s.Offer.Effect.String()
+		f.operation.ResultOfferEffect = strings.Replace(
+			s.Offer.Effect.String(), "ManageOfferEffectManageOffer", "", 1,
+		)
 	}
 }
 
-func newSetOptionsResult(r xdr.SetOptionsResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.SetOptionsResultCodeSetOptionsSuccess
+func (f *operationFactory) assignSetOptionsResult(r xdr.SetOptionsResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.SetOptionsResultCodeSetOptionsSuccess
 }
 
-func newChangeTrustResult(r xdr.ChangeTrustResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.ChangeTrustResultCodeChangeTrustSuccess
+func (f *operationFactory) assignChangeTrustResult(r xdr.ChangeTrustResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.ChangeTrustResultCodeChangeTrustSuccess
 }
 
-func newAllowTrustResult(r xdr.AllowTrustResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.AllowTrustResultCodeAllowTrustSuccess
+func (f *operationFactory) assignAllowTrustResult(r xdr.AllowTrustResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.AllowTrustResultCodeAllowTrustSuccess
 }
 
-func newAccountMergeResult(r xdr.AccountMergeResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.AccountMergeResultCodeAccountMergeSuccess
+func (f *operationFactory) assignAccountMergeResult(r xdr.AccountMergeResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.AccountMergeResultCodeAccountMergeSuccess
 
 	if b, ok := r.GetSourceAccountBalance(); ok {
-		op.ResultSourceAccountBalance = amount.String(b)
+		f.operation.ResultSourceAccountBalance = amount.String(b)
 	}
 }
 
-func newManageDataResult(r xdr.ManageDataResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.ManageDataResultCodeManageDataSuccess
+func (f *operationFactory) assignManageDataResult(r xdr.ManageDataResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.ManageDataResultCodeManageDataSuccess
 }
 
-func newBumpSequenceResult(r xdr.BumpSequenceResult, op *Operation) {
-	op.InnerResultCode = int(r.Code)
-	op.Succesful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
+func (f *operationFactory) assignBumpSequenceResult(r xdr.BumpSequenceResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
 }

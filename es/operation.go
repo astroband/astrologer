@@ -56,14 +56,13 @@ type Operation struct {
 
 // NewOperation creates Operation from xdr.Operation
 func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
-	op := ProduceOperation(t, o, n)
+	var result *xdr.OperationResult
 
 	if r != nil {
-		result := &(*r)[n]
-		AppendResult(op, result)
+		result = &(*r)[n]
 	}
 
-	return op
+	return ProduceOperation(t, o, result, n)
 }
 
 // DocID returns elastic document id

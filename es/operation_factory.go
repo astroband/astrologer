@@ -20,10 +20,11 @@ type operationFactory struct {
 }
 
 // ProduceOperation creates factory and returns produced operation
-func ProduceOperation(t *Transaction, o *xdr.Operation, n int) *Operation {
+func ProduceOperation(t *Transaction, o *xdr.Operation, r *xdr.OperationResult, n int) *Operation {
 	factory := operationFactory{
 		transaction: t,
 		source:      o,
+		result:      r,
 		index:       n,
 	}
 
@@ -36,7 +37,7 @@ func (f *operationFactory) produce() *Operation {
 	f.assignPagingToken()
 	f.assignType()
 	f.assignSpecifics()
-	// f.assignResult() // see operation_factory_result.go
+	f.assignResult() // see operation_factory_result.go
 
 	return f.operation
 }
