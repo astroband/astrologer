@@ -8,50 +8,6 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// Price represents Price struct from XDR
-type Price struct {
-	N int `json:"n"`
-	D int `json:"d"`
-}
-
-// AccountThresholds represents account thresholds from XDR
-type AccountThresholds struct {
-	Low    *byte `json:"low,omitempty"`
-	Medium *byte `json:"medium,omitempty"`
-	High   *byte `json:"high,omitempty"`
-	Master *byte `json:"master,omitempty"`
-}
-
-// AccountFlags represents account flags from XDR
-type AccountFlags struct {
-	AuthRequired  bool `json:"required,omitempty"`
-	AuthRevocable bool `json:"revocable,omitempty"`
-	AuthImmutable bool `json:"immutable,omitempty"`
-}
-
-// DataEntry represents data entry
-type DataEntry struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// Signer represents signer as export
-type Signer struct {
-	Key    string `json:"key"`
-	Weight int    `json:"weight"`
-}
-
-// Offer represents offer in ManageOffer
-type Offer struct {
-	Amount   string  `json:"amount"`
-	Price    float64 `json:"price"`
-	PriceND  Price   `json:"price_n_d"`
-	Selling  Asset   `json:"selling"`
-	Buying   Asset   `json:"buying"`
-	OfferID  int64   `json:"offer_id"`
-	SellerID string  `json:"seller_id"`
-}
-
 // Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                 string             `json:"tx_id"`
