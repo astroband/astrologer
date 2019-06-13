@@ -56,7 +56,15 @@ type Operation struct {
 
 // NewOperation creates Operation from xdr.Operation
 func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
-	return ProduceOperation(t, o, r, n)
+	op := ProduceOperation(t, o, r, n)
+
+	if r != nil {
+		result := &(*r)[n]
+		AppendResult(op, result)
+	}
+
+	return op
+
 	// 	sourceAccountID := t.SourceAccountID
 
 	// 	if o.SourceAccount != nil {
