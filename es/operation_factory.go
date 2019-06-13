@@ -19,7 +19,7 @@ type operationFactory struct {
 	operation *Operation
 }
 
-func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
+func ProduceOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
 	factory := operationFactory{
 		transaction: t,
 		source:      o,
@@ -173,37 +173,12 @@ func (f *operationFactory) assignSetOptions(o xdr.SetOptionsOp) {
 		f.operation.HomeDomain = string(*o.HomeDomain)
 	}
 
-	if (o.LowThreshold != nil) || (o.MedThreshold != nil) || (o.HighThreshold != nil) || (o.MasterWeight != nil) {
-		f.operation.Thresholds = &AccountThresholds{}
+	f.operation.Thresholds = NewAccountThresholds(
+		o.LowThreshold, o.MedThreshold, o.HighThreshold, o.MasterWeight,
+	)
 
-		if o.LowThreshold != nil {
-			f.operation.Thresholds.Low = new(byte)
-			*f.operation.Thresholds.Low = byte(*o.LowThreshold)
-		}
-
-		if o.MedThreshold != nil {
-			f.operation.Thresholds.Medium = new(byte)
-			*f.operation.Thresholds.Medium = byte(*o.MedThreshold)
-		}
-
-		if o.HighThreshold != nil {
-			f.operation.Thresholds.High = new(byte)
-			*f.operation.Thresholds.High = byte(*o.HighThreshold)
-		}
-
-		if o.MasterWeight != nil {
-			f.operation.Thresholds.Master = new(byte)
-			*f.operation.Thresholds.Master = byte(*o.MasterWeight)
-		}
-	}
-
-	if o.SetFlags != nil {
-		f.operation.SetFlags = flags(int(*o.SetFlags))
-	}
-
-	if o.ClearFlags != nil {
-		f.operation.ClearFlags = flags(int(*o.ClearFlags))
-	}
+	f.operation.SetFlags = NewAccountFlags(o.SetFlags)
+	f.operation.ClearFlags = NewAccountFlags(o.ClearFlags)
 
 	if o.Signer != nil {
 		f.operation.Signer = &Signer{
@@ -239,15 +214,5 @@ func (f *operationFactory) assignManageData(o xdr.ManageDataOp) {
 	f.operation.Data = &DataEntry{Name: string(o.DataName)}
 	if o.DataValue != nil {
 		f.operation.Data.Value = string(*o.DataValue)
-	}
-}
-
-func flags(f int) *AccountFlags {
-	l := xdr.AccountFlags(f)
-
-	return &AccountFlags{
-		l&xdr.AccountFlagsAuthRequiredFlag != 0,
-		l&xdr.AccountFlagsAuthRevocableFlag != 0,
-		l&xdr.AccountFlagsAuthImmutableFlag != 0,
 	}
 }
