@@ -7,7 +7,7 @@ import (
 )
 
 // AccountBalanceMap is account id <=> balance map
-type AccountBalanceMap map[string]xdr.Int64
+type accountBalanceMap map[string]xdr.Int64
 
 // BalanceExtractor is temporary struct holding data essential for processing the set of changes
 type BalanceExtractor struct {
@@ -16,7 +16,7 @@ type BalanceExtractor struct {
 	source          BalanceSource
 	basePagingToken PagingToken
 
-	values   AccountBalanceMap
+	values   accountBalanceMap
 	balances []*Balance
 	index    int
 }
@@ -28,7 +28,7 @@ func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source Ba
 		closeTime:       t,
 		source:          source,
 		basePagingToken: basePagingToken,
-		values:          make(AccountBalanceMap),
+		values:          make(accountBalanceMap),
 		index:           0,
 	}
 }

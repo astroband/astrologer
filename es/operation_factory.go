@@ -12,18 +12,17 @@ import (
 type operationFactory struct {
 	transaction *Transaction
 	source      *xdr.Operation
-	result      *[]xdr.OperationResult
 	index       int
 	pagingToken PagingToken
 
 	operation *Operation
 }
 
-func ProduceOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
+// ProduceOperation creates factory and returns produced operation
+func ProduceOperation(t *Transaction, o *xdr.Operation, n int) *Operation {
 	factory := operationFactory{
 		transaction: t,
 		source:      o,
-		result:      r,
 		index:       n,
 	}
 
@@ -106,11 +105,6 @@ func (f *operationFactory) assignSpecifics() {
 		f.assignBumpSequence(body.MustBumpSequenceOp())
 	}
 }
-
-// if r != nil {
-// 	result := &(*r)[n]
-// 	AppendResult(op, result)
-// }
 
 func (f *operationFactory) assignCreateAccount(o xdr.CreateAccountOp) {
 	f.operation.SourceAmount = amount.String(o.StartingBalance)

@@ -56,7 +56,7 @@ type Operation struct {
 
 // NewOperation creates Operation from xdr.Operation
 func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
-	op := ProduceOperation(t, o, r, n)
+	op := ProduceOperation(t, o, n)
 
 	if r != nil {
 		result := &(*r)[n]
