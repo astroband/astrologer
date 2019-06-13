@@ -41,16 +41,6 @@ type Signer struct {
 	Weight int    `json:"weight"`
 }
 
-// OfferClaim represents result in ManageOffer []OffersClaimed
-type OfferClaim struct {
-	AmountSold   string `json:"amount_sold"`
-	AmountBought string `json:"amount_bought"`
-	AssetSold    Asset  `json:"asset_sold"`
-	AssetBought  Asset  `json:"asset_bought"`
-	OfferID      int64  `json:"offer_id"`
-	SellerID     string `json:"seller_id"`
-}
-
 // Offer represents offer in ManageOffer
 type Offer struct {
 	Amount   string  `json:"amount"`
@@ -98,10 +88,9 @@ type Operation struct {
 	Data                 *DataEntry         `json:"data,omitempty"`
 	Signer               *Signer            `json:"signer,omitempty"`
 
-	ResultSourceAccountBalance string        `json:"result_source_account_balance,omitempty"`
-	ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
-	ResultOffer                *Offer        `json:"result_offer,omitempty"`
-	ResultOfferEffect          string        `json:"result_offer_effect,omitempty"`
+	ResultSourceAccountBalance string `json:"result_source_account_balance,omitempty"`
+	ResultOffer                *Offer `json:"result_offer,omitempty"`
+	ResultOfferEffect          string `json:"result_offer_effect,omitempty"`
 
 	ResultLastAmount      string `json:"result_last_amount,omitempty"`
 	ResultLastAsset       *Asset `json:"result_last_asset,omitempty"`

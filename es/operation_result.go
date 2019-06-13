@@ -58,10 +58,8 @@ func newPathPaymentResult(r xdr.PathPaymentResult, op *Operation) {
 	op.Succesful = r.Code == xdr.PathPaymentResultCodePathPaymentSuccess
 
 	if s, ok := r.GetSuccess(); ok {
-		op.ResultOffersClaimed = appendOffersClaimed(s.Offers)
-
-		if op.ResultOffersClaimed != nil {
-			op.AmountSent = (*op.ResultOffersClaimed)[0].AmountBought
+		if len(s.Offers) > 0 {
+			op.AmountSent = amount.String(s.Offers[0].AmountBought)
 		}
 		op.ResultLastAmount = amount.String(s.Last.Amount)
 		op.AmountReceived = op.ResultLastAmount
@@ -94,8 +92,6 @@ func newManageBuyOfferResult(r xdr.ManageBuyOfferResult, op *Operation) {
 }
 
 func newManageOfferResult(s xdr.ManageOfferSuccessResult, op *Operation) {
-	op.ResultOffersClaimed = appendOffersClaimed(s.OffersClaimed)
-
 	if o, ok := s.Offer.GetOffer(); ok {
 		p, _ := big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
 
@@ -145,29 +141,4 @@ func newManageDataResult(r xdr.ManageDataResult, op *Operation) {
 func newBumpSequenceResult(r xdr.BumpSequenceResult, op *Operation) {
 	op.InnerResultCode = int(r.Code)
 	op.Succesful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
-}
-
-func appendOffersClaimed(c []xdr.ClaimOfferAtom) *[]OfferClaim {
-	if len(c) > 0 {
-		claims := make([]OfferClaim, len(c))
-		for n := 0; n < len(c); n++ {
-			c := c[n]
-
-			//fmt.Println("SOLD:", c.AssetSold, "BOUGHT:", c.AssetBought)
-
-			claims[n] = OfferClaim{
-				AmountSold:   amount.String(c.AmountSold),
-				AmountBought: amount.String(c.AmountBought),
-				AssetSold:    *NewAsset(&c.AssetSold),
-				AssetBought:  *NewAsset(&c.AssetBought),
-				OfferID:      int64(c.OfferId),
-				SellerID:     c.SellerId.Address(),
-			}
-		}
-		//fmt.Println("---")
-
-		return &claims
-	}
-
-	return nil
 }
