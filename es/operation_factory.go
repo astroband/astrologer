@@ -12,6 +12,7 @@ import (
 type operationFactory struct {
 	transaction *Transaction
 	source      *xdr.Operation
+	result      *xdr.OperationResult
 	index       int
 	pagingToken PagingToken
 
@@ -35,6 +36,7 @@ func (f *operationFactory) produce() *Operation {
 	f.assignPagingToken()
 	f.assignType()
 	f.assignSpecifics()
+	// f.assignResult() // see operation_factory_result.go
 
 	return f.operation
 }
@@ -170,16 +172,9 @@ func (f *operationFactory) assignSetOptions(o xdr.SetOptionsOp) {
 	f.operation.Thresholds = NewAccountThresholds(
 		o.LowThreshold, o.MedThreshold, o.HighThreshold, o.MasterWeight,
 	)
-
 	f.operation.SetFlags = NewAccountFlags(o.SetFlags)
 	f.operation.ClearFlags = NewAccountFlags(o.ClearFlags)
-
-	if o.Signer != nil {
-		f.operation.Signer = &Signer{
-			o.Signer.Key.Address(),
-			int(o.Signer.Weight),
-		}
-	}
+	f.operation.Signer = NewSigner(o.Signer)
 }
 
 func (f *operationFactory) assignChangeTrust(o xdr.ChangeTrustOp) {
