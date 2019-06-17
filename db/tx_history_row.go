@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/guregu/null"
 	"github.com/astroband/astrologer/config"
+	"github.com/guregu/null"
 	"github.com/stellar/go/xdr"
 )
 
@@ -63,4 +63,35 @@ func (tx *TxHistoryRow) MemoValue() null.String {
 	}
 
 	return null.NewString(value, valid)
+}
+
+// Operations returns operations array
+func (tx *TxHistoryRow) Operations() []xdr.Operation {
+	return tx.Envelope.Tx.Operations
+}
+
+// ResultFor returns result for operation index
+func (tx *TxHistoryRow) ResultFor(index int) (result *xdr.OperationResult) {
+	results := tx.Result.Result.Result.Results
+
+	if results != nil {
+		result = &(*results)[index]
+	}
+
+	return result
+}
+
+// MetasFor returns meta for operation index
+func (tx *TxHistoryRow) MetasFor(index int) (result *xdr.OperationMeta) {
+	if v1, ok := tx.Meta.GetV1(); ok {
+		ops := v1.Operations
+		return &ops[index]
+	}
+
+	ops, ok := tx.Meta.GetOperations()
+	if !ok {
+		return nil
+	}
+
+	return &ops[index]
 }
