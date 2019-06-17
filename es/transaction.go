@@ -7,18 +7,6 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// Memo represents transaction memo
-type Memo struct {
-	Type  int    `json:"type"`
-	Value string `json:"value"`
-}
-
-// TimeBounds represent transaction time bounds
-type TimeBounds struct {
-	MinTime int64 `json:"min_time"`
-	MaxTime int64 `json:"max_time"`
-}
-
 // Transaction represents ES-serializable transaction
 type Transaction struct {
 	ID              string      `json:"id"`
@@ -45,7 +33,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		ID:              row.ID,
 		Index:           row.Index,
 		Seq:             row.LedgerSeq,
-		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index + 1},
+		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index},
 		Fee:             int(row.Envelope.Tx.Fee),
 		FeeCharged:      int(row.Result.Result.FeeCharged),
 		OperationCount:  len(row.Envelope.Tx.Operations),

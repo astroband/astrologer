@@ -7,7 +7,7 @@ import (
 )
 
 // AccountBalanceMap is account id <=> balance map
-type AccountBalanceMap map[string]xdr.Int64
+type accountBalanceMap map[string]xdr.Int64
 
 // BalanceExtractor is temporary struct holding data essential for processing the set of changes
 type BalanceExtractor struct {
@@ -16,25 +16,31 @@ type BalanceExtractor struct {
 	source          BalanceSource
 	basePagingToken PagingToken
 
-	values   AccountBalanceMap
+	values   accountBalanceMap
 	balances []*Balance
 	index    int
 }
 
-// NewBalanceExtractor constructs and returns instance of BalanceExtractor
-func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source BalanceSource, basePagingToken PagingToken) *BalanceExtractor {
-	return &BalanceExtractor{
+// ProduceBalances constructs balance extracotr and returns balances
+func ProduceBalances(changes []xdr.LedgerEntryChange, t time.Time, source BalanceSource, basePagingToken PagingToken) (balances []*Balance) {
+	e := &BalanceExtractor{
 		changes:         changes,
 		closeTime:       t,
 		source:          source,
 		basePagingToken: basePagingToken,
-		values:          make(AccountBalanceMap),
+		values:          make(accountBalanceMap),
 		index:           0,
 	}
+
+	if e == nil {
+		return balances
+	}
+
+	return e.extract()
 }
 
 // Extract balances from current changes list
-func (e *BalanceExtractor) Extract() []*Balance {
+func (e *BalanceExtractor) extract() []*Balance {
 	for _, change := range e.changes {
 		switch t := change.Type; t {
 		case xdr.LedgerEntryChangeTypeLedgerEntryState:

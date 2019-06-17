@@ -1,66 +1,10 @@
 package es
 
 import (
-	"math/big"
 	"time"
 
-	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
-
-// Price represents Price struct from XDR
-type Price struct {
-	N int `json:"n"`
-	D int `json:"d"`
-}
-
-// AccountThresholds represents account thresholds from XDR
-type AccountThresholds struct {
-	Low    *byte `json:"low,omitempty"`
-	Medium *byte `json:"medium,omitempty"`
-	High   *byte `json:"high,omitempty"`
-	Master *byte `json:"master,omitempty"`
-}
-
-// AccountFlags represents account flags from XDR
-type AccountFlags struct {
-	AuthRequired  bool `json:"required,omitempty"`
-	AuthRevocable bool `json:"revocable,omitempty"`
-	AuthImmutable bool `json:"immutable,omitempty"`
-}
-
-// DataEntry represents data entry
-type DataEntry struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// Signer represents signer as export
-type Signer struct {
-	Key    string `json:"key"`
-	Weight int    `json:"weight"`
-}
-
-// OfferClaim represents result in ManageOffer []OffersClaimed
-type OfferClaim struct {
-	AmountSold   string `json:"amount_sold"`
-	AmountBought string `json:"amount_bought"`
-	AssetSold    Asset  `json:"asset_sold"`
-	AssetBought  Asset  `json:"asset_bought"`
-	OfferID      int64  `json:"offer_id"`
-	SellerID     string `json:"seller_id"`
-}
-
-// Offer represents offer in ManageOffer
-type Offer struct {
-	Amount   string  `json:"amount"`
-	Price    float64 `json:"price"`
-	PriceND  Price   `json:"price_n_d"`
-	Selling  Asset   `json:"selling"`
-	Buying   Asset   `json:"buying"`
-	OfferID  int64   `json:"offer_id"`
-	SellerID string  `json:"seller_id"`
-}
 
 // Operation represents ES-serializable transaction
 type Operation struct {
@@ -98,10 +42,9 @@ type Operation struct {
 	Data                 *DataEntry         `json:"data,omitempty"`
 	Signer               *Signer            `json:"signer,omitempty"`
 
-	ResultSourceAccountBalance string        `json:"result_source_account_balance,omitempty"`
-	ResultOffersClaimed        *[]OfferClaim `json:"result_offers_claimed,omitempty"`
-	ResultOffer                *Offer        `json:"result_offer,omitempty"`
-	ResultOfferEffect          string        `json:"result_offer_effect,omitempty"`
+	ResultSourceAccountBalance string `json:"result_source_account_balance,omitempty"`
+	ResultOffer                *Offer `json:"result_offer,omitempty"`
+	ResultOfferEffect          string `json:"result_offer_effect,omitempty"`
 
 	ResultLastAmount      string `json:"result_last_amount,omitempty"`
 	ResultLastAsset       *Asset `json:"result_last_asset,omitempty"`
@@ -113,199 +56,13 @@ type Operation struct {
 
 // NewOperation creates Operation from xdr.Operation
 func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
-	sourceAccountID := t.SourceAccountID
-
-	if o.SourceAccount != nil {
-		sourceAccountID = o.SourceAccount.Address()
-	}
-
-	op := &Operation{
-		TxID:              t.ID,
-		TxIndex:           t.Index,
-		Index:             n,
-		Seq:               t.Seq,
-		PagingToken:       PagingToken{LedgerSeq: t.Seq, TransactionOrder: t.Index + 1, OperationOrder: n + 1},
-		CloseTime:         t.CloseTime,
-		TxSourceAccountID: t.SourceAccountID,
-		Type:              o.Body.Type.String(),
-		SourceAccountID:   sourceAccountID,
-
-		Memo: t.Memo,
-	}
-
-	switch t := o.Body.Type; t {
-	case xdr.OperationTypeCreateAccount:
-		newCreateAccount(o.Body.MustCreateAccountOp(), op)
-	case xdr.OperationTypePayment:
-		newPayment(o.Body.MustPaymentOp(), op)
-	case xdr.OperationTypePathPayment:
-		newPathPayment(o.Body.MustPathPaymentOp(), op)
-	case xdr.OperationTypeManageSellOffer:
-		newManageSellOffer(o.Body.MustManageSellOfferOp(), op)
-	case xdr.OperationTypeManageBuyOffer:
-		newManageBuyOffer(o.Body.MustManageBuyOfferOp(), op)
-	case xdr.OperationTypeCreatePassiveSellOffer:
-		newCreatePassiveSellOffer(o.Body.MustCreatePassiveSellOfferOp(), op)
-	case xdr.OperationTypeSetOptions:
-		newSetOptions(o.Body.MustSetOptionsOp(), op)
-	case xdr.OperationTypeChangeTrust:
-		newChangeTrust(o.Body.MustChangeTrustOp(), op)
-	case xdr.OperationTypeAllowTrust:
-		newAllowTrust(o.Body.MustAllowTrustOp(), op)
-	case xdr.OperationTypeAccountMerge:
-		newAccountMerge(o.Body.MustDestination(), op)
-	case xdr.OperationTypeManageData:
-		newManageData(o.Body.MustManageDataOp(), op)
-	case xdr.OperationTypeBumpSequence:
-		newBumpSequence(o.Body.MustBumpSequenceOp(), op)
-	}
+	var result *xdr.OperationResult
 
 	if r != nil {
-		result := &(*r)[n]
-		AppendResult(op, result)
+		result = &(*r)[n]
 	}
 
-	return op
-}
-
-func newCreateAccount(o xdr.CreateAccountOp, op *Operation) {
-	op.SourceAmount = amount.String(o.StartingBalance)
-	op.DestinationAccountID = o.Destination.Address()
-}
-
-func newPayment(o xdr.PaymentOp, op *Operation) {
-	op.SourceAmount = amount.String(o.Amount)
-	op.DestinationAccountID = o.Destination.Address()
-	op.SourceAsset = NewAsset(&o.Asset)
-}
-
-func newPathPayment(o xdr.PathPaymentOp, op *Operation) {
-	op.DestinationAccountID = o.Destination.Address()
-	op.DestinationAmount = amount.String(o.DestAmount)
-	op.DestinationAsset = NewAsset(&o.DestAsset)
-
-	op.SourceAmount = amount.String(o.SendMax)
-	op.SourceAsset = NewAsset(&o.SendAsset)
-
-	op.Path = make([]*Asset, len(o.Path))
-
-	for i, a := range o.Path {
-		op.Path[i] = NewAsset(&a)
-	}
-}
-
-func newManageSellOffer(o xdr.ManageSellOfferOp, op *Operation) {
-	op.SourceAmount = amount.String(o.Amount)
-	op.SourceAsset = NewAsset(&o.Buying)
-	op.OfferID = int(o.OfferId)
-	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
-	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
-	op.DestinationAsset = NewAsset(&o.Selling)
-}
-
-func newManageBuyOffer(o xdr.ManageBuyOfferOp, op *Operation) {
-	op.SourceAmount = amount.String(o.BuyAmount)
-	op.SourceAsset = NewAsset(&o.Selling)
-	op.DestinationAsset = NewAsset(&o.Buying)
-	op.OfferID = int(o.OfferId)
-	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
-	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
-}
-
-func newCreatePassiveSellOffer(o xdr.CreatePassiveSellOfferOp, op *Operation) {
-	op.SourceAmount = amount.String(o.Amount)
-	op.SourceAsset = NewAsset(&o.Buying)
-	op.OfferPrice, _ = big.NewRat(int64(o.Price.N), int64(o.Price.D)).Float64()
-	op.OfferPriceND = &Price{int(o.Price.N), int(o.Price.D)}
-	op.DestinationAsset = NewAsset(&o.Selling)
-}
-
-func newSetOptions(o xdr.SetOptionsOp, op *Operation) {
-	if o.InflationDest != nil {
-		op.InflationDest = o.InflationDest.Address()
-	}
-
-	if o.HomeDomain != nil {
-		op.HomeDomain = string(*o.HomeDomain)
-	}
-
-	if (o.LowThreshold != nil) || (o.MedThreshold != nil) || (o.HighThreshold != nil) || (o.MasterWeight != nil) {
-		op.Thresholds = &AccountThresholds{}
-
-		if o.LowThreshold != nil {
-			op.Thresholds.Low = new(byte)
-			*op.Thresholds.Low = byte(*o.LowThreshold)
-		}
-
-		if o.MedThreshold != nil {
-			op.Thresholds.Medium = new(byte)
-			*op.Thresholds.Medium = byte(*o.MedThreshold)
-		}
-
-		if o.HighThreshold != nil {
-			op.Thresholds.High = new(byte)
-			*op.Thresholds.High = byte(*o.HighThreshold)
-		}
-
-		if o.MasterWeight != nil {
-			op.Thresholds.Master = new(byte)
-			*op.Thresholds.Master = byte(*o.MasterWeight)
-		}
-	}
-
-	if o.SetFlags != nil {
-		op.SetFlags = flags(int(*o.SetFlags))
-	}
-
-	if o.ClearFlags != nil {
-		op.ClearFlags = flags(int(*o.ClearFlags))
-	}
-
-	if o.Signer != nil {
-		op.Signer = &Signer{
-			o.Signer.Key.Address(),
-			int(o.Signer.Weight),
-		}
-	}
-}
-
-func newChangeTrust(o xdr.ChangeTrustOp, op *Operation) {
-	op.DestinationAmount = amount.String(o.Limit)
-	op.DestinationAsset = NewAsset(&o.Line)
-}
-
-func newAllowTrust(o xdr.AllowTrustOp, op *Operation) {
-	a := o.Asset.ToAsset(o.Trustor)
-
-	op.DestinationAsset = NewAsset(&a)
-	op.DestinationAccountID = o.Trustor.Address()
-	op.Authorize = o.Authorize
-}
-
-func newAccountMerge(d xdr.AccountId, op *Operation) {
-	op.DestinationAccountID = d.Address()
-}
-
-func newBumpSequence(o xdr.BumpSequenceOp, op *Operation) {
-	op.BumpTo = int(o.BumpTo)
-}
-
-// TODO: Apply some magic to the value
-func newManageData(o xdr.ManageDataOp, op *Operation) {
-	op.Data = &DataEntry{Name: string(o.DataName)}
-	if o.DataValue != nil {
-		op.Data.Value = string(*o.DataValue)
-	}
-}
-
-func flags(f int) *AccountFlags {
-	l := xdr.AccountFlags(f)
-
-	return &AccountFlags{
-		l&xdr.AccountFlagsAuthRequiredFlag != 0,
-		l&xdr.AccountFlagsAuthRevocableFlag != 0,
-		l&xdr.AccountFlagsAuthImmutableFlag != 0,
-	}
+	return ProduceOperation(t, o, result, n)
 }
 
 // DocID returns elastic document id
