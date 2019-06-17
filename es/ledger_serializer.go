@@ -61,7 +61,7 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 				s.serializeBalances(metas.Changes, transaction.Index, opIndex, BalanceSourceMeta, BalanceEffectPagingTokenGroup)
 			}
 
-			s.serializeTrades(result, transaction, operation, opIndex)
+			s.serializeTrades(result, transaction, operation)
 		}
 	}
 }
@@ -85,14 +85,14 @@ func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, txI
 	}
 }
 
-func (s *ledgerSerializer) serializeTrades(result *xdr.OperationResult, transaction *Transaction, operation *Operation, opIndex int) {
+func (s *ledgerSerializer) serializeTrades(result *xdr.OperationResult, transaction *Transaction, operation *Operation) {
 	pagingToken := PagingToken{
 		LedgerSeq:        s.ledger.Seq,
 		TransactionOrder: transaction.Index + 1,
-		OperationOrder:   opIndex + 1,
+		OperationOrder:   operation.Index + 1,
 	}
 
-	trades := ProduceTrades(result, operation, opIndex, s.ledger.CloseTime, pagingToken)
+	trades := ProduceTrades(result, operation, s.ledger.CloseTime, pagingToken)
 	if len(trades) > 0 {
 		for _, trade := range trades {
 			SerializeForBulk(&trade, s.buffer)

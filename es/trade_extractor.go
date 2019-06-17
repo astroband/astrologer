@@ -11,7 +11,6 @@ import (
 // TradeExtractor is used to extract trade index entries
 type TradeExtractor struct {
 	result      *xdr.OperationResult
-	index       int
 	closeTime   time.Time
 	pagingToken PagingToken
 	operation   *Operation
@@ -19,10 +18,9 @@ type TradeExtractor struct {
 }
 
 // ProduceTrades returns trades
-func ProduceTrades(r *xdr.OperationResult, op *Operation, index int, closeTime time.Time, pagingToken PagingToken) (trades []Trade) {
+func ProduceTrades(r *xdr.OperationResult, op *Operation, closeTime time.Time, pagingToken PagingToken) (trades []Trade) {
 	extractor := &TradeExtractor{
 		result:      r,
-		index:       index,
 		closeTime:   closeTime,
 		pagingToken: pagingToken,
 		operation:   op,
