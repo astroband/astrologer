@@ -40,7 +40,7 @@ func (s *ledgerSerializer) serialize() {
 
 		if transaction.Successful {
 			changes := s.feeRows[transaction.Index-1].Changes
-			s.serializeBalances(changes, transaction.Index, 0, BalanceSourceFee, FeeEffectPagingTokenGroup)
+			s.serializeBalances(changes, transaction, nil, BalanceSourceFee, FeeEffectPagingTokenGroup)
 		}
 
 		s.serializeOperations(transactionRow, transaction)
@@ -58,7 +58,7 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 		if transaction.Successful {
 			metas := transactionRow.MetasFor(index)
 			if metas != nil {
-				s.serializeBalances(metas.Changes, transaction.Index, index, BalanceSourceMeta, BalanceEffectPagingTokenGroup)
+				s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta, BalanceEffectPagingTokenGroup)
 			}
 
 			s.serializeTrades(result, transaction, operation)
@@ -66,13 +66,16 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 	}
 }
 
-func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, txIndex int, opIndex int, source BalanceSource, effectGroup int) {
+func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource, effectGroup int) {
 	if len(changes) > 0 {
 		pagingToken := PagingToken{
 			LedgerSeq:        s.ledger.Seq,
-			TransactionOrder: txIndex,
-			OperationOrder:   opIndex,
+			TransactionOrder: transaction.Index,
 			EffectGroup:      effectGroup,
+		}
+
+		if operation != nil {
+			pagingToken.OperationOrder = operation.Index
 		}
 
 		balances := ProduceBalances(changes, s.ledger.CloseTime, source, pagingToken)
