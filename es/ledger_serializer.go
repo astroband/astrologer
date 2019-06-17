@@ -17,7 +17,7 @@ type ledgerSerializer struct {
 }
 
 // SerializeLedger serializes ledger data into ES bulk index data
-func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistoryRow, feeRows []db.TxFeeHistoryRow) {
+func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistoryRow, feeRows []db.TxFeeHistoryRow, buffer *bytes.Buffer) {
 	ledger := NewLedgerHeader(&ledgerRow)
 
 	serializer := &ledgerSerializer{
@@ -25,6 +25,7 @@ func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistor
 		transactionRows: transactionRows,
 		feeRows:         feeRows,
 		ledger:          ledger,
+		buffer:          buffer,
 	}
 
 	serializer.serialize()
@@ -38,7 +39,7 @@ func (s *ledgerSerializer) serialize() {
 		SerializeForBulk(transaction, s.buffer)
 
 		if transaction.Successful {
-			changes := s.feeRows[transaction.Index].Changes
+			changes := s.feeRows[transaction.Index-1].Changes
 			s.serializeBalances(changes, transaction.Index, 0, BalanceSourceFee, FeeEffectPagingTokenGroup)
 		}
 
@@ -51,7 +52,7 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 
 	for index, xdr := range xdrs {
 		result := transactionRow.ResultFor(index)
-		operation := ProduceOperation(transaction, &xdr, result, index)
+		operation := ProduceOperation(transaction, &xdr, result, index+1)
 		SerializeForBulk(operation, s.buffer)
 
 		if transaction.Successful {
@@ -69,7 +70,7 @@ func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, txI
 	if len(changes) > 0 {
 		pagingToken := PagingToken{
 			LedgerSeq:        s.ledger.Seq,
-			TransactionOrder: txIndex + 1,
+			TransactionOrder: txIndex,
 			OperationOrder:   opIndex,
 			EffectGroup:      effectGroup,
 		}
