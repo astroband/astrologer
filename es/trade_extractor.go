@@ -18,25 +18,25 @@ type TradeExtractor struct {
 	tokenIndex  int
 }
 
-// NewTradeExtractor creates new TradesExtractor or returns nil if result is inappropriate
-func NewTradeExtractor(r *[]xdr.OperationResult, op *Operation, index int, closeTime time.Time, pagingToken PagingToken) *TradeExtractor {
-	if r == nil {
-		return nil
-	}
-
-	result := (*r)[index]
-
-	return &TradeExtractor{
-		result:      &result,
+// ProduceTrades returns trades
+func ProduceTrades(r *xdr.OperationResult, op *Operation, index int, closeTime time.Time, pagingToken PagingToken) (trades []Trade) {
+	extractor := &TradeExtractor{
+		result:      r,
 		index:       index,
 		closeTime:   closeTime,
 		pagingToken: pagingToken,
 		operation:   op,
 	}
+
+	if extractor == nil {
+		return trades
+	}
+
+	return extractor.extract()
 }
 
 // Extract returns trades entries
-func (e *TradeExtractor) Extract() (trades []Trade) {
+func (e *TradeExtractor) extract() (trades []Trade) {
 	if e.result == nil {
 		return trades
 	}

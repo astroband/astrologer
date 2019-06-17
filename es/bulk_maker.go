@@ -70,19 +70,19 @@ func (m *BulkMaker) makeOperationsWithResultsAndTrades() {
 			op := NewOperation(t, &o, results, oIndex)
 			SerializeForBulk(op, m.buffer)
 
-			pagingToken := PagingToken{
-				LedgerSeq:        m.seq,
-				TransactionOrder: tIndex + 1,
-				OperationOrder:   oIndex + 1,
-			}
+			// pagingToken := PagingToken{
+			// 	LedgerSeq:        m.seq,
+			// 	TransactionOrder: tIndex + 1,
+			// 	OperationOrder:   oIndex + 1,
+			// }
 
-			extractor := NewTradeExtractor(results, op, oIndex, m.closeTime, pagingToken)
-			if extractor != nil {
-				trades := extractor.Extract()
-				for _, trade := range trades {
-					SerializeForBulk(&trade, m.buffer)
-				}
-			}
+			// extractor := NewTradeExtractor(results, op, oIndex, m.closeTime, pagingToken)
+			// if extractor != nil {
+			// 	trades := extractor.Extract()
+			// 	for _, trade := range trades {
+			// 		SerializeForBulk(&trade, m.buffer)
+			// 	}
+			// }
 		}
 	}
 }
