@@ -21,9 +21,9 @@ type BalanceExtractor struct {
 	index    int
 }
 
-// NewBalanceExtractor constructs and returns instance of BalanceExtractor
-func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source BalanceSource, basePagingToken PagingToken) *BalanceExtractor {
-	return &BalanceExtractor{
+// ProduceBalances constructs balance extracotr and returns balances
+func ProduceBalances(changes []xdr.LedgerEntryChange, t time.Time, source BalanceSource, basePagingToken PagingToken) (balances []*Balance) {
+	e := &BalanceExtractor{
 		changes:         changes,
 		closeTime:       t,
 		source:          source,
@@ -31,10 +31,16 @@ func NewBalanceExtractor(changes []xdr.LedgerEntryChange, t time.Time, source Ba
 		values:          make(accountBalanceMap),
 		index:           0,
 	}
+
+	if e == nil {
+		return balances
+	}
+
+	return e.extract()
 }
 
 // Extract balances from current changes list
-func (e *BalanceExtractor) Extract() []*Balance {
+func (e *BalanceExtractor) extract() []*Balance {
 	for _, change := range e.changes {
 		switch t := change.Type; t {
 		case xdr.LedgerEntryChangeTypeLedgerEntryState:

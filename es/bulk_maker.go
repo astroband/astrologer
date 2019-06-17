@@ -107,7 +107,7 @@ func (m *BulkMaker) makeBalancesFromMetas() {
 				OperationOrder:   oIndex + 1,
 				EffectGroup:      BalanceEffectPagingTokenGroup,
 			}
-			b := NewBalanceExtractor(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken).Extract()
+			b := ProduceBalances(e.Changes, m.closeTime, BalanceSourceMeta, pagingToken)
 
 			for _, balance := range b {
 				SerializeForBulk(balance, m.buffer)
@@ -125,7 +125,7 @@ func (m *BulkMaker) makeBalancesFromFeeHistory() {
 			EffectGroup:      FeeEffectPagingTokenGroup,
 		}
 
-		bl := NewBalanceExtractor(fee.Changes, m.closeTime, BalanceSourceFee, pagingToken).Extract()
+		bl := ProduceBalances(fee.Changes, m.closeTime, BalanceSourceFee, pagingToken)
 
 		for _, balance := range bl {
 			SerializeForBulk(balance, m.buffer)
