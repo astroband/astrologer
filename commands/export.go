@@ -49,7 +49,6 @@ func exportBlock(i int) {
 		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
 		fees := db.TxFeeHistoryRowsForRows(txs)
 
-		//es.NewBulkMaker(rows[n], txs, fees, &b).Make()
 		es.SerializeLedger(rows[n], txs, fees, &b)
 
 		if !*config.Verbose {
