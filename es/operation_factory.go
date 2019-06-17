@@ -59,8 +59,8 @@ func (f *operationFactory) makeOperation() {
 func (f *operationFactory) assignPagingToken() {
 	f.operation.PagingToken = PagingToken{
 		LedgerSeq:        f.transaction.Seq,
-		TransactionOrder: f.transaction.Index + 1,
-		OperationOrder:   f.index + 1,
+		TransactionOrder: f.transaction.Index,
+		OperationOrder:   f.index,
 	}
 }
 

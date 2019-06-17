@@ -88,8 +88,8 @@ func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, txI
 func (s *ledgerSerializer) serializeTrades(result *xdr.OperationResult, transaction *Transaction, operation *Operation) {
 	pagingToken := PagingToken{
 		LedgerSeq:        s.ledger.Seq,
-		TransactionOrder: transaction.Index + 1,
-		OperationOrder:   operation.Index + 1,
+		TransactionOrder: transaction.Index,
+		OperationOrder:   operation.Index,
 	}
 
 	trades := ProduceTrades(result, operation, s.ledger.CloseTime, pagingToken)
