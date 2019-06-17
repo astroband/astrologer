@@ -49,16 +49,15 @@ func (s *ledgerSerializer) serialize() {
 func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) {
 	xdrs := transactionRow.Operations()
 
-	for opIndex, xdr := range xdrs {
-		result := transactionRow.ResultFor(opIndex)
-
-		operation := ProduceOperation(transaction, &xdr, result, opIndex)
+	for index, xdr := range xdrs {
+		result := transactionRow.ResultFor(index)
+		operation := ProduceOperation(transaction, &xdr, result, index)
 		SerializeForBulk(operation, s.buffer)
 
 		if transaction.Successful {
-			metas := transactionRow.MetasFor(opIndex)
+			metas := transactionRow.MetasFor(index)
 			if metas != nil {
-				s.serializeBalances(metas.Changes, transaction.Index, opIndex, BalanceSourceMeta, BalanceEffectPagingTokenGroup)
+				s.serializeBalances(metas.Changes, transaction.Index, index, BalanceSourceMeta, BalanceEffectPagingTokenGroup)
 			}
 
 			s.serializeTrades(result, transaction, operation)
