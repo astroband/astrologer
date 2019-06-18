@@ -10,6 +10,10 @@ import (
 
 // AppendResult Appends operation result
 func (f *operationFactory) assignResult() {
+	if f.result == nil {
+		return
+	}
+
 	r := f.result
 
 	f.operation.ResultCode = int(r.Code)
