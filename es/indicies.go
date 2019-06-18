@@ -298,7 +298,8 @@ const signersIndex = `
 				"weight": { "type": "integer" },
 				"seq": { "type": "integer" },
 				"tx_idx": { "type": "integer" },
-				"idx": { "type": "integer" }
+				"idx": { "type": "integer" },
+				"created_at": { "type": "date" }
 			}
 		}
 	}
