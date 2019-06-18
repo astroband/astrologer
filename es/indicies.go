@@ -167,7 +167,8 @@ const opIndex = `
 				"signer": {
 					"properties": {
 						"key": { "type": "keyword" },
-						"weight": { "type": "byte" }
+						"weight": { "type": "byte" },
+						"type": { "type": "byte" }
 					}
 				},
 				"data": {
@@ -294,8 +295,8 @@ const signerHistoryIndex = `
 				"paging_token": { "type": "keyword", "index": true },
 				"account_id": { "type": "keyword", "index": true },
 				"signer": { "type": "keyword", "index": true },
-				"type": { "type": "integer" },
-				"weight": { "type": "integer" },
+				"type": { "type": "byte" },
+				"weight": { "type": "byte" },
 				"seq": { "type": "integer" },
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
