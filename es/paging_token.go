@@ -30,6 +30,9 @@ var (
 
 	// TradeEffectPagingTokenGroup represent trade effects
 	TradeEffectPagingTokenGroup = 3
+
+	// SignerHistoryEffectPagingTokenGroup represent signer effects
+	SignerHistoryEffectPagingTokenGroup = 4
 )
 
 // String returns string representation of order

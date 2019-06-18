@@ -62,6 +62,29 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 			}
 
 			s.serializeTrades(result, transaction, operation)
+
+			if operation.Signer != nil {
+				token := PagingToken{
+					LedgerSeq:        s.ledger.Seq,
+					TransactionOrder: transaction.Index,
+					OperationOrder:   operation.Index,
+					EffectGroup:      SignerHistoryEffectPagingTokenGroup,
+				}
+
+				entry := &SignerHistory{
+					PagingToken:     token,
+					AccountID:       operation.SourceAccountID,
+					Signer:          operation.Signer.Key,
+					Type:            0,
+					Weight:          operation.Signer.Weight,
+					TxIndex:         transaction.Index,
+					Index:           operation.Index,
+					Seq:             s.ledger.Seq,
+					LedgerCloseTime: s.ledger.CloseTime,
+				}
+
+				SerializeForBulk(entry, s.buffer)
+			}
 		}
 	}
 }

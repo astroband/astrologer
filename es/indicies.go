@@ -281,7 +281,7 @@ const tradesIndex = `
 	}
 `
 
-const signersIndex = `
+const signerHistoryIndex = `
 	{
 		"settings": {
 			"index" : {
@@ -299,7 +299,7 @@ const signersIndex = `
 				"seq": { "type": "integer" },
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
-				"created_at": { "type": "date" }
+				"ledger_close_time": { "type": "date" }
 			}
 		}
 	}
@@ -312,7 +312,7 @@ func CreateIndicies() {
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
 	refreshIndex(tradesIndexName, tradesIndex)
-	refreshIndex(signersIndexName, signersIndex)
+	refreshIndex(signerHistoryIndexName, signerHistoryIndex)
 }
 
 func refreshIndex(name string, body string) {
