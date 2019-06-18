@@ -281,6 +281,29 @@ const tradesIndex = `
 	}
 `
 
+const signersIndex = `
+	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
+		"mappings": {
+			"properties": {
+				"paging_token": { "type": "keyword", "index": true },
+				"account_id": { "type": "keyword", "index": true },
+				"signer": { "type": "keyword", "index": true },
+				"type": { "type": "integer" },
+				"weight": { "type": "integer" },
+				"seq": { "type": "integer" },
+				"tx_idx": { "type": "integer" },
+				"idx": { "type": "integer" }
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
@@ -288,6 +311,7 @@ func CreateIndicies() {
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
 	refreshIndex(tradesIndexName, tradesIndex)
+	refreshIndex(signersIndexName, signersIndex)
 }
 
 func refreshIndex(name string, body string) {
