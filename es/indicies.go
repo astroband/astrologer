@@ -244,8 +244,15 @@ const balanceIndex = `
 
 const tradesIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
+				"paging_token": { "type": "keyword", "index": true },				
 				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"asset_sold": {
