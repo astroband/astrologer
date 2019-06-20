@@ -167,7 +167,8 @@ const opIndex = `
 				"signer": {
 					"properties": {
 						"key": { "type": "keyword" },
-						"weight": { "type": "byte" }
+						"weight": { "type": "byte" },
+						"type": { "type": "byte" }
 					}
 				},
 				"data": {
@@ -244,8 +245,15 @@ const balanceIndex = `
 
 const tradesIndex = `
 	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
 		"mappings": {
 			"properties": {
+				"paging_token": { "type": "keyword", "index": true },				
 				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"asset_sold": {
@@ -274,6 +282,30 @@ const tradesIndex = `
 	}
 `
 
+const signerHistoryIndex = `
+	{
+		"settings": {
+			"index" : {
+        "sort.field" : "paging_token",
+        "sort.order" : "desc"
+			}
+		},
+		"mappings": {
+			"properties": {
+				"paging_token": { "type": "keyword", "index": true },
+				"account_id": { "type": "keyword", "index": true },
+				"signer": { "type": "keyword", "index": true },
+				"type": { "type": "byte" },
+				"weight": { "type": "byte" },
+				"seq": { "type": "integer" },
+				"tx_idx": { "type": "integer" },
+				"idx": { "type": "integer" },
+				"ledger_close_time": { "type": "date" }
+			}
+		}
+	}
+`
+
 // CreateIndicies creates all indicies in ElasticSearch database
 func CreateIndicies() {
 	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
@@ -281,6 +313,7 @@ func CreateIndicies() {
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
 	refreshIndex(tradesIndexName, tradesIndex)
+	refreshIndex(signerHistoryIndexName, signerHistoryIndex)
 }
 
 func refreshIndex(name string, body string) {

@@ -62,6 +62,11 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 			}
 
 			s.serializeTrades(result, transaction, operation)
+
+			h := ProduceSignerHistory(operation)
+			if h != nil {
+				SerializeForBulk(h, s.buffer)
+			}
 		}
 	}
 }
