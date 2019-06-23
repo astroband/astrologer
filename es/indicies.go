@@ -228,6 +228,7 @@ const balanceIndex = `
 				"account_id": { "type": "keyword", "index": true },
 				"value": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"diff": { "type": "scaled_float", "scaling_factor": 10000000 },
+				"positive": { "type": "boolean", "index": true },
 				"source": { "type": "keyword" },
 				"created_at": { "type": "date" },
 				"asset": {

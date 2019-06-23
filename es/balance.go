@@ -24,6 +24,7 @@ type Balance struct {
 	AccountID   string        `json:"account_id"`
 	Value       string        `json:"value"`
 	Diff        string        `json:"diff"`
+	Positive    bool          `json:"positive"`
 	CreatedAt   time.Time     `json:"created_at"`
 	Source      BalanceSource `json:"source"`
 	Asset       Asset         `json:"asset"`
@@ -36,6 +37,7 @@ func NewBalanceFromAccountEntry(a xdr.AccountEntry, diff xdr.Int64, now time.Tim
 		AccountID:   a.AccountId.Address(),
 		Value:       amount.String(a.Balance),
 		Diff:        amount.String(diff),
+		Positive:    diff > 0,
 		Source:      source,
 		CreatedAt:   now,
 		Asset:       *NewNativeAsset(),
