@@ -79,7 +79,8 @@ const opIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5
 			}
 		},
 		"mappings": {
@@ -219,7 +220,8 @@ const balanceIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+        "number_of_shards" : 5
 			}
 		},
 		"mappings": {
@@ -249,7 +251,8 @@ const tradesIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5
 			}
 		},
 		"mappings": {
