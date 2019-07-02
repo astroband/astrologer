@@ -277,8 +277,8 @@ const tradesIndex = `
 					}
 				},
 				"offer_id": { "type": "long" },
-				"seller": { "type": "keyword", "index": true },
-				"buyer": { "type": "keyword", "index": true },
+				"seller_id": { "type": "keyword", "index": true },
+				"buyer_id": { "type": "keyword", "index": true },
 				"price": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"time": { "type": "date" }
 			}
