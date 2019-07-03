@@ -35,7 +35,7 @@ func ProduceSignerHistory(o *Operation) (h *SignerHistory) {
 	entry := &SignerHistory{
 		PagingToken:     token,
 		AccountID:       o.SourceAccountID,
-		Signer:          o.Signer.Key,
+		Signer:          o.Signer.ID,
 		Type:            o.Signer.Type,
 		Weight:          o.Signer.Weight,
 		TxIndex:         o.TxIndex,
