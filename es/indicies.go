@@ -105,9 +105,8 @@ const opIndex = `
 				"source_account_id": { "type": "keyword", "index": true },
 				"source_asset": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -115,9 +114,8 @@ const opIndex = `
 				"destination_account_id": { "type": "keyword", "index": true },
 				"destination_asset": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -135,9 +133,8 @@ const opIndex = `
 				"bump_to": { "type": "long" },
 				"path": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
@@ -167,7 +164,7 @@ const opIndex = `
 				},
 				"signer": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"weight": { "type": "byte" },
 						"type": { "type": "byte" }
 					}
@@ -191,17 +188,15 @@ const opIndex = `
 						},
 						"selling": {
 							"properties": {
-								"key": { "type": "keyword" },
+								"id": { "type": "keyword" },
 								"code": { "type": "keyword" },
-								"native": { "type": "boolean" },
 								"issuer": { "type": "keyword" }
 							}
 						},
 						"buying": {
 							"properties": {
-								"key": { "type": "keyword" },
+								"id": { "type": "keyword" },
 								"code": { "type": "keyword" },
-								"native": { "type": "boolean" },
 								"issuer": { "type": "keyword" }
 							}
 						},
@@ -235,9 +230,8 @@ const balanceIndex = `
 				"created_at": { "type": "date" },
 				"asset": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				}
@@ -262,17 +256,15 @@ const tradesIndex = `
 				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"asset_sold": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},
 				"asset_bought": {
 					"properties": {
-						"key": { "type": "keyword" },
+						"id": { "type": "keyword" },
 						"code": { "type": "keyword" },
-						"native": { "type": "boolean" },
 						"issuer": { "type": "keyword" }
 					}
 				},

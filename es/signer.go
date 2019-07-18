@@ -4,7 +4,7 @@ import "github.com/stellar/go/xdr"
 
 // Signer represents signer as export
 type Signer struct {
-	Key    string `json:"key"`
+	ID     string `json:"id"`
 	Weight int    `json:"weight"`
 	Type   int    `json:"type"`
 }
