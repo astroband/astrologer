@@ -47,7 +47,7 @@ jobs:
       # deploy the image
       - run:
           name: Push image to Google Container Registry
-          command: docker push -t astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+          command: docker push astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 
   # deployTemplateGKE: &deployTemplateGKE
   #   executor: gcloud-helm
