@@ -5,31 +5,12 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  tag: stable
+  repository: astroband/astrologer
+  tag: fc070296b6ac2c8b525af66b146b96c8f96bd30e
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths: []
-
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+databaseUrl: postgres://localhost/stellar
+esUrl: https://localhost:9200
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
