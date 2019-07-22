@@ -28,7 +28,9 @@ jobs:
       # build the application image
       - run:
           name: Build docker image
-          command: docker build -t astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
+          command: |
+            docker build -t astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1} . &&
+            docker build -t astroband/${CIRCLE_PROJECT_REPONAME}:latest .
 
       # deploy the image
       - run:
