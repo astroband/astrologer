@@ -1,15 +1,13 @@
 FROM golang:alpine AS build
 
-RUN apk add --no-cache git curl
+RUN apk add --no-cache git
 
 RUN mkdir -p $GOPATH/src/github.com/astroband/astrologer
 WORKDIR $GOPATH/src/github.com/astroband/astrologer
 
-ADD commands config db es main.go Gopkg.toml Gopkg.lock ./
+ADD . .
 
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-RUN dep ensure -v
-RUN go build -v
+RUN GO111MODULE=on go build
 
 # ===============================================================================================
 
