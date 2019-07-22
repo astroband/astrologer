@@ -1,93 +1,76 @@
-version: 2
+version: 2.1
+
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - build:
+          context: astrologer-k8s-deploy
+          filters:
+            branches:
+              only:
+                - master
+      # - deployProductionGKE:
+      #     context: ebaysocial-k8s-deploy
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only:
+      #           - release
+      #           - release-gke
+
+executors:
+  gcloud-helm:
+    docker:
+      - image: quay.io/evl.ms/gcloud-helm:252.0.0
+
 jobs:
   build:
-    docker:
-      # specify the version
-      - image: circleci/golang:1.9
+    executor: gcloud-helm
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
 
-      # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
+      # Enable remote CircleCI Docker environment which we will use to build our image
+      - setup_remote_docker:
+          version: 18.05.0-ce
 
-# version: 2.1
+      - run:
+          name: Setup Google Cloud SDK
+          command: |
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+            gcloud --quiet auth configure-docker
+      # build the application image
+      - run:
+          name: Build docker image
+          command: docker build -t gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
 
-# workflows:
-#   version: 2
-#   deploy:
-#     jobs:
-#       - build:
-#           context: ebaysocial-k8s-deploy
-#           filters:
-#             branches:
-#               only:
-#                 - master
-#                 - release
-#                 - release-gke
-#       - deployProductionGKE:
-#           context: ebaysocial-k8s-deploy
-#           requires:
-#             - build
-#           filters:
-#             branches:
-#               only:
-#                 - release
-#                 - release-gke
+      # deploy the image
+      - run:
+          name: Push image to Google Container Registry
+          command: docker push gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 
-# executors:
-#   gcloud-helm:
-#     docker:
-#       - image: quay.io/evl.ms/gcloud-helm:252.0.0
+  # deployTemplateGKE: &deployTemplateGKE
+  #   executor: gcloud-helm
 
-# jobs:
-#   build:
-#     executor: gcloud-helm
+  #   steps:
+  #     - checkout
 
-#     steps:
-#       - checkout
+  #     - run:
+  #         name: Setup Google Cloud SDK
+  #         command: |
+  #           echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
+  #           gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+  #           gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+  #           gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+  #           gcloud --quiet container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+  #     - deploy:
+  #         command: /usr/local/bin/helm upgrade ${HELM_RELEASE} ./charts/items-api/  --reuse-values --set image.tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1} --wait --atomic
 
-#       # Enable remote CircleCI Docker environment which we will use to build our image
-#       - setup_remote_docker:
-#           version: 18.05.0-ce
-
-#       - run:
-#           name: Setup Google Cloud SDK
-#           command: |
-#             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-#             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-#             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-#             gcloud --quiet auth configure-docker
-#       # build the application image
-#       - run:
-#           name: Build docker image for items-api
-#           command: docker build -t gcr.io/evil-ebay-social/items-api:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
-
-#       # deploy the image
-#       - run:
-#           name: Push image to Google Container Registry
-#           command: docker push gcr.io/evil-ebay-social/items-api:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
-
-#   deployTemplateGKE: &deployTemplateGKE
-#     executor: gcloud-helm
-
-#     steps:
-#       - checkout
-
-#       - run:
-#           name: Setup Google Cloud SDK
-#           command: |
-#             echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-#             gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-#             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-#             gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
-#             gcloud --quiet container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
-#       - deploy:
-#           command: /usr/local/bin/helm upgrade ${HELM_RELEASE} ./charts/items-api/  --reuse-values --set image.tag=${CIRCLE_BRANCH}-${CIRCLE_SHA1} --wait --atomic
-
-#   deployProductionGKE:
-#     <<: *deployTemplateGKE
-#     environment:
-#       HELM_RELEASE: items-api      
+  # deployProductionGKE:
+  #   <<: *deployTemplateGKE
+  #   environment:
+  #     HELM_RELEASE: items-api      
