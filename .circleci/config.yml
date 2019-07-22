@@ -20,38 +20,34 @@ workflows:
       #           - release
       #           - release-gke
 
-executors:
-  gcloud-helm:
-    docker:
-      - image: quay.io/evl.ms/gcloud-helm:252.0.0
+# executors:
+#   gcloud-helm:
+#     docker:
+#       - image: docker:18.09.8
 
 jobs:
   build:
-    executor: gcloud-helm
-
+    docker:
+      - image: docker:18.09.8
     steps:
       - checkout
+      - setup_remote_docker
 
-      # Enable remote CircleCI Docker environment which we will use to build our image
-      - setup_remote_docker:
-          version: 18.05.0-ce
-
+      # Login to Docker
       - run:
-          name: Setup Google Cloud SDK
+          name: Login to docker
           command: |
-            echo $GCLOUD_SERVICE_KEY > ${HOME}/gcloud-service-key.json
-            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
-            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-            gcloud --quiet auth configure-docker
+            echo "$DOCKERHUB_PASSWORD" | docker login --username $DOCKERHUB_LOGIN --password-stdin
+
       # build the application image
       - run:
           name: Build docker image
-          command: docker build -t gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
+          command: docker build -t astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1} .
 
       # deploy the image
       - run:
           name: Push image to Google Container Registry
-          command: docker push gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
+          command: docker push -t astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
 
   # deployTemplateGKE: &deployTemplateGKE
   #   executor: gcloud-helm
