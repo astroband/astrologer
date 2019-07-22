@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/schollz/progressbar"
+	progressbar "github.com/schollz/progressbar/v2"
 
 	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"

@@ -2,10 +2,10 @@ FROM golang:alpine AS build
 
 RUN apk add --no-cache git curl
 
-RUN mkdir -p $GOPATH/src/github.com/astroband
-RUN cd $GOPATH/src/github.com/astroband && git clone https://github.com/astroband/astrologer.git
-
+RUN mkdir -p $GOPATH/src/github.com/astroband/astrologer
 WORKDIR $GOPATH/src/github.com/astroband/astrologer
+
+ADD commands config db es main.go Gopkg.toml Gopkg.lock ./
 
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN dep ensure -v

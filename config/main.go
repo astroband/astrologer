@@ -4,7 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	es "github.com/elastic/go-elasticsearch"
+	es "github.com/elastic/go-elasticsearch/v7"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/alecthomas/kingpin.v2"
 
