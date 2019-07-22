@@ -33,6 +33,6 @@ jobs:
 
       # deploy the image
       - run:
-          name: Push image to Google Container Registry
+          name: Push image to DockerHub
           command: |
             docker push astroband/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
