@@ -135,7 +135,12 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 		tradeA.AssetBought = *NewAsset(&claim.AssetBought)
 		tradeA.SellerID = accountID
 		tradeA.BuyerID = claim.SellerId.Address()
-		tradeA.Price = strconv.FormatFloat(float64(claim.AmountSold)/float64(claim.AmountBought), 'f', 7, 64)
+
+		if claim.AmountBought > 0 {
+			tradeA.Price = strconv.FormatFloat(float64(claim.AmountSold)/float64(claim.AmountBought), 'f', 7, 64)
+		} else {
+			tradeA.Price = 0
+		}
 
 		tradeB.Sold = amount.String(claim.AmountBought)
 		tradeB.Bought = amount.String(claim.AmountSold)
@@ -143,7 +148,12 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 		tradeB.AssetBought = *NewAsset(&claim.AssetSold)
 		tradeB.SellerID = claim.SellerId.Address()
 		tradeB.BuyerID = accountID
-		tradeB.Price = strconv.FormatFloat(float64(claim.AmountBought)/float64(claim.AmountSold), 'f', 7, 64)
+
+		if claim.AmountSold > 0 {
+			tradeB.Price = strconv.FormatFloat(float64(claim.AmountBought)/float64(claim.AmountSold), 'f', 7, 64)
+		} else {
+			tradeB.Price = 0
+		}
 
 		trades = append(trades, tradeA)
 		trades = append(trades, tradeB)
