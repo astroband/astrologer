@@ -1,6 +1,7 @@
 package es
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -136,10 +137,11 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 		tradeA.SellerID = accountID
 		tradeA.BuyerID = claim.SellerId.Address()
 
-		if claim.AmountBought > 0 {
+		if float64(claim.AmountBought) > 0 {
 			tradeA.Price = strconv.FormatFloat(float64(claim.AmountSold)/float64(claim.AmountBought), 'f', 7, 64)
 		} else {
-			tradeA.Price = 0
+			fmt.Println(claim.AmountBought)
+			tradeA.Price = "0.0"
 		}
 
 		tradeB.Sold = amount.String(claim.AmountBought)
@@ -149,10 +151,10 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 		tradeB.SellerID = claim.SellerId.Address()
 		tradeB.BuyerID = accountID
 
-		if claim.AmountSold > 0 {
+		if float64(claim.AmountSold) > 0 {
 			tradeB.Price = strconv.FormatFloat(float64(claim.AmountBought)/float64(claim.AmountSold), 'f', 7, 64)
 		} else {
-			tradeB.Price = 0
+			tradeB.Price = "0.0"
 		}
 
 		trades = append(trades, tradeA)
