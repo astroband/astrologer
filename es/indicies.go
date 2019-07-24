@@ -79,8 +79,7 @@ const opIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-				"sort.order" : "desc",
-				"number_of_shards" : 5
+				"sort.order" : "desc"
 			}
 		},
 		"mappings": {
@@ -215,8 +214,7 @@ const balanceIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-				"sort.order" : "desc",
-        "number_of_shards" : 5
+				"sort.order" : "desc"
 			}
 		},
 		"mappings": {
