@@ -75,3 +75,11 @@ Reports ledger segments existing in database.
   |             TOTAL   | 100004 |
   +----------+----------+--------+
 ```
+
+# ES Stats
+
+Reports ledger segments existing elastic database.
+
+```
+  ./astrologer es-stats
+```
