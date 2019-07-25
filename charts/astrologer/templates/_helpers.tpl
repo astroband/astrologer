@@ -50,8 +50,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 - name: DATABASE_URL
   valueFrom:
     secretKeyRef:
-      name: {{ required "name of existingNodeSeedSecret is required" .name | quote }}
-      key: {{ required "key of existingNodeSeedSecret is required" .key | quote }}
+      name: {{ required "name of database.fromSecret is required" .name | quote }}
+      key: {{ required "key of database.fromSecret is required" .key | quote }}
 {{- else }}
 - name: DATABASE_URL
   value: {{ .Values.database.url }}
@@ -61,8 +61,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 - name: ES_URL
   valueFrom:
     secretKeyRef:
-      name: {{ required "name of existingNodeSeedSecret is required" .name | quote }}
-      key: {{ required "key of existingNodeSeedSecret is required" .key | quote }}
+      name: {{ required "name of es.fromSecret is required" .name | quote }}
+      key: {{ required "key of es.fromSecret is required" .key | quote }}
 {{- else }}
 - name: ES_URL
   value: {{ .Values.es.url }}
