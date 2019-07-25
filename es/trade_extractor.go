@@ -1,7 +1,6 @@
 package es
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -140,7 +139,6 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 		if float64(claim.AmountBought) > 0 {
 			tradeA.Price = strconv.FormatFloat(float64(claim.AmountSold)/float64(claim.AmountBought), 'f', 7, 64)
 		} else {
-			fmt.Println(claim.AmountBought)
 			tradeA.Price = "0.0"
 		}
 
