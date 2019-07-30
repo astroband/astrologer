@@ -54,7 +54,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
       key: {{ required "key of database.fromSecret is required" .key | quote }}
 {{- else }}
 - name: DATABASE_URL
-  value: {{ .Values.database.url }}
+  value: {{ .Values.database.url | quote }}
 {{- end }}
 
 {{- with .Values.es.fromSecret }}
@@ -65,6 +65,6 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
       key: {{ required "key of es.fromSecret is required" .key | quote }}
 {{- else }}
 - name: ES_URL
-  value: {{ .Values.es.url }}
+  value: {{ .Values.es.url | quote }}
 {{- end }}
 {{- end }}
