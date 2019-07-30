@@ -5,7 +5,7 @@ workflows:
   deploy:
     jobs:
       - build:
-          context: astrologer-k8s-deploy
+          context: astrologer
           filters:
             branches:
               only:
