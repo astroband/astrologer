@@ -21,4 +21,4 @@ WORKDIR /root
 COPY --from=build /go/src/github.com/astroband/astrologer/astrologer .
 RUN chmod +x ./astrologer
 
-CMD ["/root/astrologer", "ingest", "--", "50"]
+CMD ["/root/astrologer", "ingest", "--", "-50"]
