@@ -67,4 +67,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 - name: ES_URL
   value: {{ .Values.es.url | quote }}
 {{- end }}
+
+- name: INGEST_GAP
+  value: {{ .Values.gap | quote }}
 {{- end }}
