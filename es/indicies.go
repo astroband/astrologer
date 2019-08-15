@@ -13,7 +13,8 @@ const ledgerHeaderIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5				
 			}
 		},
 		"mappings": {
@@ -41,7 +42,8 @@ const txIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5				
 			}
 		},
 		"mappings": {
@@ -79,7 +81,8 @@ const opIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-				"sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 10
 			}
 		},
 		"mappings": {
@@ -214,7 +217,8 @@ const balanceIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-				"sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5
 			}
 		},
 		"mappings": {
@@ -281,7 +285,8 @@ const signerHistoryIndex = `
 		"settings": {
 			"index" : {
         "sort.field" : "paging_token",
-        "sort.order" : "desc"
+				"sort.order" : "desc",
+				"number_of_shards" : 5				
 			}
 		},
 		"mappings": {

@@ -1,0 +1,17 @@
+{{- if .Values.export }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "astrologer.fullname" . }}-export
+  labels:
+{{ include "astrologer.labels" . | indent 4 }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: export
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["astrologer",  "export", "--", {{ .Values.export | quote }}]
+      restartPolicy: Never
+  backoffLimit: 99
+{{- end }}

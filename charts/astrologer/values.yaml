@@ -18,7 +18,8 @@ es:
   #   name: astrologer
   #   key: es-url
 
-ingestGap: -100
+gap: -200
+# export: -2000000 # export
 
 resources:
   limits:
