@@ -11,7 +11,7 @@ spec:
       containers:
       - name: export
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        command: ["astrologer",  "export", "--", {{ .Values.export | quote }}]
+        command: ["/root/astrologer",  "export", "--", {{ .Values.export | quote }}]
       restartPolicy: Never
   backoffLimit: 99
 {{- end }}
