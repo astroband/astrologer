@@ -19,7 +19,6 @@ es:
   #   key: es-url
 
 gap: -200
-# export: -2000000 # export
 
 resources:
   limits:
