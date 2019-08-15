@@ -73,8 +73,8 @@ func index(b *bytes.Buffer, retry int) {
 	}
 
 	if err != nil || (res != nil && res.IsError()) {
-		if retry > 5 {
-			log.Fatal("5 retries for bulk failed, aborting")
+		if retry > *config.Retries {
+			log.Fatal("Retries for bulk failed, aborting")
 		}
 
 		delay := time.Duration((rand.Intn(10) + 5))

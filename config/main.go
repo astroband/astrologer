@@ -54,6 +54,12 @@ var (
 			Default("50").
 			Int()
 
+	// Number of retries
+	Retries = exportCommand.
+		Flag("retries", "Retries count").
+		Default("25").
+		Int()
+
 	// Start ledger to start with
 	Start = NumberWithSign{0, false}
 
