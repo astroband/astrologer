@@ -54,10 +54,10 @@ const txIndex = `
 				"paging_token": { "type": "keyword", "index": true },
 				"fee": { "type": "long" },
 				"fee_charged": { "type": "long" },
-				"operation_count": { "type": "byte" },
+				"operation_count": { "type": "integer" },
 				"close_time": { "type": "date" },
 				"successful": { "type": "boolean" },
-				"result_code": { "type": "byte" },
+				"result_code": { "type": "integer" },
 				"source_account_id": { "type": "keyword", "index": true },
 				"time_bounds": {
 					"properties": {
@@ -94,8 +94,8 @@ const opIndex = `
 				"paging_token": { "type": "keyword", "index": true },
 				"close_time": { "type": "date" },
 				"successful": { "type": "boolean" },
-				"result_code": { "type": "byte" },
-				"inner_result_code": { "type": "byte" },
+				"result_code": { "type": "integer" },
+				"inner_result_code": { "type": "integer" },
 				"tx_source_account_id": { "type": "keyword", "index": true },
 				"memo": {
 					"properties": {
@@ -142,10 +142,10 @@ const opIndex = `
 				},
 				"thresholds": {
 					"properties": {
-						"low": { "type": "byte" },
-						"medium": { "type": "byte" },
-						"high": { "type": "byte" },
-						"master": { "type": "byte" }
+						"low": { "type": "integer" },
+						"medium": { "type": "integer" },
+						"high": { "type": "integer" },
+						"master": { "type": "integer" }
 					}
 				},
 				"home_domain": { "type": "keyword" },
@@ -167,7 +167,7 @@ const opIndex = `
 				"signer": {
 					"properties": {
 						"id": { "type": "keyword" },
-						"weight": { "type": "byte" },
+						"weight": { "type": "integer" },
 						"type": { "type": "byte" }
 					}
 				},
@@ -295,7 +295,7 @@ const signerHistoryIndex = `
 				"account_id": { "type": "keyword", "index": true },
 				"signer": { "type": "keyword", "index": true },
 				"type": { "type": "byte" },
-				"weight": { "type": "byte" },
+				"weight": { "type": "integer" },
 				"seq": { "type": "integer" },
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
