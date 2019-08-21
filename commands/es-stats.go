@@ -11,6 +11,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+const step = 100000
+
 // EsStats prints ledger statistics for current database
 func EsStats() {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -59,8 +61,8 @@ func esMinMax() (min int, max int) {
 func esRanges(min int, max int) []interface{} {
 	var ranges []map[string]interface{}
 
-	for i := min; i < max; i += 1000000 {
-		to := i + 1000000
+	for i := min; i < max; i += step {
+		to := i + step
 		if to > max {
 			to = max
 		}
