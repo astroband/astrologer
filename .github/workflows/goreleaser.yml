@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - 'v*'
-name: GoReleaser
 jobs:
   release:
     name: Release
