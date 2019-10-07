@@ -44,6 +44,8 @@ func (f *operationFactory) assignResult() {
 			f.assignManageDataResult(r.Tr.MustManageDataResult())
 		case xdr.OperationTypeBumpSequence:
 			f.assignBumpSequenceResult(r.Tr.MustBumpSeqResult())
+		case xdr.OperationTypeInflation:
+			f.assignInflationResult(r.Tr.MustInflationResult())
 		}
 	} else {
 		f.operation.Succesful = false
@@ -150,4 +152,9 @@ func (f *operationFactory) assignManageDataResult(r xdr.ManageDataResult) {
 func (f *operationFactory) assignBumpSequenceResult(r xdr.BumpSequenceResult) {
 	f.operation.InnerResultCode = int(r.Code)
 	f.operation.Succesful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
+}
+
+func (f *operationFactory) assignInflationResult(r xdr.InflationResult) {
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.InflationResultCodeInflationSuccess
 }
