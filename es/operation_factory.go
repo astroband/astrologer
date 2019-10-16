@@ -86,8 +86,10 @@ func (f *operationFactory) assignSpecifics() {
 		f.assignCreateAccount(body.MustCreateAccountOp())
 	case xdr.OperationTypePayment:
 		f.assignPayment(body.MustPaymentOp())
-	case xdr.OperationTypePathPayment:
-		f.assignPathPayment(body.MustPathPaymentOp())
+	case xdr.OperationTypePathPaymentStrictReceive:
+		f.assignPathPaymentStrictReceive(body.MustPathPaymentStrictReceiveOp())
+	case xdr.OperationTypePathPaymentStrictSend:
+		f.assignPathPaymentStrictSend(body.MustPathPaymentStrictSendOp())
 	case xdr.OperationTypeManageSellOffer:
 		f.assignManageSellOffer(body.MustManageSellOfferOp())
 	case xdr.OperationTypeManageBuyOffer:
@@ -120,7 +122,7 @@ func (f *operationFactory) assignPayment(o xdr.PaymentOp) {
 	f.operation.SourceAsset = NewAsset(&o.Asset)
 }
 
-func (f *operationFactory) assignPathPayment(o xdr.PathPaymentOp) {
+func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStrictReceiveOp) {
 	f.operation.DestinationAccountID = o.Destination.Address()
 	f.operation.DestinationAmount = amount.String(o.DestAmount)
 	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
@@ -130,6 +132,21 @@ func (f *operationFactory) assignPathPayment(o xdr.PathPaymentOp) {
 
 	f.operation.Path = make([]*Asset, len(o.Path))
 
+	for i, a := range o.Path {
+		f.operation.Path[i] = NewAsset(&a)
+	}
+}
+
+func (f *operationFactory) assignPathPaymentStrictSend(o xdr.PathPaymentStrictSendOp) {
+
+	f.operation.DestinationAccountID = o.Destination.Address()
+	f.operation.DestinationAmount = amount.String(o.DestMin)
+	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
+
+	f.operation.SourceAmount = amount.String(o.SendAmount)
+	f.operation.SourceAsset = NewAsset(&o.SendAsset)
+
+	f.operation.Path = make([]*Asset, len(o.Path))
 	for i, a := range o.Path {
 		f.operation.Path[i] = NewAsset(&a)
 	}
