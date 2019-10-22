@@ -41,8 +41,10 @@ func (e *TradeExtractor) extract() (trades []Trade) {
 
 	if e.result.Code == xdr.OperationResultCodeOpInner {
 		switch t := e.result.Tr.Type; t {
-		case xdr.OperationTypePathPayment:
-			trades = e.fetchFromPathPayment(e.result.Tr.MustPathPaymentResult())
+		case xdr.OperationTypePathPaymentStrictReceive:
+			trades = e.fetchFromPathPaymentStrictReceive(e.result.Tr.MustPathPaymentStrictReceiveResult())
+		case xdr.OperationTypePathPaymentStrictSend:
+			trades = e.fetchFromPathPaymentStrictSend(e.result.Tr.MustPathPaymentStrictSendResult())
 		case xdr.OperationTypeManageSellOffer:
 			trades = e.fetchFromManageSellOffer(e.result.Tr.MustManageSellOfferResult())
 		case xdr.OperationTypeCreatePassiveSellOffer:
@@ -91,8 +93,8 @@ func (e *TradeExtractor) fetchFromManageBuyOffer(result xdr.ManageBuyOfferResult
 	return e.fetchClaims(claims, e.operation.SourceAccountID)
 }
 
-func (e *TradeExtractor) fetchFromPathPayment(result xdr.PathPaymentResult) (trades []Trade) {
-	if result.Code != xdr.PathPaymentResultCodePathPaymentSuccess {
+func (e *TradeExtractor) fetchFromPathPaymentStrictReceive(result xdr.PathPaymentStrictReceiveResult) (trades []Trade) {
+	if result.Code != xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess {
 		return trades
 	}
 
@@ -106,6 +108,23 @@ func (e *TradeExtractor) fetchFromPathPayment(result xdr.PathPaymentResult) (tra
 		return trades
 	}
 
+	return e.fetchClaims(claims, e.operation.SourceAccountID)
+}
+
+func (e *TradeExtractor) fetchFromPathPaymentStrictSend(result xdr.PathPaymentStrictSendResult) (trades []Trade) {
+	if result.Code != xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess {
+		return trades
+	}
+
+	success, ok := result.GetSuccess()
+	if !ok {
+		return trades
+	}
+
+	claims := success.Offers
+	if len(claims) == 0 {
+		return trades
+	}
 	return e.fetchClaims(claims, e.operation.SourceAccountID)
 }
 

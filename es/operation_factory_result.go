@@ -24,8 +24,10 @@ func (f *operationFactory) assignResult() {
 			f.assignCreateAccountResult(r.Tr.MustCreateAccountResult())
 		case xdr.OperationTypePayment:
 			f.assignPaymentResult(r.Tr.MustPaymentResult())
-		case xdr.OperationTypePathPayment:
-			f.assignPathPaymentResult(r.Tr.MustPathPaymentResult())
+		case xdr.OperationTypePathPaymentStrictReceive:
+			f.assignPathPaymentStrictReceiveResult(r.Tr.MustPathPaymentStrictReceiveResult())
+		case xdr.OperationTypePathPaymentStrictSend:
+			f.assignPathPaymentStrictSendResult(r.Tr.MustPathPaymentStrictSendResult())
 		case xdr.OperationTypeManageSellOffer:
 			f.assignManageSellOfferResult(r.Tr.MustManageSellOfferResult())
 		case xdr.OperationTypeManageBuyOffer:
@@ -62,9 +64,9 @@ func (f *operationFactory) assignPaymentResult(r xdr.PaymentResult) {
 	f.operation.Succesful = r.Code == xdr.PaymentResultCodePaymentSuccess
 }
 
-func (f *operationFactory) assignPathPaymentResult(r xdr.PathPaymentResult) {
+func (f *operationFactory) assignPathPaymentStrictReceiveResult(r xdr.PathPaymentStrictReceiveResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.PathPaymentResultCodePathPaymentSuccess
+	f.operation.Succesful = r.Code == xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		if len(s.Offers) > 0 {
@@ -77,6 +79,26 @@ func (f *operationFactory) assignPathPaymentResult(r xdr.PathPaymentResult) {
 		f.operation.ResultLastDestination = s.Last.Destination.Address()
 	}
 
+	if a, ok := r.GetNoIssuer(); ok {
+		f.operation.ResultNoIssuer = NewAsset(&a)
+	}
+}
+
+func (f *operationFactory) assignPathPaymentStrictSendResult(r xdr.PathPaymentStrictSendResult) {
+
+	f.operation.InnerResultCode = int(r.Code)
+	f.operation.Succesful = r.Code == xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess
+
+	if s, ok := r.GetSuccess(); ok {
+		if len(s.Offers) > 0 {
+			f.operation.AmountSent = amount.String(s.Offers[0].AmountBought)
+		}
+		f.operation.ResultLastAmount = amount.String(s.Last.Amount)
+		f.operation.AmountReceived = f.operation.ResultLastAmount
+
+		f.operation.ResultLastAsset = NewAsset(&s.Last.Asset)
+		f.operation.ResultLastDestination = s.Last.Destination.Address()
+	}
 	if a, ok := r.GetNoIssuer(); ok {
 		f.operation.ResultNoIssuer = NewAsset(&a)
 	}
