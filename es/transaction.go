@@ -17,7 +17,7 @@ type Transaction struct {
 	FeeCharged      int         `json:"fee_charged"`
 	OperationCount  int         `json:"operation_count"`
 	CloseTime       time.Time   `json:"close_time"`
-	Successful      bool        `json:"succesful"`
+	Successful      bool        `json:"successful"`
 	ResultCode      int         `json:"result_code"`
 	SourceAccountID string      `json:"source_account_id"`
 
