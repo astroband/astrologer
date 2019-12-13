@@ -33,6 +33,8 @@ var (
 
 	// SignerHistoryEffectPagingTokenGroup represent signer effects
 	SignerHistoryEffectPagingTokenGroup = 4
+
+	OfferEffectPagingTokenGroup = 5
 )
 
 // String returns string representation of order

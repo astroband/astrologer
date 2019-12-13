@@ -22,6 +22,7 @@ const ledgerHeaderIndex = `
 				"hash": { "type": "keyword", "index": true },
 				"prev_hash": { "type": "keyword", "index": false },
 				"bucket_list_hash": { "type": "keyword", "index": false },
+				"tx_set_result_hash": { "type": "keyword", "index": false },
 				"seq": { "type": "long" },
 				"paging_token": { "type": "keyword", "index": true },
 				"close_time": { "type": "date" },
@@ -70,7 +71,9 @@ const txIndex = `
 						"type": { "type": "byte" },
 						"value": { "type": "keyword" }
 					}
-				}
+				},
+        "meta": { "type": "keyword", "index": false },
+        "fee_meta": { "type": "keyword", "index": false }
 			}
 		}
 	}
@@ -242,6 +245,48 @@ const balanceIndex = `
 	}
 `
 
+const eventsIndex = `
+{
+  "settings": {
+    "index" : {
+      "sort.field" : "paging_token",
+      "sort.order" : "desc",
+      "number_of_shards" : 4
+    }
+  },
+  "mappings": {
+    "properties": {
+      "paging_token": { "type": "keyword", "index": true },
+      "account_id": { "type": "keyword", "index": true },
+      "source": { "type": "keyword" },
+      "created_at": { "type": "date" },
+      "entity": { "type": "keyword", "index": true },
+      "type": { "type": "keyword", "index": true },
+
+      "offer_id": { "type": "long" },
+      "seller": { "type": "keyword" },
+      "selling": {
+        "properties": {
+          "id": { "type": "keyword" },
+          "code": { "type": "keyword" },
+          "issuer": { "type": "keyword" }
+        }
+      },
+      "buying": {
+        "properties": {
+          "id": { "type": "keyword" },
+          "code": { "type": "keyword" },
+          "issuer": { "type": "keyword" }
+        }
+      },
+      "amount": { "type": "scaled_float", "scaling_factor": 10000000 },
+      "price": { "type": "scaled_float", "scaling_factor": 10000000 },
+      "passive": { "type": "boolean" }
+    }
+  }
+}
+`
+
 const tradesIndex = `
 	{
 		"settings": {
@@ -311,6 +356,7 @@ func CreateIndicies() {
 	refreshIndex(txIndexName, txIndex)
 	refreshIndex(opIndexName, opIndex)
 	refreshIndex(balanceIndexName, balanceIndex)
+	refreshIndex(eventIndexName, eventsIndex)
 	refreshIndex(tradesIndexName, tradesIndex)
 	refreshIndex(signerHistoryIndexName, signerHistoryIndex)
 }

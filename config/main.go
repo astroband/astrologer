@@ -29,7 +29,7 @@ var (
 
 	databaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").
-			Default("postgres://localhost/core?sslmode=disable").
+			Default("postgres://localhost/stellar?sslmode=disable").
 			OverrideDefaultFromEnvar("DATABASE_URL").
 			URL()
 

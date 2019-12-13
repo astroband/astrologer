@@ -34,13 +34,19 @@ func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistor
 func (s *ledgerSerializer) serialize() {
 	SerializeForBulk(s.ledger, s.buffer)
 
-	for _, transactionRow := range s.transactionRows {
-		transaction := NewTransaction(&transactionRow, s.ledger.CloseTime)
+	for i, transactionRow := range s.transactionRows {
+		transaction := NewTransaction(&transactionRow, &s.feeRows[i], s.ledger.CloseTime)
 		SerializeForBulk(transaction, s.buffer)
 
 		if transaction.Successful {
 			changes := s.feeRows[transaction.Index-1].Changes
 			s.serializeBalances(changes, transaction, nil, BalanceSourceFee, FeeEffectPagingTokenGroup)
+			s.serializeEvents(
+				s.transactionRows[transaction.Index-1].Meta.V1.Operations,
+				transaction.Index,
+				nil,
+				OfferEffectPagingTokenGroup,
+			)
 		}
 
 		s.serializeOperations(transactionRow, transaction)
@@ -72,23 +78,49 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 }
 
 func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource, effectGroup int) {
-	if len(changes) > 0 {
-		pagingToken := PagingToken{
-			LedgerSeq:        s.ledger.Seq,
-			TransactionOrder: transaction.Index,
-			EffectGroup:      effectGroup,
+	if len(changes) == 0 {
+		return
+	}
+
+	pagingToken := PagingToken{
+		LedgerSeq:        s.ledger.Seq,
+		TransactionOrder: transaction.Index,
+		EffectGroup:      effectGroup,
+	}
+
+	if operation != nil {
+		pagingToken.OperationOrder = operation.Index
+	}
+
+	balances := ProduceBalances(changes, s.ledger.CloseTime, source, pagingToken)
+
+	if len(balances) > 0 {
+		for _, balance := range balances {
+			SerializeForBulk(balance, s.buffer)
 		}
+	}
+}
 
-		if operation != nil {
-			pagingToken.OperationOrder = operation.Index
-		}
+func (s *ledgerSerializer) serializeEvents(changes []xdr.OperationMeta, txIndex int, opIndex *int, effectGroup int) {
+	if len(changes) == 0 {
+		return
+	}
 
-		balances := ProduceBalances(changes, s.ledger.CloseTime, source, pagingToken)
+	pagingToken := PagingToken{
+		LedgerSeq:        s.ledger.Seq,
+		TransactionOrder: txIndex,
+		EffectGroup:      effectGroup,
+	}
 
-		if len(balances) > 0 {
-			for _, balance := range balances {
-				SerializeForBulk(balance, s.buffer)
-			}
+	if opIndex != nil {
+		pagingToken.OperationOrder = *opIndex
+	}
+
+	events := ProduceEvents(changes, s.ledger.Seq, s.ledger.CloseTime, pagingToken)
+
+	if len(events) > 0 {
+		for _, event := range events {
+			SerializeForBulk(event, s.buffer)
 		}
 	}
 }

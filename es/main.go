@@ -10,6 +10,7 @@ var ledgerHeaderIndexName = "ledger"
 var txIndexName = "tx"
 var opIndexName = "op"
 var balanceIndexName = "balance"
+var eventIndexName = "events"
 var tradesIndexName = "trades"
 var signerHistoryIndexName = "signers"
 

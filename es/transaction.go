@@ -1,6 +1,7 @@
 package es
 
 import (
+	"encoding/base64"
 	"time"
 
 	"github.com/astroband/astrologer/db"
@@ -23,11 +24,20 @@ type Transaction struct {
 
 	*TimeBounds `json:"time_bounds,omitempty"`
 	*Memo       `json:"memo,omitempty"`
+
+	Meta    string `json:"meta"`
+	FeeMeta string `json:"fee_meta"`
 }
 
-// NewTransaction creates LedgerHeader from LedgerHeaderRow
-func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
+// NewTransaction creates Transaction from TxHistoryRow
+func NewTransaction(row *db.TxHistoryRow, feeRow *db.TxFeeHistoryRow, t time.Time) *Transaction {
 	resultCode := row.Result.Result.Result.Code
+	metaBinary, err := row.Meta.MarshalBinary()
+	feeMetaBinary, err := feeRow.Changes.MarshalBinary()
+
+	if err != nil {
+		//FIXME What should we do here?
+	}
 
 	tx := &Transaction{
 		ID:              row.ID,
@@ -41,6 +51,8 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
 		ResultCode:      int(resultCode),
 		SourceAccountID: row.Envelope.Tx.SourceAccount.Address(),
+		Meta:            base64.StdEncoding.EncodeToString(metaBinary),
+		FeeMeta:         base64.StdEncoding.EncodeToString(feeMetaBinary),
 	}
 
 	if row.Envelope.Tx.Memo.Type != xdr.MemoTypeMemoNone {
