@@ -12,7 +12,7 @@ import (
 )
 
 // Version Application version
-const Version string = "0.0.1"
+const Version string = "0.1.1"
 
 // NumberWithSign represents arg having sign
 type NumberWithSign struct {
