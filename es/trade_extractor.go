@@ -18,12 +18,13 @@ type TradeExtractor struct {
 }
 
 // ProduceTrades returns trades
-func ProduceTrades(r *xdr.OperationResult, op *Operation, closeTime time.Time, pagingToken PagingToken) (trades []Trade) {
+func ProduceTrades(r *xdr.OperationResult, op *Operation, closeTime time.Time, pagingToken PagingToken, startIndex int) (trades []Trade) {
 	extractor := &TradeExtractor{
 		result:      r,
 		closeTime:   closeTime,
 		pagingToken: pagingToken,
 		operation:   op,
+		tokenIndex:  startIndex,
 	}
 
 	if extractor == nil {
@@ -130,7 +131,7 @@ func (e *TradeExtractor) fetchFromPathPaymentStrictSend(result xdr.PathPaymentSt
 
 func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID string) (trades []Trade) {
 	for _, claim := range claims {
-		pagingTokenA := PagingToken{EffectGroup: TradeEffectPagingTokenGroup, EffectIndex: e.tokenIndex + 1}.Merge(e.pagingToken)
+		pagingTokenA := PagingToken{EffectIndex: e.tokenIndex + 1}.Merge(e.pagingToken)
 
 		tradeA := Trade{
 			PagingToken:     pagingTokenA,
@@ -138,7 +139,7 @@ func (e *TradeExtractor) fetchClaims(claims []xdr.ClaimOfferAtom, accountID stri
 			LedgerCloseTime: e.closeTime,
 		}
 
-		pagingTokenB := PagingToken{EffectGroup: TradeEffectPagingTokenGroup, EffectIndex: e.tokenIndex + 2}.Merge(e.pagingToken)
+		pagingTokenB := PagingToken{EffectIndex: e.tokenIndex + 2}.Merge(e.pagingToken)
 
 		tradeB := Trade{
 			PagingToken:     pagingTokenB,

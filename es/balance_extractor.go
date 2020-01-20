@@ -98,8 +98,6 @@ func (e *BalanceExtractor) created(change xdr.LedgerEntryChange) {
 
 func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 	updated := change.MustUpdated().Data
-	e.index++
-	pagingToken := PagingToken{EffectIndex: e.index}.Merge(e.basePagingToken)
 
 	switch x := updated.Type; x {
 	case xdr.LedgerEntryTypeAccount:
@@ -109,6 +107,8 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != account.Balance {
 			diff := account.Balance - oldBalance
+			e.index++
+			pagingToken := PagingToken{EffectIndex: e.index}.Merge(e.basePagingToken)
 
 			e.balances = append(
 				e.balances,
@@ -122,6 +122,8 @@ func (e *BalanceExtractor) updated(change xdr.LedgerEntryChange) {
 
 		if oldBalance != line.Balance {
 			diff := line.Balance - oldBalance
+			e.index++
+			pagingToken := PagingToken{EffectIndex: e.index}.Merge(e.basePagingToken)
 
 			e.balances = append(
 				e.balances,

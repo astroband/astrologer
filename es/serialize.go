@@ -15,14 +15,14 @@ func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
 
 	if id != nil {
 		meta = fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }%s`,
+			`{ "create": { "_index": "%s", "_id": "%s", "_type": "_doc" } }%s`,
 			obj.IndexName(),
 			*id,
 			"\n",
 		)
 	} else {
 		meta = fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_type": "_doc" } }%s`, obj.IndexName(), "\n",
+			`{ "create": { "_index": "%s", "_type": "_doc" } }%s`, obj.IndexName(), "\n",
 		)
 	}
 

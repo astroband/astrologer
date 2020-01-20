@@ -11,7 +11,6 @@ type PagingToken struct {
 	LedgerSeq        int
 	TransactionOrder int
 	OperationOrder   int
-	EffectGroup      int
 	EffectIndex      int
 }
 
@@ -19,20 +18,7 @@ var (
 	ledgerFormat      = "%012d"
 	transactionFormat = "%04d"
 	operationFormat   = "%04d"
-	effectGroupFormat = "%04d"
 	effectIndexFormat = "%04d"
-
-	// BalanceEffectPagingTokenGroup represents balance entry taken from result meta
-	BalanceEffectPagingTokenGroup = 1
-
-	// FeeEffectPagingTokenGroup represents balance entry taken from fee meta
-	FeeEffectPagingTokenGroup = 2
-
-	// TradeEffectPagingTokenGroup represent trade effects
-	TradeEffectPagingTokenGroup = 3
-
-	// SignerHistoryEffectPagingTokenGroup represent signer effects
-	SignerHistoryEffectPagingTokenGroup = 4
 )
 
 // String returns string representation of order
@@ -40,7 +26,6 @@ func (o PagingToken) String() (result string) {
 	return fmt.Sprintf(ledgerFormat, o.LedgerSeq) + "-" +
 		fmt.Sprintf(transactionFormat, o.TransactionOrder) + "-" +
 		fmt.Sprintf(operationFormat, o.OperationOrder) + "-" +
-		fmt.Sprintf(effectGroupFormat, o.EffectGroup) + "-" +
 		fmt.Sprintf(effectIndexFormat, o.EffectIndex)
 }
 
@@ -67,12 +52,6 @@ func (o PagingToken) Merge(n PagingToken) (result PagingToken) {
 		result.OperationOrder = o.OperationOrder
 	} else {
 		result.OperationOrder = n.OperationOrder
-	}
-
-	if o.EffectGroup != 0 {
-		result.EffectGroup = o.EffectGroup
-	} else {
-		result.EffectGroup = n.EffectGroup
 	}
 
 	if o.EffectIndex != 0 {
