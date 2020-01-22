@@ -29,7 +29,6 @@ func ProduceSignerHistory(o *Operation) (h *SignerHistory) {
 		LedgerSeq:        o.Seq,
 		TransactionOrder: o.TxIndex,
 		OperationOrder:   o.Index,
-		EffectGroup:      SignerHistoryEffectPagingTokenGroup,
 	}
 
 	entry := &SignerHistory{
