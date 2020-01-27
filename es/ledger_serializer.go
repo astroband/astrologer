@@ -41,6 +41,11 @@ func (s *ledgerSerializer) serialize() {
 		if transaction.Successful {
 			changes := s.feeRows[transaction.Index-1].Changes
 			s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
+
+			h := ProduceSignerHistoryFromTxMeta(transaction)
+			if h != nil {
+				SerializeForBulk(h, s.buffer)
+			}
 		}
 
 		s.serializeOperations(transactionRow, transaction)
@@ -64,7 +69,7 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 
 			s.serializeTrades(result, transaction, operation, effectsCount)
 
-			h := ProduceSignerHistory(operation)
+			h := ProduceSignerHistoryFromOperation(operation)
 			if h != nil {
 				SerializeForBulk(h, s.buffer)
 			}
