@@ -46,27 +46,23 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 
 {{- define "astrologer.env" -}}
-{{- with .Values.database.fromSecret }}
+{{- with .Values.database }}
+{{- if .url }}
 - name: DATABASE_URL
+  value: {{ .url | quote }}
+{{- else }}
+- name: DATABASE_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ required "name of database.fromSecret is required" .name | quote }}
-      key: {{ required "key of database.fromSecret is required" .key | quote }}
-{{- else }}
+      name: {{ .password.fromSecret.name | quote }}
+      key: {{ .password.fromSecret.key | quote }}
 - name: DATABASE_URL
-  value: {{ .Values.database.url | quote }}
+  value: postgres://{{ .user }}:$(DATABASE_PASSWORD)@{{ .host }}/{{ .name }}?sslmode=disable
+{{- end }}
 {{- end }}
 
-{{- with .Values.es.fromSecret }}
 - name: ES_URL
-  valueFrom:
-    secretKeyRef:
-      name: {{ required "name of es.fromSecret is required" .name | quote }}
-      key: {{ required "key of es.fromSecret is required" .key | quote }}
-{{- else }}
-- name: ES_URL
-  value: {{ .Values.es.url | quote }}
-{{- end }}
+  value: {{ .Values.elasticsearch.url | quote }}
 
 - name: INGEST_GAP
   value: {{ .Values.gap | quote }}

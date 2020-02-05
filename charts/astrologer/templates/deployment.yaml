@@ -16,6 +16,12 @@ spec:
         app.kubernetes.io/name: {{ include "astrologer.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ['./astrologer', 'create-index']
+          env:
+            {{- include "astrologer.env" . | indent 12 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
