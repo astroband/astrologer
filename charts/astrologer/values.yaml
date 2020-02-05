@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: astroband/astrologer
-  tag: master-fc070296b6ac2c8b525af66b146b96c8f96bd30e
+  tag: master-20aae4d8337fcbc97ebd6678debc9fc79de11d95
   pullPolicy: IfNotPresent
 
 # database:
