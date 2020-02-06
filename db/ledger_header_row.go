@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/astroband/astrologer/config"
+	"github.com/jmoiron/sqlx"
 	"github.com/stellar/go/xdr"
 )
 
@@ -52,6 +53,25 @@ func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
 		"SELECT * FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2 ORDER BY ledgerseq ASC",
 		low,
 		high)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return ledgers
+}
+
+func LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
+	ledgers := []LedgerHeaderRow{}
+
+	query, _, err := sqlx.In("SELECT * FROM ledgerheaders WHERE ledgerseq IN (?) ORDER BY ledgerseq ASC;", seqs)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	query = config.DB.Rebind(query)
+	err = config.DB.Select(&ledgers, query, ledgers)
 
 	if err != nil {
 		log.Fatal(err)

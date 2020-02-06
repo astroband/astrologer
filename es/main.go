@@ -1,9 +1,7 @@
 package es
 
 import (
-	"log"
-
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/astroband/astrologer/config"
 )
 
 var ledgerHeaderIndexName = "ledger"
@@ -19,12 +17,4 @@ type Indexable interface {
 	IndexName() string
 }
 
-func fatalIfError(res *esapi.Response, err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.IsError() {
-		log.Fatal(res)
-	}
-}
+var Adapter = Connect((*config.EsUrl).String())

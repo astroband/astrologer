@@ -1,15 +1,12 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
-	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/es"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -45,7 +42,7 @@ func Stats() {
 		min := g[i*2]
 		max := g[i*2+1]
 		count := max - min + 1
-		countES := esCount(min, max)
+		countES := es.Adapter.LedgerCountInRange(min, max)
 
 		total += count
 		totalES += countES
@@ -61,45 +58,4 @@ func Stats() {
 	table.SetFooter([]string{"", "Total", strconv.Itoa(total), strconv.Itoa(totalES)})
 
 	table.Render()
-}
-
-func esCount(min int, max int) int {
-	var r map[string]interface{}
-	var buf bytes.Buffer
-
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"range": map[string]interface{}{
-				"seq": map[string]interface{}{
-					"gte": min,
-					"lte": max,
-				},
-			},
-		},
-	}
-
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatalf("Error encoding query: %s", err)
-	}
-
-	res, err := config.ES.Count(
-		config.ES.Count.WithIndex("ledger"),
-		config.ES.Count.WithBody(&buf),
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.IsError() {
-		log.Fatal("Error in response", res.Body)
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
-	}
-
-	res.Body.Close()
-
-	return int(r["count"].(float64))
 }

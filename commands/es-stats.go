@@ -1,24 +1,22 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/json"
-	"log"
+	// "log"
 	"os"
 	"strconv"
 
-	"github.com/astroband/astrologer/config"
+	"github.com/astroband/astrologer/es"
 	"github.com/olekukonko/tablewriter"
 )
 
-const step = 100000
+const step = 10000
 
 // EsStats prints ledger statistics for current database
 func EsStats() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"From", "To", "Doc_count"})
 
-	min, max := esMinMax()
+	min, max := es.Adapter.MinMaxSeq()
 	buckets := esRanges(min, max)
 
 	for i := 0; i < len(buckets); i++ {
@@ -37,27 +35,6 @@ func EsStats() {
 	table.Render()
 }
 
-func esMinMax() (min int, max int) {
-	query := map[string]interface{}{
-		"aggs": map[string]interface{}{
-			"seq_stats": map[string]interface{}{
-				"stats": map[string]interface{}{
-					"field": "seq",
-				},
-			},
-		},
-	}
-
-	r := searchLedgers(query)
-
-	aggs := r["aggregations"].(map[string]interface{})["seq_stats"].(map[string]interface{})
-
-	min = int(aggs["min"].(float64))
-	max = int(aggs["max"].(float64))
-
-	return min, max
-}
-
 func esRanges(min int, max int) []interface{} {
 	var ranges []map[string]interface{}
 
@@ -69,50 +46,8 @@ func esRanges(min int, max int) []interface{} {
 		ranges = append(ranges, map[string]interface{}{"from": i, "to": to})
 	}
 
-	query := map[string]interface{}{
-		"aggs": map[string]interface{}{
-			"seq_ranges": map[string]interface{}{
-				"range": map[string]interface{}{
-					"field":  "seq",
-					"ranges": ranges,
-				},
-			},
-		},
-	}
-
-	r := searchLedgers(query)
-
-	aggs := r["aggregations"].(map[string]interface{})["seq_ranges"].(map[string]interface{})
+	aggs := es.Adapter.LedgerSeqRangeQuery(ranges)
 	buckets := aggs["buckets"].([]interface{})
 
 	return buckets
-}
-
-func searchLedgers(query map[string]interface{}) (r map[string]interface{}) {
-	var buf bytes.Buffer
-
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatalf("Error encoding query: %s", err)
-	}
-
-	res, err := config.ES.Search(
-		config.ES.Search.WithIndex("ledger"),
-		config.ES.Search.WithBody(&buf),
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.IsError() {
-		log.Fatal("Error in response", res.Body)
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
-	}
-
-	res.Body.Close()
-
-	return r
 }

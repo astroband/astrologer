@@ -2,8 +2,6 @@ package es
 
 import (
 	"log"
-	"net/http"
-	"strings"
 
 	"github.com/astroband/astrologer/config"
 )
@@ -316,38 +314,16 @@ func CreateIndicies() {
 }
 
 func refreshIndex(name string, body string) {
-	res, err := config.ES.Indices.Get([]string{name})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.StatusCode == http.StatusNotFound {
-		createIndex(name, body)
+	if !Adapter.IndexExists(name) {
+		Adapter.CreateIndex(name, body)
 		log.Printf("%s index created!", name)
 	} else {
 		if *config.ForceRecreateIndexes {
-			deleteIndex(name)
-			createIndex(name, body)
+			Adapter.DeleteIndex(name)
+			Adapter.CreateIndex(name, body)
 			log.Printf("%s index recreated!", name)
 		} else {
 			log.Printf("%s index found, skipping...", name)
 		}
 	}
-}
-
-func deleteIndex(index string) {
-	res, err := config.ES.Indices.Delete([]string{index})
-	fatalIfError(res, err)
-}
-
-func createIndex(index string, body string) {
-	create := config.ES.Indices.Create
-
-	res, err := create(
-		index,
-		create.WithBody(strings.NewReader(body)),
-		create.WithIncludeTypeName(false),
-	)
-	fatalIfError(res, err)
 }

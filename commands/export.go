@@ -60,19 +60,15 @@ func exportBlock(i int) {
 		log.Println(b.String())
 	}
 
-	if !*config.DryRun {
+	if !*config.ExportDryRun {
 		index(&b, 0)
 	}
 }
 
 func index(b *bytes.Buffer, retry int) {
-	res, err := config.ES.Bulk(bytes.NewReader(b.Bytes()))
+	indexed := es.Adapter.BulkInsert(b)
 
-	if res != nil {
-		defer res.Body.Close()
-	}
-
-	if err != nil || (res != nil && res.IsError()) {
+	if !indexed {
 		if retry > *config.Retries {
 			log.Fatal("Retries for bulk failed, aborting")
 		}

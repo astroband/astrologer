@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/astroband/astrologer/commands"
 	"github.com/astroband/astrologer/config"
+	"github.com/astroband/astrologer/es"
 	"github.com/gammazero/workerpool"
 )
 
@@ -22,5 +23,7 @@ func main() {
 		commands.Ingest()
 	case "es-stats":
 		commands.EsStats()
+	case "fill-gaps":
+		commands.FillGaps(es.Adapter)
 	}
 }
