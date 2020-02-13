@@ -1,9 +1,5 @@
 package es
 
-import (
-	"github.com/astroband/astrologer/config"
-)
-
 var ledgerHeaderIndexName = "ledger"
 var txIndexName = "tx"
 var opIndexName = "op"
@@ -16,5 +12,3 @@ type Indexable interface {
 	DocID() *string
 	IndexName() string
 }
-
-var Adapter = Connect((*config.EsUrl).String())

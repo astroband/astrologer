@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -15,35 +14,50 @@ import (
 )
 
 var (
-	bar         *progressbar.ProgressBar
-	first, last = getRange()
+	bar *progressbar.ProgressBar
 )
 
+type ExportCommandConfig struct {
+	Start      config.NumberWithSign
+	Count      int
+	RetryCount int
+	DryRun     bool
+}
+
+type ExportCommand struct {
+	ES     es.EsAdapter
+	Config ExportCommandConfig
+
+	firstLedger int
+	lastLedger  int
+}
+
 // Export command
-func Export() {
-	total := db.LedgerHeaderRowCount(first, last)
+func (cmd ExportCommand) Execute() {
+	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
+	total := db.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
 
 	if total == 0 {
-		log.Fatal("Nothing to export within given range!", first, last)
+		log.Fatal("Nothing to export within given range!", cmd.firstLedger, cmd.lastLedger)
 	}
 
-	fmt.Println("Exporting ledgers from", first, "to", last, "total", total)
+	log.Println("Exporting ledgers from", cmd.firstLedger, "to", cmd.lastLedger, "total", total)
 
 	createBar(total)
 
-	for i := 0; i < blockCount(total); i++ {
+	for i := 0; i < cmd.blockCount(total); i++ {
 		i := i
-		pool.Submit(func() { exportBlock(i) })
+		pool.Submit(func() { cmd.exportBlock(i) })
 	}
 
 	pool.StopWait()
 	finishBar()
 }
 
-func exportBlock(i int) {
+func (cmd *ExportCommand) exportBlock(i int) {
 	var b bytes.Buffer
 
-	rows := db.LedgerHeaderRowFetchBatch(i, first)
+	rows := db.LedgerHeaderRowFetchBatch(i, cmd.firstLedger)
 
 	for n := 0; n < len(rows); n++ {
 		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
@@ -60,47 +74,47 @@ func exportBlock(i int) {
 		log.Println(b.String())
 	}
 
-	if !*config.ExportDryRun {
-		index(&b, 0)
+	if !cmd.Config.DryRun {
+		cmd.ES.IndexWithRetries(&b, cmd.Config.RetryCount)
 	}
 }
 
-func index(b *bytes.Buffer, retry int) {
-	indexed := es.Adapter.BulkInsert(b)
+func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
+	indexed := cmd.ES.BulkInsert(b)
 
 	if !indexed {
-		if retry > *config.Retries {
+		if retry > cmd.Config.RetryCount {
 			log.Fatal("Retries for bulk failed, aborting")
 		}
 
 		delay := time.Duration((rand.Intn(10) + 5))
 		time.Sleep(delay * time.Second)
 
-		index(b, retry+1)
+		cmd.index(b, retry+1)
 	}
 }
 
 // Parses range of export command
-func getRange() (first int, last int) {
+func (cmd *ExportCommand) getRange() (first int, last int) {
 	firstLedger := db.LedgerHeaderFirstRow()
 	lastLedger := db.LedgerHeaderLastRow()
 
-	if config.Start.Explicit {
-		if config.Start.Value < 0 {
-			first = lastLedger.LedgerSeq + config.Start.Value + 1
+	if cmd.Config.Start.Explicit {
+		if cmd.Config.Start.Value < 0 {
+			first = lastLedger.LedgerSeq + cmd.Config.Start.Value + 1
 		} else if config.Start.Value > 0 {
-			first = firstLedger.LedgerSeq + config.Start.Value
+			first = firstLedger.LedgerSeq + cmd.Config.Start.Value
 		}
-	} else if config.Start.Value != 0 {
-		first = config.Start.Value
+	} else if cmd.Config.Start.Value != 0 {
+		first = cmd.Config.Start.Value
 	} else {
 		first = firstLedger.LedgerSeq
 	}
 
-	if *config.Count == 0 {
+	if cmd.Config.Count == 0 {
 		last = lastLedger.LedgerSeq
 	} else {
-		last = first + *config.Count - 1
+		last = first + cmd.Config.Count - 1
 	}
 
 	return first, last
@@ -125,7 +139,7 @@ func finishBar() {
 	}
 }
 
-func blockCount(count int) (blocks int) {
+func (cmd *ExportCommand) blockCount(count int) (blocks int) {
 	blocks = count / db.LedgerHeaderRowBatchSize
 
 	if count%db.LedgerHeaderRowBatchSize > 0 {

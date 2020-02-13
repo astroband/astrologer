@@ -6,8 +6,10 @@ import (
 	goES "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type EsAdapter interface {
@@ -19,6 +21,7 @@ type EsAdapter interface {
 	CreateIndex(name, body string)
 	DeleteIndex(name string)
 	BulkInsert(payload *bytes.Buffer) (success bool)
+	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
 }
 
 type EsClient struct {
@@ -195,6 +198,21 @@ func (es *EsClient) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 	}
 
 	return
+}
+
+func (es *EsClient) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
+	isIndexed := es.BulkInsert(payload)
+
+	if !isIndexed {
+		if retryCount-1 == 0 {
+			log.Fatal("Retries for bulk failed, aborting")
+		}
+
+		delay := time.Duration((rand.Intn(10) + 5))
+		time.Sleep(delay * time.Second)
+
+		es.IndexWithRetries(payload, retryCount-1)
+	}
 }
 
 func Connect(url string) *EsClient {

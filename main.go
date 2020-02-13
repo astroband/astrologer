@@ -1,29 +1,46 @@
 package main
 
 import (
-	"github.com/astroband/astrologer/commands"
-	"github.com/astroband/astrologer/config"
+	cmd "github.com/astroband/astrologer/commands"
+	cfg "github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/es"
 	"github.com/gammazero/workerpool"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	pool = workerpool.New(*config.Concurrency)
+	pool = workerpool.New(*cfg.Concurrency)
 )
 
 func main() {
-	switch config.Command {
+	kingpin.Version(cfg.Version)
+	commandName := kingpin.Parse()
+
+	esClient := es.Connect((*cfg.EsUrl).String())
+
+	var command cmd.Command
+
+	switch commandName {
 	case "stats":
-		commands.Stats()
+		command = &cmd.StatsCommand{ES: esClient}
 	case "create-index":
-		commands.CreateIndex()
+		config := cmd.CreateIndexCommandConfig{Force: *cfg.ForceRecreateIndexes}
+		command = &cmd.CreateIndexCommand{ES: esClient, Config: config}
 	case "export":
-		commands.Export()
+		config := cmd.ExportCommandConfig{
+			Start:      cfg.Start,
+			Count:      *cfg.Count,
+			DryRun:     *cfg.ExportDryRun,
+			RetryCount: *cfg.Retries,
+		}
+		command = &cmd.ExportCommand{ES: esClient, Config: config}
 	case "ingest":
-		commands.Ingest()
+		command = &cmd.IngestCommand{ES: esClient}
 	case "es-stats":
-		commands.EsStats()
+		command = &cmd.EsStatsCommand{ES: esClient}
 	case "fill-gaps":
-		commands.FillGaps(es.Adapter)
+		command = &cmd.FillGapsCommand{ES: esClient}
 	}
+
+	command.Execute()
 }

@@ -11,13 +11,17 @@ import (
 
 const step = 10000
 
+type EsStatsCommand struct {
+	ES es.EsAdapter
+}
+
 // EsStats prints ledger statistics for current database
-func EsStats() {
+func (cmd EsStatsCommand) Execute() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"From", "To", "Doc_count"})
 
-	min, max := es.Adapter.MinMaxSeq()
-	buckets := esRanges(min, max)
+	min, max := cmd.ES.MinMaxSeq()
+	buckets := cmd.esRanges(min, max)
 
 	for i := 0; i < len(buckets); i++ {
 		bucket := buckets[i].(map[string]interface{})
@@ -35,7 +39,7 @@ func EsStats() {
 	table.Render()
 }
 
-func esRanges(min int, max int) []interface{} {
+func (cmd EsStatsCommand) esRanges(min int, max int) []interface{} {
 	var ranges []map[string]interface{}
 
 	for i := min; i < max; i += step {
@@ -46,7 +50,7 @@ func esRanges(min int, max int) []interface{} {
 		ranges = append(ranges, map[string]interface{}{"from": i, "to": to})
 	}
 
-	aggs := es.Adapter.LedgerSeqRangeQuery(ranges)
+	aggs := cmd.ES.LedgerSeqRangeQuery(ranges)
 	buckets := aggs["buckets"].([]interface{})
 
 	return buckets

@@ -8,3 +8,7 @@ import (
 var (
 	pool = workerpool.New(*config.Concurrency)
 )
+
+type Command interface {
+	Execute()
+}

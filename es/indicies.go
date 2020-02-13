@@ -1,41 +1,45 @@
 package es
 
-import (
-	"log"
+type IndexDefinition struct {
+	Name   string
+	Schema string
+}
 
-	"github.com/astroband/astrologer/config"
-)
-
-const ledgerHeaderIndex = `
-	{
-		"settings": {
-			"index" : {
-        "sort.field" : "paging_token",
-				"sort.order" : "desc",
-				"number_of_shards" : 4
-			}
-		},
-		"mappings": {
-			"properties": {
-				"hash": { "type": "keyword", "index": true },
-				"prev_hash": { "type": "keyword", "index": false },
-				"bucket_list_hash": { "type": "keyword", "index": false },
-				"seq": { "type": "long" },
-				"paging_token": { "type": "keyword", "index": true },
-				"close_time": { "type": "date" },
-				"version": { "type": "long" },
-				"total_coins": { "type": "long" },
-				"fee_pool": { "type": "long" },
-				"id_pool": { "type": "long" },
-				"base_fee": { "type": "long" },
-				"base_reserve": { "type": "long" },
-				"max_tx_set_size": { "type": "long" }
-			}
-		}
-	}
-`
-
-const txIndex = `
+var IndexDefinitions = [...]IndexDefinition{
+	IndexDefinition{
+		Name: "ledger",
+		Schema: `
+      {
+          "settings": {
+            "index" : {
+              "sort.field" : "paging_token",
+              "sort.order" : "desc",
+              "number_of_shards" : 4
+            }
+          },
+          "mappings": {
+            "properties": {
+              "hash": { "type": "keyword", "index": true },
+              "prev_hash": { "type": "keyword", "index": false },
+              "bucket_list_hash": { "type": "keyword", "index": false },
+              "seq": { "type": "long" },
+              "paging_token": { "type": "keyword", "index": true },
+              "close_time": { "type": "date" },
+              "version": { "type": "long" },
+              "total_coins": { "type": "long" },
+              "fee_pool": { "type": "long" },
+              "id_pool": { "type": "long" },
+              "base_fee": { "type": "long" },
+              "base_reserve": { "type": "long" },
+              "max_tx_set_size": { "type": "long" }
+            }
+          }
+        }
+    `,
+	},
+	IndexDefinition{
+		Name: "tx",
+		Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -72,9 +76,11 @@ const txIndex = `
 			}
 		}
 	}
-`
-
-const opIndex = `
+`,
+	},
+	IndexDefinition{
+		Name: "op",
+		Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -208,9 +214,11 @@ const opIndex = `
 			}
 		}
 	}
-`
-
-const balanceIndex = `
+`,
+	},
+	IndexDefinition{
+		Name: "balance",
+		Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -238,9 +246,11 @@ const balanceIndex = `
 			}
 		}
 	}
-`
-
-const tradesIndex = `
+`,
+	},
+	IndexDefinition{
+		Name: "trades",
+		Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -276,9 +286,11 @@ const tradesIndex = `
 			}
 		}
 	}
-`
-
-const signerHistoryIndex = `
+`,
+	},
+	IndexDefinition{
+		Name: "signers",
+		Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -301,29 +313,6 @@ const signerHistoryIndex = `
 			}
 		}
 	}
-`
-
-// CreateIndicies creates all indicies in ElasticSearch database
-func CreateIndicies() {
-	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
-	refreshIndex(txIndexName, txIndex)
-	refreshIndex(opIndexName, opIndex)
-	refreshIndex(balanceIndexName, balanceIndex)
-	refreshIndex(tradesIndexName, tradesIndex)
-	refreshIndex(signerHistoryIndexName, signerHistoryIndex)
-}
-
-func refreshIndex(name string, body string) {
-	if !Adapter.IndexExists(name) {
-		Adapter.CreateIndex(name, body)
-		log.Printf("%s index created!", name)
-	} else {
-		if *config.ForceRecreateIndexes {
-			Adapter.DeleteIndex(name)
-			Adapter.CreateIndex(name, body)
-			log.Printf("%s index recreated!", name)
-		} else {
-			log.Printf("%s index found, skipping...", name)
-		}
-	}
+`,
+	},
 }

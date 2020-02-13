@@ -10,9 +10,14 @@ import (
 )
 
 const batchSize = 100
+const INDEX_RETRIES_COUNT = 25
 
-func FillGaps(ES es.EsAdapter) {
-	minSeq, maxSeq := es.Adapter.MinMaxSeq()
+type FillGapsCommand struct {
+	ES es.EsAdapter
+}
+
+func (cmd *FillGapsCommand) Execute() {
+	minSeq, maxSeq := cmd.ES.MinMaxSeq()
 	log.Printf("Min seq is %d, max seq is %d\n", minSeq, maxSeq)
 
 	var missing []int
@@ -24,21 +29,21 @@ func FillGaps(ES es.EsAdapter) {
 		}
 
 		log.Println(i, to)
-		seqs := ES.GetLedgerSeqsInRange(i, to)
+		seqs := cmd.ES.GetLedgerSeqsInRange(i, to)
 		log.Println("Seqs ingested:", seqs)
 
-		missing = append(missing, findMissing(i, to, seqs)...)
+		missing = append(missing, cmd.findMissing(i, to, seqs)...)
 		log.Println("=============================")
 	}
 
 	if !*config.FillGapsDryRun {
-		exportSeqs(missing)
+		cmd.exportSeqs(missing)
 	} else {
 		log.Println(missing)
 	}
 }
 
-func findMissing(from, to int, sortedArr []int) (missing []int) {
+func (cmd *FillGapsCommand) findMissing(from, to int, sortedArr []int) (missing []int) {
 	rangeArr := makeRange(from, to)
 
 	index := sort.SearchInts(sortedArr, from)
@@ -58,7 +63,7 @@ func findMissing(from, to int, sortedArr []int) (missing []int) {
 	return
 }
 
-func exportSeqs(seqs []int) {
+func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 	var b bytes.Buffer
 
 	rows := db.LedgerHeaderRowFetchBySeqs(seqs)
@@ -70,7 +75,7 @@ func exportSeqs(seqs []int) {
 		es.SerializeLedger(rows[n], txs, fees, &b)
 	}
 
-	index(&b, 0)
+	cmd.ES.IndexWithRetries(&b, INDEX_RETRIES_COUNT)
 }
 
 func makeRange(from, to int) []int {

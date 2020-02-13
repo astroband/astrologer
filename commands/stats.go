@@ -10,8 +10,12 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+type StatsCommand struct {
+	ES es.EsAdapter
+}
+
 // Stats prints ledger statistics for current database
-func Stats() {
+func (cmd StatsCommand) Execute() {
 	var g []int
 
 	first := db.LedgerHeaderFirstRow()
@@ -42,7 +46,7 @@ func Stats() {
 		min := g[i*2]
 		max := g[i*2+1]
 		count := max - min + 1
-		countES := es.Adapter.LedgerCountInRange(min, max)
+		countES := cmd.ES.LedgerCountInRange(min, max)
 
 		total += count
 		totalES += countES

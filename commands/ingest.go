@@ -10,12 +10,15 @@ import (
 	"github.com/astroband/astrologer/es"
 )
 
-var (
-	current = getStartLedger()
-)
+const INGEST_RETRIES = 25
 
-// Ingest Starts ingestion
-func Ingest() {
+type IngestCommand struct {
+	ES es.EsAdapter
+}
+
+// Execute Starts ingestion
+func (cmd *IngestCommand) Execute() {
+	current := cmd.getStartLedger()
 	log.Println("Starting ingest from", current.LedgerSeq)
 
 	for {
@@ -28,7 +31,7 @@ func Ingest() {
 		es.SerializeLedger(*current, txs, fees, &b)
 		//es.NewBulkMaker(*current, txs, fees, &b).Make()
 
-		index(&b, 0) // Defined in export.go
+		cmd.ES.IndexWithRetries(&b, INGEST_RETRIES)
 
 		log.Println("Ledger", seq, "ingested.")
 
@@ -44,7 +47,7 @@ func Ingest() {
 	}
 }
 
-func getStartLedger() (h *db.LedgerHeaderRow) {
+func (cmd *IngestCommand) getStartLedger() (h *db.LedgerHeaderRow) {
 	if *config.StartIngest == 0 {
 		h = db.LedgerHeaderLastRow()
 	} else {

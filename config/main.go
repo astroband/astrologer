@@ -84,9 +84,6 @@ var (
 
 	// DB Instance of sqlx.DB
 	DB *sqlx.DB
-
-	// Command KingPin command
-	Command string
 )
 
 func initDB() {
@@ -128,9 +125,6 @@ func parseStart() {
 }
 
 func init() {
-	kingpin.Version(Version)
-	Command = kingpin.Parse()
-
 	initDB()
 	parseStart()
 }
