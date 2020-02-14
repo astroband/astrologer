@@ -123,9 +123,7 @@ func (es *EsClient) BulkInsert(payload *bytes.Buffer) (success bool) {
 		defer res.Body.Close()
 	}
 
-	success = err == nil && (res == nil || !res.IsError())
-
-	return
+	return err == nil && (res == nil || !res.IsError())
 }
 
 func (es *EsClient) LedgerCountInRange(min, max int) int {
@@ -167,7 +165,7 @@ func (es *EsClient) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 	query := map[string]interface{}{
 		"_source": []string{"seq"},
 		"size":    max - min + 1,
-		"sort": []map[string]interface{}{map[string]interface{}{
+		"sort": []map[string]interface{}{{
 			"seq": "asc",
 		}},
 		"query": map[string]interface{}{
@@ -181,15 +179,6 @@ func (es *EsClient) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 	}
 
 	r := es.searchLedgers(query)
-	// var r struct {
-	// 	hits struct {
-	// 		hits []struct {
-	// 			_source struct {
-	// 				seq int
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		doc := hit.(map[string]interface{})

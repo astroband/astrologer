@@ -1,7 +1,6 @@
 package commands
 
 import (
-	// "log"
 	"os"
 	"strconv"
 
@@ -16,7 +15,7 @@ type EsStatsCommand struct {
 }
 
 // EsStats prints ledger statistics for current database
-func (cmd EsStatsCommand) Execute() {
+func (cmd *EsStatsCommand) Execute() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"From", "To", "Doc_count"})
 
@@ -39,7 +38,7 @@ func (cmd EsStatsCommand) Execute() {
 	table.Render()
 }
 
-func (cmd EsStatsCommand) esRanges(min int, max int) []interface{} {
+func (cmd *EsStatsCommand) esRanges(min int, max int) []interface{} {
 	var ranges []map[string]interface{}
 
 	for i := min; i < max; i += step {

@@ -5,12 +5,7 @@ import (
 	cfg "github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
-	"github.com/gammazero/workerpool"
 	"gopkg.in/alecthomas/kingpin.v2"
-)
-
-var (
-	pool = workerpool.New(*cfg.Concurrency)
 )
 
 func main() {

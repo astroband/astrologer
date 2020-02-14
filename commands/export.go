@@ -35,7 +35,7 @@ type ExportCommand struct {
 }
 
 // Export command
-func (cmd ExportCommand) Execute() {
+func (cmd *ExportCommand) Execute() {
 	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
 	total := cmd.DB.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
 

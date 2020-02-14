@@ -17,14 +17,14 @@ type CreateIndexCommand struct {
 }
 
 // CreateIndex calls create-indexes command
-func (cmd CreateIndexCommand) Execute() {
-	for _, index := range es.IndexDefinitions {
+func (cmd *CreateIndexCommand) Execute() {
+	for _, index := range es.GetIndexDefinitions() {
 		cmd.refreshIndex(index.Name, index.Schema)
 	}
 	fmt.Println("Indicies created successfully!")
 }
 
-func (cmd CreateIndexCommand) refreshIndex(name string, schema string) {
+func (cmd *CreateIndexCommand) refreshIndex(name string, schema string) {
 	if !cmd.ES.IndexExists(name) {
 		cmd.ES.CreateIndex(name, schema)
 		log.Printf("%s index created!", name)

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stellar/go/xdr"
 )
 
@@ -49,25 +48,6 @@ func (db *DbClient) LedgerHeaderRowFetchBatch(n, start, batchSize int) []LedgerH
 		"SELECT * FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2 ORDER BY ledgerseq ASC",
 		low,
 		high)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return ledgers
-}
-
-func (db *DbClient) LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
-	ledgers := []LedgerHeaderRow{}
-
-	query, _, err := sqlx.In("SELECT * FROM ledgerheaders WHERE ledgerseq IN (?) ORDER BY ledgerseq ASC;", seqs)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	query = db.rawClient.Rebind(query)
-	err = db.rawClient.Select(&ledgers, query, ledgers)
 
 	if err != nil {
 		log.Fatal(err)

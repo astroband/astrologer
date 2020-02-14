@@ -16,7 +16,7 @@ type StatsCommand struct {
 }
 
 // Stats prints ledger statistics for current database
-func (cmd StatsCommand) Execute() {
+func (cmd *StatsCommand) Execute() {
 	var g []int
 
 	first := cmd.DB.LedgerHeaderFirstRow()

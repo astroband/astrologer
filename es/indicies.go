@@ -5,10 +5,11 @@ type IndexDefinition struct {
 	Schema string
 }
 
-var IndexDefinitions = [...]IndexDefinition{
-	IndexDefinition{
-		Name: "ledger",
-		Schema: `
+func GetIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		IndexDefinition{
+			Name: "ledger",
+			Schema: `
       {
           "settings": {
             "index" : {
@@ -36,10 +37,10 @@ var IndexDefinitions = [...]IndexDefinition{
           }
         }
     `,
-	},
-	IndexDefinition{
-		Name: "tx",
-		Schema: `
+		},
+		IndexDefinition{
+			Name: "tx",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -77,10 +78,10 @@ var IndexDefinitions = [...]IndexDefinition{
 		}
 	}
 `,
-	},
-	IndexDefinition{
-		Name: "op",
-		Schema: `
+		},
+		IndexDefinition{
+			Name: "op",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -215,10 +216,10 @@ var IndexDefinitions = [...]IndexDefinition{
 		}
 	}
 `,
-	},
-	IndexDefinition{
-		Name: "balance",
-		Schema: `
+		},
+		IndexDefinition{
+			Name: "balance",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -247,10 +248,10 @@ var IndexDefinitions = [...]IndexDefinition{
 		}
 	}
 `,
-	},
-	IndexDefinition{
-		Name: "trades",
-		Schema: `
+		},
+		IndexDefinition{
+			Name: "trades",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -287,10 +288,10 @@ var IndexDefinitions = [...]IndexDefinition{
 		}
 	}
 `,
-	},
-	IndexDefinition{
-		Name: "signers",
-		Schema: `
+		},
+		IndexDefinition{
+			Name: "signers",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -314,5 +315,6 @@ var IndexDefinitions = [...]IndexDefinition{
 		}
 	}
 `,
-	},
+		},
+	}
 }
