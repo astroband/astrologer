@@ -16,7 +16,7 @@ type TxFeeHistoryRow struct {
 }
 
 // TxFeeHistoryRowsForRows returns transactions for specified ledger sorted by index
-func (db *DbClient) TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow {
+func (db *Client) TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow {
 	txs := []TxFeeHistoryRow{}
 
 	if len(rows) == 0 {

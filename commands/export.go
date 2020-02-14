@@ -26,8 +26,8 @@ type ExportCommandConfig struct {
 }
 
 type ExportCommand struct {
-	ES     es.EsAdapter
-	DB     db.DbAdapter
+	ES     es.Adapter
+	DB     db.Adapter
 	Config ExportCommandConfig
 
 	firstLedger int

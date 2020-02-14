@@ -21,7 +21,7 @@ type TxHistoryRow struct {
 }
 
 // TxHistoryRowForSeq returns transactions for specified ledger sorted by index
-func (db *DbClient) TxHistoryRowForSeq(seq int) []TxHistoryRow {
+func (db *Client) TxHistoryRowForSeq(seq int) []TxHistoryRow {
 	txs := []TxHistoryRow{}
 
 	err := db.rawClient.Select(&txs, "SELECT * FROM txhistory WHERE ledgerseq = $1 ORDER BY txindex", seq)

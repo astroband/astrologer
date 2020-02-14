@@ -12,7 +12,7 @@ type CreateIndexCommandConfig struct {
 }
 
 type CreateIndexCommand struct {
-	ES     es.EsAdapter
+	ES     es.Adapter
 	Config CreateIndexCommandConfig
 }
 

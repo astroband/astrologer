@@ -13,8 +13,8 @@ import (
 const INGEST_RETRIES = 25
 
 type IngestCommand struct {
-	ES es.EsAdapter
-	DB db.DbAdapter
+	ES es.Adapter
+	DB db.Adapter
 }
 
 // Execute Starts ingestion

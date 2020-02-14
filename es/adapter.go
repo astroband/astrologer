@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type EsAdapter interface {
+type Adapter interface {
 	MinMaxSeq() (min, max int)
 	LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{}
 	GetLedgerSeqsInRange(min, max int) []int
@@ -24,11 +24,11 @@ type EsAdapter interface {
 	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
 }
 
-type EsClient struct {
+type Client struct {
 	rawClient *goES.Client
 }
 
-func (es *EsClient) IndexExists(name string) bool {
+func (es *Client) IndexExists(name string) bool {
 	res, err := es.rawClient.Indices.Get([]string{name})
 
 	if err != nil {
@@ -38,12 +38,12 @@ func (es *EsClient) IndexExists(name string) bool {
 	return res.StatusCode != http.StatusNotFound
 }
 
-func (es *EsClient) DeleteIndex(name string) {
+func (es *Client) DeleteIndex(name string) {
 	res, err := es.rawClient.Indices.Delete([]string{name})
 	fatalIfError(res, err)
 }
 
-func (es *EsClient) CreateIndex(name, body string) {
+func (es *Client) CreateIndex(name, body string) {
 	create := es.rawClient.Indices.Create
 
 	res, err := create(
@@ -54,7 +54,7 @@ func (es *EsClient) CreateIndex(name, body string) {
 	fatalIfError(res, err)
 }
 
-func (es *EsClient) searchLedgers(query map[string]interface{}) (r map[string]interface{}) {
+func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]interface{}) {
 	var buf bytes.Buffer
 
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
@@ -77,7 +77,7 @@ func (es *EsClient) searchLedgers(query map[string]interface{}) (r map[string]in
 	return r
 }
 
-func (es *EsClient) MinMaxSeq() (min, max int) {
+func (es *Client) MinMaxSeq() (min, max int) {
 	query := map[string]interface{}{
 		"aggs": map[string]interface{}{
 			"seq_stats": map[string]interface{}{
@@ -98,7 +98,7 @@ func (es *EsClient) MinMaxSeq() (min, max int) {
 	return min, max
 }
 
-func (es *EsClient) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{} {
+func (es *Client) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{} {
 	query := map[string]interface{}{
 		"aggs": map[string]interface{}{
 			"seq_ranges": map[string]interface{}{
@@ -116,7 +116,7 @@ func (es *EsClient) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[str
 	return aggs
 }
 
-func (es *EsClient) BulkInsert(payload *bytes.Buffer) (success bool) {
+func (es *Client) BulkInsert(payload *bytes.Buffer) (success bool) {
 	res, err := es.rawClient.Bulk(bytes.NewReader(payload.Bytes()))
 
 	if res != nil {
@@ -126,7 +126,7 @@ func (es *EsClient) BulkInsert(payload *bytes.Buffer) (success bool) {
 	return err == nil && (res == nil || !res.IsError())
 }
 
-func (es *EsClient) LedgerCountInRange(min, max int) int {
+func (es *Client) LedgerCountInRange(min, max int) int {
 	var r map[string]interface{}
 	var buf bytes.Buffer
 
@@ -161,7 +161,7 @@ func (es *EsClient) LedgerCountInRange(min, max int) int {
 	return int(r["count"].(float64))
 }
 
-func (es *EsClient) GetLedgerSeqsInRange(min, max int) (seqs []int) {
+func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 	query := map[string]interface{}{
 		"_source": []string{"seq"},
 		"size":    max - min + 1,
@@ -189,7 +189,7 @@ func (es *EsClient) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 	return
 }
 
-func (es *EsClient) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
+func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 	isIndexed := es.BulkInsert(payload)
 
 	if !isIndexed {
@@ -204,7 +204,7 @@ func (es *EsClient) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 	}
 }
 
-func Connect(url string) *EsClient {
+func Connect(url string) *Client {
 	esCfg := goES.Config{
 		Addresses: []string{url},
 	}
@@ -214,7 +214,7 @@ func Connect(url string) *EsClient {
 		log.Fatal(err)
 	}
 
-	return &EsClient{rawClient: client}
+	return &Client{rawClient: client}
 }
 
 func fatalIfError(res *esapi.Response, err error) {

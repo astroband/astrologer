@@ -11,8 +11,8 @@ import (
 )
 
 type StatsCommand struct {
-	ES es.EsAdapter
-	DB db.DbAdapter
+	ES es.Adapter
+	DB db.Adapter
 }
 
 // Stats prints ledger statistics for current database

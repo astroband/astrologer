@@ -35,7 +35,7 @@ func utf8Scrub(in string) string {
 	return result.String()
 }
 
-type DbAdapter interface {
+type Adapter interface {
 	LedgerHeaderRowCount(first int, last int) int
 	LedgerHeaderRowFetchBatch(n int, start int, batchSize int) []LedgerHeaderRow
 	LedgerHeaderLastRow() *LedgerHeaderRow
@@ -46,11 +46,11 @@ type DbAdapter interface {
 	TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow
 }
 
-type DbClient struct {
+type Client struct {
 	rawClient *sqlx.DB
 }
 
-func Connect(databaseUrl *url.URL) *DbClient {
+func Connect(databaseUrl *url.URL) *Client {
 	databaseDriver := (*databaseUrl).Scheme
 
 	db, err := sqlx.Connect(databaseDriver, (*databaseUrl).String())
@@ -58,5 +58,5 @@ func Connect(databaseUrl *url.URL) *DbClient {
 		log.Fatal(err)
 	}
 
-	return &DbClient{rawClient: db}
+	return &Client{rawClient: db}
 }

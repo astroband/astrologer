@@ -11,7 +11,7 @@ import (
 const step = 10000
 
 type EsStatsCommand struct {
-	ES es.EsAdapter
+	ES es.Adapter
 }
 
 // EsStats prints ledger statistics for current database
