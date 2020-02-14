@@ -12,15 +12,16 @@ import (
 
 type StatsCommand struct {
 	ES es.EsAdapter
+	DB db.DbAdapter
 }
 
 // Stats prints ledger statistics for current database
 func (cmd StatsCommand) Execute() {
 	var g []int
 
-	first := db.LedgerHeaderFirstRow()
-	last := db.LedgerHeaderLastRow()
-	gaps := db.LedgerHeaderGaps()
+	first := cmd.DB.LedgerHeaderFirstRow()
+	last := cmd.DB.LedgerHeaderLastRow()
+	gaps := cmd.DB.LedgerHeaderGaps()
 
 	if (first == nil) || (last == nil) {
 		fmt.Println("Current database is empty!")

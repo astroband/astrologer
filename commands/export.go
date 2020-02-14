@@ -22,10 +22,12 @@ type ExportCommandConfig struct {
 	Count      int
 	RetryCount int
 	DryRun     bool
+	BatchSize  int
 }
 
 type ExportCommand struct {
 	ES     es.EsAdapter
+	DB     db.DbAdapter
 	Config ExportCommandConfig
 
 	firstLedger int
@@ -35,7 +37,7 @@ type ExportCommand struct {
 // Export command
 func (cmd ExportCommand) Execute() {
 	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
-	total := db.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
+	total := cmd.DB.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
 
 	if total == 0 {
 		log.Fatal("Nothing to export within given range!", cmd.firstLedger, cmd.lastLedger)
@@ -57,11 +59,11 @@ func (cmd ExportCommand) Execute() {
 func (cmd *ExportCommand) exportBlock(i int) {
 	var b bytes.Buffer
 
-	rows := db.LedgerHeaderRowFetchBatch(i, cmd.firstLedger)
+	rows := cmd.DB.LedgerHeaderRowFetchBatch(i, cmd.firstLedger, cmd.Config.BatchSize)
 
 	for n := 0; n < len(rows); n++ {
-		txs := db.TxHistoryRowForSeq(rows[n].LedgerSeq)
-		fees := db.TxFeeHistoryRowsForRows(txs)
+		txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
+		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
 
 		es.SerializeLedger(rows[n], txs, fees, &b)
 
@@ -96,8 +98,8 @@ func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
 
 // Parses range of export command
 func (cmd *ExportCommand) getRange() (first int, last int) {
-	firstLedger := db.LedgerHeaderFirstRow()
-	lastLedger := db.LedgerHeaderLastRow()
+	firstLedger := cmd.DB.LedgerHeaderFirstRow()
+	lastLedger := cmd.DB.LedgerHeaderLastRow()
 
 	if cmd.Config.Start.Explicit {
 		if cmd.Config.Start.Value < 0 {
@@ -140,9 +142,9 @@ func finishBar() {
 }
 
 func (cmd *ExportCommand) blockCount(count int) (blocks int) {
-	blocks = count / db.LedgerHeaderRowBatchSize
+	blocks = count / cmd.Config.BatchSize
 
-	if count%db.LedgerHeaderRowBatchSize > 0 {
+	if count%cmd.Config.BatchSize > 0 {
 		blocks = blocks + 1
 	}
 

@@ -14,6 +14,7 @@ const INGEST_RETRIES = 25
 
 type IngestCommand struct {
 	ES es.EsAdapter
+	DB db.DbAdapter
 }
 
 // Execute Starts ingestion
@@ -25,8 +26,8 @@ func (cmd *IngestCommand) Execute() {
 		var b bytes.Buffer
 		var seq = current.LedgerSeq
 
-		txs := db.TxHistoryRowForSeq(seq)
-		fees := db.TxFeeHistoryRowsForRows(txs)
+		txs := cmd.DB.TxHistoryRowForSeq(seq)
+		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
 
 		es.SerializeLedger(*current, txs, fees, &b)
 		//es.NewBulkMaker(*current, txs, fees, &b).Make()
@@ -35,32 +36,32 @@ func (cmd *IngestCommand) Execute() {
 
 		log.Println("Ledger", seq, "ingested.")
 
-		current = db.LedgerHeaderNext(seq)
+		current = cmd.DB.LedgerHeaderNext(seq)
 
 		for {
 			if current != nil {
 				break
 			}
 			time.Sleep(1 * time.Second)
-			current = db.LedgerHeaderNext(seq)
+			current = cmd.DB.LedgerHeaderNext(seq)
 		}
 	}
 }
 
 func (cmd *IngestCommand) getStartLedger() (h *db.LedgerHeaderRow) {
 	if *config.StartIngest == 0 {
-		h = db.LedgerHeaderLastRow()
+		h = cmd.DB.LedgerHeaderLastRow()
 	} else {
 		if *config.StartIngest > 0 {
-			h = db.LedgerHeaderNext(*config.StartIngest)
+			h = cmd.DB.LedgerHeaderNext(*config.StartIngest)
 		} else {
-			last := db.LedgerHeaderLastRow()
+			last := cmd.DB.LedgerHeaderLastRow()
 
 			if last == nil {
 				log.Fatal("Nothing to ingest")
 			}
 
-			h = db.LedgerHeaderNext(last.LedgerSeq + *config.StartIngest)
+			h = cmd.DB.LedgerHeaderNext(last.LedgerSeq + *config.StartIngest)
 		}
 	}
 

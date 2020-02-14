@@ -4,13 +4,9 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/astroband/astrologer/config"
 	"github.com/jmoiron/sqlx"
 	"github.com/stellar/go/xdr"
 )
-
-// LedgerHeaderRowBatchSize used in LedgerHeaderRowFetchBatch
-var LedgerHeaderRowBatchSize = *config.BatchSize
 
 // LedgerHeaderRow is struct representing ledger in database
 type LedgerHeaderRow struct {
@@ -29,26 +25,26 @@ type Gap struct {
 }
 
 // LedgerHeaderRowCount returns total ledgers count within given range
-func LedgerHeaderRowCount(first int, last int) int {
+func (db *DbClient) LedgerHeaderRowCount(first, last int) int {
 	total := 0
 
 	if last == 0 {
-		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", first)
+		db.rawClient.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1", first)
 	} else {
-		config.DB.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1 AND ledgerseq <= $2", first, last)
+		db.rawClient.Get(&total, "SELECT count(ledgerseq) FROM ledgerheaders WHERE ledgerseq >= $1 AND ledgerseq <= $2", first, last)
 	}
 
 	return total
 }
 
 // LedgerHeaderRowFetchBatch gets bunch of ledgers
-func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
+func (db *DbClient) LedgerHeaderRowFetchBatch(n, start, batchSize int) []LedgerHeaderRow {
 	ledgers := []LedgerHeaderRow{}
-	offset := n * LedgerHeaderRowBatchSize
+	offset := n * batchSize
 	low := offset + start
-	high := low + LedgerHeaderRowBatchSize - 1
+	high := low + batchSize - 1
 
-	err := config.DB.Select(
+	err := db.rawClient.Select(
 		&ledgers,
 		"SELECT * FROM ledgerheaders WHERE ledgerseq BETWEEN $1 AND $2 ORDER BY ledgerseq ASC",
 		low,
@@ -61,7 +57,7 @@ func LedgerHeaderRowFetchBatch(n int, start int) []LedgerHeaderRow {
 	return ledgers
 }
 
-func LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
+func (db *DbClient) LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
 	ledgers := []LedgerHeaderRow{}
 
 	query, _, err := sqlx.In("SELECT * FROM ledgerheaders WHERE ledgerseq IN (?) ORDER BY ledgerseq ASC;", seqs)
@@ -70,8 +66,8 @@ func LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
 		log.Fatal(err)
 	}
 
-	query = config.DB.Rebind(query)
-	err = config.DB.Select(&ledgers, query, ledgers)
+	query = db.rawClient.Rebind(query)
+	err = db.rawClient.Select(&ledgers, query, ledgers)
 
 	if err != nil {
 		log.Fatal(err)
@@ -81,10 +77,10 @@ func LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
 }
 
 // LedgerHeaderLastRow returns lastest ledger in the database
-func LedgerHeaderLastRow() *LedgerHeaderRow {
+func (db *DbClient) LedgerHeaderLastRow() *LedgerHeaderRow {
 	var h LedgerHeaderRow
 
-	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq DESC LIMIT 1")
+	err := db.rawClient.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq DESC LIMIT 1")
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -98,10 +94,10 @@ func LedgerHeaderLastRow() *LedgerHeaderRow {
 }
 
 // LedgerHeaderFirstRow returns lastest first ledger in the database
-func LedgerHeaderFirstRow() *LedgerHeaderRow {
+func (db *DbClient) LedgerHeaderFirstRow() *LedgerHeaderRow {
 	var h LedgerHeaderRow
 
-	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq ASC LIMIT 1")
+	err := db.rawClient.Get(&h, "SELECT * FROM ledgerheaders ORDER BY ledgerseq ASC LIMIT 1")
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -115,10 +111,10 @@ func LedgerHeaderFirstRow() *LedgerHeaderRow {
 }
 
 // LedgerHeaderNext returns next ledger to fetch
-func LedgerHeaderNext(seq int) *LedgerHeaderRow {
+func (db *DbClient) LedgerHeaderNext(seq int) *LedgerHeaderRow {
 	var h LedgerHeaderRow
 
-	err := config.DB.Get(&h, "SELECT * FROM ledgerheaders WHERE ledgerseq > $1 ORDER BY ledgerseq ASC LIMIT 1", seq)
+	err := db.rawClient.Get(&h, "SELECT * FROM ledgerheaders WHERE ledgerseq > $1 ORDER BY ledgerseq ASC LIMIT 1", seq)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -132,8 +128,8 @@ func LedgerHeaderNext(seq int) *LedgerHeaderRow {
 }
 
 // LedgerHeaderGaps returns gap positions in ledgerheaders
-func LedgerHeaderGaps() (r []Gap) {
-	err := config.DB.Select(&r, `
+func (db *DbClient) LedgerHeaderGaps() (r []Gap) {
+	err := db.rawClient.Select(&r, `
 		SELECT ledgerseq + 1 AS gap_start, next_nr - 1 AS gap_end
 		FROM (
   		SELECT ledgerseq, LEAD(ledgerseq) OVER (ORDER BY ledgerseq) AS next_nr

@@ -3,7 +3,6 @@ package db
 import (
 	"log"
 
-	"github.com/astroband/astrologer/config"
 	"github.com/jmoiron/sqlx"
 	"github.com/stellar/go/xdr"
 )
@@ -17,7 +16,7 @@ type TxFeeHistoryRow struct {
 }
 
 // TxFeeHistoryRowsForRows returns transactions for specified ledger sorted by index
-func TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow {
+func (db *DbClient) TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow {
 	txs := []TxFeeHistoryRow{}
 
 	if len(rows) == 0 {
@@ -35,8 +34,8 @@ func TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow {
 		log.Fatal(err)
 	}
 
-	query = config.DB.Rebind(query)
-	err = config.DB.Select(&txs, query, args...)
+	query = db.rawClient.Rebind(query)
+	err = db.rawClient.Select(&txs, query, args...)
 	if err != nil {
 		log.Fatal(err)
 	}

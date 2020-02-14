@@ -4,10 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/jmoiron/sqlx"
 	"gopkg.in/alecthomas/kingpin.v2"
-
-	_ "github.com/lib/pq" // Postgres driver
 )
 
 // Version Application version
@@ -27,7 +24,7 @@ var (
 	esStatsCommand     = kingpin.Command("es-stats", "Print ES ranges stats")
 	fillGapsCommand    = kingpin.Command("fill-gaps", "Fill gaps")
 
-	databaseUrl = kingpin.
+	DatabaseUrl = kingpin.
 			Flag("database-url", "Stellar Core database URL").
 			Default("postgres://localhost/core?sslmode=disable").
 			OverrideDefaultFromEnvar("DATABASE_URL").
@@ -81,21 +78,7 @@ var (
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
 
 	FillGapsDryRun = fillGapsCommand.Flag("dry-run", "Do not ingest anything, just print missing ledgers").Bool()
-
-	// DB Instance of sqlx.DB
-	DB *sqlx.DB
 )
-
-func initDB() {
-	databaseDriver := (*databaseUrl).Scheme
-
-	db, err := sqlx.Connect(databaseDriver, (*databaseUrl).String())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	DB = db
-}
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {
 	v, err := strconv.Atoi(value)
@@ -125,6 +108,5 @@ func parseStart() {
 }
 
 func init() {
-	initDB()
 	parseStart()
 }
