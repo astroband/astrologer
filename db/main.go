@@ -2,6 +2,10 @@ package db
 
 import (
 	"bytes"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // Postgres driver
+	"log"
+	"net/url"
 	"unicode/utf8"
 )
 
@@ -29,4 +33,30 @@ func utf8Scrub(in string) string {
 	}
 
 	return result.String()
+}
+
+type Adapter interface {
+	LedgerHeaderRowCount(first int, last int) int
+	LedgerHeaderRowFetchBatch(n int, start int, batchSize int) []LedgerHeaderRow
+	LedgerHeaderLastRow() *LedgerHeaderRow
+	LedgerHeaderFirstRow() *LedgerHeaderRow
+	LedgerHeaderNext(seq int) *LedgerHeaderRow
+	LedgerHeaderGaps() (r []Gap)
+	TxHistoryRowForSeq(seq int) []TxHistoryRow
+	TxFeeHistoryRowsForRows(rows []TxHistoryRow) []TxFeeHistoryRow
+}
+
+type Client struct {
+	rawClient *sqlx.DB
+}
+
+func Connect(databaseUrl *url.URL) *Client {
+	databaseDriver := (*databaseUrl).Scheme
+
+	db, err := sqlx.Connect(databaseDriver, (*databaseUrl).String())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Client{rawClient: db}
 }

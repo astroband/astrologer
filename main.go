@@ -1,26 +1,44 @@
 package main
 
 import (
-	"github.com/astroband/astrologer/commands"
-	"github.com/astroband/astrologer/config"
-	"github.com/gammazero/workerpool"
-)
-
-var (
-	pool = workerpool.New(*config.Concurrency)
+	cmd "github.com/astroband/astrologer/commands"
+	cfg "github.com/astroband/astrologer/config"
+	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/es"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
-	switch config.Command {
+	kingpin.Version(cfg.Version)
+	commandName := kingpin.Parse()
+
+	esClient := es.Connect((*cfg.EsUrl).String())
+
+	var command cmd.Command
+
+	switch commandName {
 	case "stats":
-		commands.Stats()
+		dbClient := db.Connect(*cfg.DatabaseUrl)
+		command = &cmd.StatsCommand{ES: esClient, DB: dbClient}
 	case "create-index":
-		commands.CreateIndex()
+		config := cmd.CreateIndexCommandConfig{Force: *cfg.ForceRecreateIndexes}
+		command = &cmd.CreateIndexCommand{ES: esClient, Config: config}
 	case "export":
-		commands.Export()
+		dbClient := db.Connect(*cfg.DatabaseUrl)
+		config := cmd.ExportCommandConfig{
+			Start:      cfg.Start,
+			Count:      *cfg.Count,
+			DryRun:     *cfg.ExportDryRun,
+			RetryCount: *cfg.Retries,
+			BatchSize:  *cfg.BatchSize,
+		}
+		command = &cmd.ExportCommand{ES: esClient, DB: dbClient, Config: config}
 	case "ingest":
-		commands.Ingest()
+		dbClient := db.Connect(*cfg.DatabaseUrl)
+		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}
 	case "es-stats":
-		commands.EsStats()
+		command = &cmd.EsStatsCommand{ES: esClient}
 	}
+
+	command.Execute()
 }

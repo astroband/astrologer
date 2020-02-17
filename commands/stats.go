@@ -1,25 +1,27 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
-	"github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/es"
 	"github.com/olekukonko/tablewriter"
 )
 
+type StatsCommand struct {
+	ES es.Adapter
+	DB db.Adapter
+}
+
 // Stats prints ledger statistics for current database
-func Stats() {
+func (cmd *StatsCommand) Execute() {
 	var g []int
 
-	first := db.LedgerHeaderFirstRow()
-	last := db.LedgerHeaderLastRow()
-	gaps := db.LedgerHeaderGaps()
+	first := cmd.DB.LedgerHeaderFirstRow()
+	last := cmd.DB.LedgerHeaderLastRow()
+	gaps := cmd.DB.LedgerHeaderGaps()
 
 	if (first == nil) || (last == nil) {
 		fmt.Println("Current database is empty!")
@@ -45,7 +47,7 @@ func Stats() {
 		min := g[i*2]
 		max := g[i*2+1]
 		count := max - min + 1
-		countES := esCount(min, max)
+		countES := cmd.ES.LedgerCountInRange(min, max)
 
 		total += count
 		totalES += countES
@@ -61,45 +63,4 @@ func Stats() {
 	table.SetFooter([]string{"", "Total", strconv.Itoa(total), strconv.Itoa(totalES)})
 
 	table.Render()
-}
-
-func esCount(min int, max int) int {
-	var r map[string]interface{}
-	var buf bytes.Buffer
-
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"range": map[string]interface{}{
-				"seq": map[string]interface{}{
-					"gte": min,
-					"lte": max,
-				},
-			},
-		},
-	}
-
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatalf("Error encoding query: %s", err)
-	}
-
-	res, err := config.ES.Count(
-		config.ES.Count.WithIndex("ledger"),
-		config.ES.Count.WithBody(&buf),
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.IsError() {
-		log.Fatal("Error in response", res.Body)
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
-	}
-
-	res.Body.Close()
-
-	return int(r["count"].(float64))
 }

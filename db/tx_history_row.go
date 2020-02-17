@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/astroband/astrologer/config"
 	"github.com/guregu/null"
 	"github.com/stellar/go/xdr"
 )
@@ -22,10 +21,10 @@ type TxHistoryRow struct {
 }
 
 // TxHistoryRowForSeq returns transactions for specified ledger sorted by index
-func TxHistoryRowForSeq(seq int) []TxHistoryRow {
+func (db *Client) TxHistoryRowForSeq(seq int) []TxHistoryRow {
 	txs := []TxHistoryRow{}
 
-	err := config.DB.Select(&txs, "SELECT * FROM txhistory WHERE ledgerseq = $1 ORDER BY txindex", seq)
+	err := db.rawClient.Select(&txs, "SELECT * FROM txhistory WHERE ledgerseq = $1 ORDER BY txindex", seq)
 	if err != nil {
 		log.Fatal(err)
 	}

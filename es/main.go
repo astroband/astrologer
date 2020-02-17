@@ -1,11 +1,5 @@
 package es
 
-import (
-	"log"
-
-	"github.com/elastic/go-elasticsearch/v7/esapi"
-)
-
 var ledgerHeaderIndexName = "ledger"
 var txIndexName = "tx"
 var opIndexName = "op"
@@ -17,14 +11,4 @@ var signerHistoryIndexName = "signers"
 type Indexable interface {
 	DocID() *string
 	IndexName() string
-}
-
-func fatalIfError(res *esapi.Response, err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if res.IsError() {
-		log.Fatal(res)
-	}
 }

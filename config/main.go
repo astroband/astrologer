@@ -4,11 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	es "github.com/elastic/go-elasticsearch/v7"
-	"github.com/jmoiron/sqlx"
 	"gopkg.in/alecthomas/kingpin.v2"
-
-	_ "github.com/lib/pq" // Postgres driver
 )
 
 // Version Application version
@@ -24,16 +20,16 @@ var (
 	createIndexCommand = kingpin.Command("create-index", "Create ES indexes")
 	exportCommand      = kingpin.Command("export", "Run export")
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
-	statsCommand       = kingpin.Command("stats", "Print database ledger statistics")
-	esStatsCommand     = kingpin.Command("es-stats", "Print ES ranges stats")
+	_                  = kingpin.Command("stats", "Print database ledger statistics")
+	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
 
-	databaseURL = kingpin.
+	DatabaseUrl = kingpin.
 			Flag("database-url", "Stellar Core database URL").
 			Default("postgres://localhost/core?sslmode=disable").
 			OverrideDefaultFromEnvar("DATABASE_URL").
 			URL()
 
-	esURL = kingpin.
+	EsUrl = kingpin.
 		Flag("es-url", "ElasticSearch URL").
 		Default("http://localhost:9200").
 		OverrideDefaultFromEnvar("ES_URL").
@@ -74,45 +70,12 @@ var (
 	// Verbose print data
 	Verbose = exportCommand.Flag("verbose", "Print indexed data").Bool()
 
-	// DryRun do not index data
-	DryRun = exportCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
+	// ExportDryRun do not index data
+	ExportDryRun = exportCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
-
-	// DB Instance of sqlx.DB
-	DB *sqlx.DB
-
-	// ES ElasticSearch client instance
-	ES *es.Client
-
-	// Command KingPin command
-	Command string
 )
-
-func initDB() {
-	databaseDriver := (*databaseURL).Scheme
-
-	db, err := sqlx.Connect(databaseDriver, (*databaseURL).String())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	DB = db
-}
-
-func initES() {
-	esCfg := es.Config{
-		Addresses: []string{(*esURL).String()},
-	}
-
-	client, err := es.NewClient(esCfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ES = client
-}
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {
 	v, err := strconv.Atoi(value)
@@ -142,10 +105,5 @@ func parseStart() {
 }
 
 func init() {
-	kingpin.Version(Version)
-	Command = kingpin.Parse()
-
-	initDB()
-	initES()
 	parseStart()
 }

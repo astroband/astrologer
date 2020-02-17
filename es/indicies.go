@@ -1,43 +1,46 @@
 package es
 
-import (
-	"log"
-	"net/http"
-	"strings"
+type IndexDefinition struct {
+	Name   string
+	Schema string
+}
 
-	"github.com/astroband/astrologer/config"
-)
-
-const ledgerHeaderIndex = `
-	{
-		"settings": {
-			"index" : {
-        "sort.field" : "paging_token",
-				"sort.order" : "desc",
-				"number_of_shards" : 4
-			}
+func GetIndexDefinitions() []IndexDefinition {
+	return []IndexDefinition{
+		IndexDefinition{
+			Name: "ledger",
+			Schema: `
+      {
+          "settings": {
+            "index" : {
+              "sort.field" : "paging_token",
+              "sort.order" : "desc",
+              "number_of_shards" : 4
+            }
+          },
+          "mappings": {
+            "properties": {
+              "hash": { "type": "keyword", "index": true },
+              "prev_hash": { "type": "keyword", "index": false },
+              "bucket_list_hash": { "type": "keyword", "index": false },
+              "seq": { "type": "long" },
+              "paging_token": { "type": "keyword", "index": true },
+              "close_time": { "type": "date" },
+              "version": { "type": "long" },
+              "total_coins": { "type": "long" },
+              "fee_pool": { "type": "long" },
+              "id_pool": { "type": "long" },
+              "base_fee": { "type": "long" },
+              "base_reserve": { "type": "long" },
+              "max_tx_set_size": { "type": "long" }
+            }
+          }
+        }
+    `,
 		},
-		"mappings": {
-			"properties": {
-				"hash": { "type": "keyword", "index": true },
-				"prev_hash": { "type": "keyword", "index": false },
-				"bucket_list_hash": { "type": "keyword", "index": false },
-				"seq": { "type": "long" },
-				"paging_token": { "type": "keyword", "index": true },
-				"close_time": { "type": "date" },
-				"version": { "type": "long" },
-				"total_coins": { "type": "long" },
-				"fee_pool": { "type": "long" },
-				"id_pool": { "type": "long" },
-				"base_fee": { "type": "long" },
-				"base_reserve": { "type": "long" },
-				"max_tx_set_size": { "type": "long" }
-			}
-		}
-	}
-`
-
-const txIndex = `
+		IndexDefinition{
+			Name: "tx",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -74,9 +77,11 @@ const txIndex = `
 			}
 		}
 	}
-`
-
-const opIndex = `
+`,
+		},
+		IndexDefinition{
+			Name: "op",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -210,9 +215,11 @@ const opIndex = `
 			}
 		}
 	}
-`
-
-const balanceIndex = `
+`,
+		},
+		IndexDefinition{
+			Name: "balance",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -240,9 +247,11 @@ const balanceIndex = `
 			}
 		}
 	}
-`
-
-const tradesIndex = `
+`,
+		},
+		IndexDefinition{
+			Name: "trades",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -278,9 +287,11 @@ const tradesIndex = `
 			}
 		}
 	}
-`
-
-const signerHistoryIndex = `
+`,
+		},
+		IndexDefinition{
+			Name: "signers",
+			Schema: `
 	{
 		"settings": {
 			"index" : {
@@ -303,51 +314,7 @@ const signerHistoryIndex = `
 			}
 		}
 	}
-`
-
-// CreateIndicies creates all indicies in ElasticSearch database
-func CreateIndicies() {
-	refreshIndex(ledgerHeaderIndexName, ledgerHeaderIndex)
-	refreshIndex(txIndexName, txIndex)
-	refreshIndex(opIndexName, opIndex)
-	refreshIndex(balanceIndexName, balanceIndex)
-	refreshIndex(tradesIndexName, tradesIndex)
-	refreshIndex(signerHistoryIndexName, signerHistoryIndex)
-}
-
-func refreshIndex(name string, body string) {
-	res, err := config.ES.Indices.Get([]string{name})
-
-	if err != nil {
-		log.Fatal(err)
+`,
+		},
 	}
-
-	if res.StatusCode == http.StatusNotFound {
-		createIndex(name, body)
-		log.Printf("%s index created!", name)
-	} else {
-		if *config.ForceRecreateIndexes {
-			deleteIndex(name)
-			createIndex(name, body)
-			log.Printf("%s index recreated!", name)
-		} else {
-			log.Printf("%s index found, skipping...", name)
-		}
-	}
-}
-
-func deleteIndex(index string) {
-	res, err := config.ES.Indices.Delete([]string{index})
-	fatalIfError(res, err)
-}
-
-func createIndex(index string, body string) {
-	create := config.ES.Indices.Create
-
-	res, err := create(
-		index,
-		create.WithBody(strings.NewReader(body)),
-		create.WithIncludeTypeName(false),
-	)
-	fatalIfError(res, err)
 }
