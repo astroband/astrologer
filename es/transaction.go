@@ -68,6 +68,6 @@ func (tx *Transaction) DocID() *string {
 }
 
 // IndexName returns tx index name
-func (tx *Transaction) IndexName() string {
+func (tx *Transaction) IndexName() IndexName {
 	return txIndexName
 }

@@ -1,15 +1,21 @@
 package es
 
-type IndexDefinition struct {
-	Name   string
-	Schema string
-}
+type IndexName string
+type IndexDefinition string
 
-func GetIndexDefinitions() []IndexDefinition {
-	return []IndexDefinition{
-		IndexDefinition{
-			Name: "ledger",
-			Schema: `
+const (
+	ledgerHeaderIndexName  IndexName = "ledger"
+	txIndexName            IndexName = "tx"
+	opIndexName            IndexName = "op"
+	balanceIndexName       IndexName = "balance"
+	tradesIndexName        IndexName = "trades"
+	signerHistoryIndexName IndexName = "signers"
+)
+
+func GetIndexDefinitions() map[IndexName]IndexDefinition {
+	m := make(map[IndexName]IndexDefinition)
+
+	m[ledgerHeaderIndexName] = `
       {
           "settings": {
             "index" : {
@@ -36,11 +42,9 @@ func GetIndexDefinitions() []IndexDefinition {
             }
           }
         }
-    `,
-		},
-		IndexDefinition{
-			Name: "tx",
-			Schema: `
+    `
+
+	m[txIndexName] = `
 	{
 		"settings": {
 			"index" : {
@@ -77,11 +81,8 @@ func GetIndexDefinitions() []IndexDefinition {
 			}
 		}
 	}
-`,
-		},
-		IndexDefinition{
-			Name: "op",
-			Schema: `
+`
+	m[opIndexName] = `
 	{
 		"settings": {
 			"index" : {
@@ -215,11 +216,8 @@ func GetIndexDefinitions() []IndexDefinition {
 			}
 		}
 	}
-`,
-		},
-		IndexDefinition{
-			Name: "balance",
-			Schema: `
+`
+	m[balanceIndexName] = `
 	{
 		"settings": {
 			"index" : {
@@ -247,11 +245,9 @@ func GetIndexDefinitions() []IndexDefinition {
 			}
 		}
 	}
-`,
-		},
-		IndexDefinition{
-			Name: "trades",
-			Schema: `
+`
+
+	m[tradesIndexName] = `
 	{
 		"settings": {
 			"index" : {
@@ -262,7 +258,7 @@ func GetIndexDefinitions() []IndexDefinition {
 		},
 		"mappings": {
 			"properties": {
-				"paging_token": { "type": "keyword", "index": true },				
+				"paging_token": { "type": "keyword", "index": true },
 				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"asset_sold": {
@@ -287,11 +283,9 @@ func GetIndexDefinitions() []IndexDefinition {
 			}
 		}
 	}
-`,
-		},
-		IndexDefinition{
-			Name: "signers",
-			Schema: `
+`
+
+	m[signerHistoryIndexName] = `
 	{
 		"settings": {
 			"index" : {
@@ -314,7 +308,7 @@ func GetIndexDefinitions() []IndexDefinition {
 			}
 		}
 	}
-`,
-		},
-	}
+`
+
+	return m
 }

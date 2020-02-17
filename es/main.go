@@ -1,14 +1,42 @@
 package es
 
-var ledgerHeaderIndexName = "ledger"
-var txIndexName = "tx"
-var opIndexName = "op"
-var balanceIndexName = "balance"
-var tradesIndexName = "trades"
-var signerHistoryIndexName = "signers"
+import (
+	"bytes"
+	goES "github.com/elastic/go-elasticsearch/v7"
+	"log"
+)
 
 // Indexable represents object that can be indexed for ElasticSearch
 type Indexable interface {
 	DocID() *string
-	IndexName() string
+	IndexName() IndexName
+}
+
+type Adapter interface {
+	MinMaxSeq() (min, max int)
+	LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{}
+	GetLedgerSeqsInRange(min, max int) []int
+	LedgerCountInRange(min, max int) int
+	IndexExists(name IndexName) bool
+	CreateIndex(name IndexName, body IndexDefinition)
+	DeleteIndex(name IndexName)
+	BulkInsert(payload *bytes.Buffer) (success bool)
+	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
+}
+
+type Client struct {
+	rawClient *goES.Client
+}
+
+func Connect(url string) *Client {
+	esCfg := goES.Config{
+		Addresses: []string{url},
+	}
+
+	client, err := goES.NewClient(esCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Client{rawClient: client}
 }

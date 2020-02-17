@@ -64,6 +64,6 @@ func (b *Balance) DocID() *string {
 }
 
 // IndexName balances index name
-func (b *Balance) IndexName() string {
+func (b *Balance) IndexName() IndexName {
 	return balanceIndexName
 }

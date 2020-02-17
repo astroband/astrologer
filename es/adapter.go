@@ -3,7 +3,6 @@ package es
 import (
 	"bytes"
 	"encoding/json"
-	goES "github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"log"
 	"math/rand"
@@ -12,24 +11,8 @@ import (
 	"time"
 )
 
-type Adapter interface {
-	MinMaxSeq() (min, max int)
-	LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{}
-	GetLedgerSeqsInRange(min, max int) []int
-	LedgerCountInRange(min, max int) int
-	IndexExists(name string) bool
-	CreateIndex(name, body string)
-	DeleteIndex(name string)
-	BulkInsert(payload *bytes.Buffer) (success bool)
-	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
-}
-
-type Client struct {
-	rawClient *goES.Client
-}
-
-func (es *Client) IndexExists(name string) bool {
-	res, err := es.rawClient.Indices.Get([]string{name})
+func (es *Client) IndexExists(name IndexName) bool {
+	res, err := es.rawClient.Indices.Get([]string{string(name)})
 
 	if err != nil {
 		log.Fatal(err)
@@ -38,17 +21,17 @@ func (es *Client) IndexExists(name string) bool {
 	return res.StatusCode != http.StatusNotFound
 }
 
-func (es *Client) DeleteIndex(name string) {
-	res, err := es.rawClient.Indices.Delete([]string{name})
+func (es *Client) DeleteIndex(name IndexName) {
+	res, err := es.rawClient.Indices.Delete([]string{string(name)})
 	fatalIfError(res, err)
 }
 
-func (es *Client) CreateIndex(name, body string) {
+func (es *Client) CreateIndex(name IndexName, body IndexDefinition) {
 	create := es.rawClient.Indices.Create
 
-	res, err := create(
-		name,
-		create.WithBody(strings.NewReader(body)),
+	res, err := es.rawClient.Indices.Create(
+		string(name),
+		create.WithBody(strings.NewReader(string(body))),
 		create.WithIncludeTypeName(false),
 	)
 	fatalIfError(res, err)
@@ -202,19 +185,6 @@ func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 
 		es.IndexWithRetries(payload, retryCount-1)
 	}
-}
-
-func Connect(url string) *Client {
-	esCfg := goES.Config{
-		Addresses: []string{url},
-	}
-
-	client, err := goES.NewClient(esCfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return &Client{rawClient: client}
 }
 
 func fatalIfError(res *esapi.Response, err error) {

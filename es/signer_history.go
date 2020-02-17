@@ -53,6 +53,6 @@ func (t *SignerHistory) DocID() *string {
 }
 
 // IndexName balances index name
-func (t *SignerHistory) IndexName() string {
+func (t *SignerHistory) IndexName() IndexName {
 	return signerHistoryIndexName
 }

@@ -51,6 +51,6 @@ func (h *LedgerHeader) DocID() *string {
 }
 
 // IndexName returns index name
-func (h *LedgerHeader) IndexName() string {
+func (h *LedgerHeader) IndexName() IndexName {
 	return ledgerHeaderIndexName
 }

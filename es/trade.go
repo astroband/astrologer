@@ -25,6 +25,6 @@ func (t *Trade) DocID() *string {
 }
 
 // IndexName balances index name
-func (t *Trade) IndexName() string {
+func (t *Trade) IndexName() IndexName {
 	return tradesIndexName
 }

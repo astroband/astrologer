@@ -72,6 +72,6 @@ func (op *Operation) DocID() *string {
 }
 
 // IndexName returns operations index
-func (op *Operation) IndexName() string {
+func (op *Operation) IndexName() IndexName {
 	return opIndexName
 }
