@@ -22,6 +22,7 @@ var (
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
 	_                  = kingpin.Command("stats", "Print database ledger statistics")
 	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
+	fillGapsCommand    = kingpin.Command("fill-gaps", "Fill gaps")
 
 	// DatabaseURL Stellar Core database URL
 	DatabaseURL = kingpin.
@@ -72,11 +73,14 @@ var (
 	// Verbose print data
 	Verbose = exportCommand.Flag("verbose", "Print indexed data").Bool()
 
-	// ExportDryRun do not index data
-	ExportDryRun = exportCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
+	// DryRun do not index data
+	DryRun = kingpin.Flag("dry-run", "Do not send actual data to Elastic").Bool()
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
+
+	FillGapsFrom  = fillGapsCommand.Arg("start", "Ledger to start from").Int()
+	FillGapsCount = fillGapsCommand.Arg("count", "How many ledgers to check").Int()
 )
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {

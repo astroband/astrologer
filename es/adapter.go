@@ -41,7 +41,7 @@ func (es *Client) CreateIndex(name IndexName, body IndexDefinition) {
 	fatalIfError(res, err)
 }
 
-func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]interface{}) {
+func (es *Client) search(query map[string]interface{}, index IndexName) (r map[string]interface{}) {
 	var buf bytes.Buffer
 
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
@@ -49,7 +49,7 @@ func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]inte
 	}
 
 	res, err := es.rawClient.Search(
-		es.rawClient.Search.WithIndex("ledger"),
+		es.rawClient.Search.WithIndex(string(index)),
 		es.rawClient.Search.WithBody(&buf),
 	)
 
@@ -64,8 +64,7 @@ func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]inte
 	return r
 }
 
-// MinMaxSeq return the minimum and maximum seqnum of ledgers stored in the ES
-func (es *Client) MinMaxSeq() (min, max int) {
+func (es *Client) MinMaxSeq() (min, max int, storageEmpty bool) {
 	query := map[string]interface{}{
 		"aggs": map[string]interface{}{
 			"seq_stats": map[string]interface{}{
@@ -76,14 +75,21 @@ func (es *Client) MinMaxSeq() (min, max int) {
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 
 	aggs := r["aggregations"].(map[string]interface{})["seq_stats"].(map[string]interface{})
 
-	min = int(aggs["min"].(float64))
-	max = int(aggs["max"].(float64))
+	if aggs["min"] != nil && aggs["max"] != nil {
+		min = int(aggs["min"].(float64))
+		max = int(aggs["max"].(float64))
+		storageEmpty = false
+	} else {
+		min = 0
+		max = 0
+		storageEmpty = true
+	}
 
-	return min, max
+	return
 }
 
 // LedgerSeqRangeQuery fetches ledger ranges from ES
@@ -99,7 +105,7 @@ func (es *Client) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[strin
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 	aggs := r["aggregations"].(map[string]interface{})["seq_ranges"].(map[string]interface{})
 
 	return aggs
@@ -170,7 +176,7 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		doc := hit.(map[string]interface{})
@@ -189,6 +195,8 @@ func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 		if retryCount-1 == 0 {
 			log.Fatal("Retries for bulk failed, aborting")
 		}
+
+		log.Println("Failed, retrying...")
 
 		delay := time.Duration((rand.Intn(10) + 5))
 		time.Sleep(delay * time.Second)

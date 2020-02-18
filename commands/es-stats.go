@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"log"
 	"os"
 	"strconv"
 
@@ -17,10 +18,15 @@ type EsStatsCommand struct {
 
 // Execute collects ledger staticstics for the current ES cluster
 func (cmd *EsStatsCommand) Execute() {
+	min, max, empty := cmd.ES.MinMaxSeq()
+
+	if empty {
+		log.Println("ES is empty")
+		return
+	}
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"From", "To", "Doc_count"})
-
-	min, max := cmd.ES.MinMaxSeq()
 	buckets := cmd.esRanges(min, max)
 
 	for i := 0; i < len(buckets); i++ {

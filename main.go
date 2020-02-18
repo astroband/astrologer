@@ -6,6 +6,8 @@ import (
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"log"
+	"time"
 )
 
 func main() {
@@ -28,7 +30,7 @@ func main() {
 		config := cmd.ExportCommandConfig{
 			Start:      cfg.Start,
 			Count:      *cfg.Count,
-			DryRun:     *cfg.ExportDryRun,
+			DryRun:     *cfg.DryRun,
 			RetryCount: *cfg.Retries,
 			BatchSize:  *cfg.BatchSize,
 		}
@@ -38,7 +40,19 @@ func main() {
 		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}
 	case "es-stats":
 		command = &cmd.EsStatsCommand{ES: esClient}
+	case "fill-gaps":
+		dbClient := db.Connect(*cfg.DatabaseUrl)
+		config := &cmd.FillGapsCommandConfig{
+			DryRun: *cfg.DryRun,
+			Start:  cfg.FillGapsFrom,
+			Count:  cfg.FillGapsCount,
+		}
+		command = &cmd.FillGapsCommand{ES: esClient, DB: dbClient, Config: config}
 	}
 
+	start := time.Now()
 	command.Execute()
+	elapsed := time.Since(start)
+
+	log.Printf("Command took %s", elapsed)
 }

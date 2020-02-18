@@ -15,7 +15,7 @@ type Indexable interface {
 
 // Adapter represents the ledger storage backend
 type Adapter interface {
-	MinMaxSeq() (min, max int)
+	MinMaxSeq() (min, max int, empty bool)
 	LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{}
 	GetLedgerSeqsInRange(min, max int) []int
 	LedgerCountInRange(min, max int) int
