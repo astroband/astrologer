@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-const batchSize = 100
+const batchSize = 1000
 const INDEX_RETRIES_COUNT = 25
 
 type FillGapsCommandConfig struct {
@@ -52,21 +52,25 @@ func (cmd *FillGapsCommand) Execute() {
 	var missing []int
 
 	for i := cmd.minSeq; i < cmd.maxSeq; i += batchSize {
-		to := i + batchSize
-		if to > cmd.maxSeq {
+		var to int
+
+		if i+batchSize > cmd.maxSeq {
 			to = cmd.maxSeq
+		} else {
+			to = i + batchSize - 1
 		}
 
-		// log.Println(i, to)
 		seqs := cmd.ES.GetLedgerSeqsInRange(i, to)
-		// log.Println("Seqs ingested:", seqs)
 
 		if len(seqs) > 0 {
 			missing = append(missing, cmd.findMissing(seqs)...)
+
+			if seqs[len(seqs)-1] != to {
+				missing = append(missing, support.MakeRangeGtLte(seqs[len(seqs)-1], to)...)
+			}
 		} else {
-			missing = append(missing, support.MakeRange(i-1, to)...)
+			missing = append(missing, support.MakeRangeGteLt(i, to)...)
 		}
-		// log.Println("=============================")
 	}
 
 	log.Println(missing)
@@ -81,7 +85,7 @@ func (cmd *FillGapsCommand) findMissing(sortedArr []int) (missing []int) {
 	for i := 1; i < len(sortedArr); i += 1 {
 		diff := sortedArr[i] - sortedArr[i-1]
 		if diff > 1 {
-			missing = append(missing, support.MakeRange(sortedArr[i-1], sortedArr[i])...)
+			missing = append(missing, support.MakeRangeGtLt(sortedArr[i-1], sortedArr[i])...)
 		}
 	}
 

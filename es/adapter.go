@@ -170,7 +170,7 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 			"range": map[string]interface{}{
 				"seq": map[string]interface{}{
 					"gte": min,
-					"lt":  max,
+					"lte": max,
 				},
 			},
 		},
