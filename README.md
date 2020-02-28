@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/astroband/astrologer)](https://goreportcard.com/report/astroband/astrologer) [![CircleCI](https://circleci.com/gh/astroband/astrologer.svg?style=svg)](https://circleci.com/gh/astroband/astrologer) [![License](https://img.shields.io/github/license/astroband/astrologer)]((https://github.com/astroband/astrologer/blob/master/LICENSE))
+[![CircleCI](https://img.shields.io/circleci/build/gh/astroband/astrologer/master)](https://circleci.com/gh/astroband/astrologer) [![Go Report Card](https://goreportcard.com/badge/astroband/astrologer)](https://goreportcard.com/report/astroband/astrologer) [![License](https://img.shields.io/github/license/astroband/astrologer)]((https://github.com/astroband/astrologer/blob/master/LICENSE))
 
 
 # Astrologer
