@@ -22,7 +22,7 @@ WORKDIR /root
 COPY --from=build /go/src/github.com/astroband/astrologer/astrologer .
 RUN chmod +x ./astrologer
 
-ADD entry.sh
+COPY entry.sh /entry.sh
 
 ENTRYPOINT ["/entry.sh"]
 CMD ["/root/astrologer", "ingest", "--", $INGEST_GAP]
