@@ -14,7 +14,7 @@ type Operation struct {
 	Seq                  int                `json:"seq"`
 	PagingToken          PagingToken        `json:"paging_token"`
 	CloseTime            time.Time          `json:"close_time"`
-	Succesful            bool               `json:"successful"`
+	Successful           bool               `json:"successful"`
 	ResultCode           int                `json:"result_code"`
 	InnerResultCode      int                `json:"inner_result_code"`
 	TxSourceAccountID    string             `json:"tx_source_account_id"`

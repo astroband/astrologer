@@ -10,12 +10,13 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+// StatsCommand represents a `stats` CLI command
 type StatsCommand struct {
 	ES es.Adapter
 	DB db.Adapter
 }
 
-// Stats prints ledger statistics for current database
+// Execute prints ledger statistics for the current database
 func (cmd *StatsCommand) Execute() {
 	var g []int
 

@@ -10,11 +10,12 @@ import (
 
 const step = 10000
 
+// EsStatsCommand represents the `es-stats` CLI command
 type EsStatsCommand struct {
 	ES es.Adapter
 }
 
-// EsStats prints ledger statistics for current database
+// Execute collects ledger staticstics for the current ES cluster
 func (cmd *EsStatsCommand) Execute() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"From", "To", "Doc_count"})

@@ -1,6 +1,9 @@
 package es
 
+// IndexName represents the name of ElasticSearch index
 type IndexName string
+
+// IndexDefinition represents the definition of ElasticSearch index
 type IndexDefinition string
 
 const (
@@ -12,6 +15,7 @@ const (
 	signerHistoryIndexName IndexName = "signers"
 )
 
+// GetIndexDefinitions returns ElasticSearch index definitions for Astrologer indices
 func GetIndexDefinitions() map[IndexName]IndexDefinition {
 	m := make(map[IndexName]IndexDefinition)
 

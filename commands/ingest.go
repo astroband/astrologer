@@ -10,14 +10,15 @@ import (
 	"github.com/astroband/astrologer/es"
 )
 
-const INGEST_RETRIES = 25
+const ingestRetries = 25
 
+// IngestCommand represents the CLI command which starts the Astrologer ingestion daemon
 type IngestCommand struct {
 	ES es.Adapter
 	DB db.Adapter
 }
 
-// Execute Starts ingestion
+// Execute starts ingestion
 func (cmd *IngestCommand) Execute() {
 	current := cmd.getStartLedger()
 	log.Println("Starting ingest from", current.LedgerSeq)
@@ -32,7 +33,7 @@ func (cmd *IngestCommand) Execute() {
 		es.SerializeLedger(*current, txs, fees, &b)
 		//es.NewBulkMaker(*current, txs, fees, &b).Make()
 
-		cmd.ES.IndexWithRetries(&b, INGEST_RETRIES)
+		cmd.ES.IndexWithRetries(&b, ingestRetries)
 
 		log.Println("Ledger", seq, "ingested.")
 

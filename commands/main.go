@@ -9,6 +9,7 @@ var (
 	pool = workerpool.New(*config.Concurrency)
 )
 
+// Command is an interface representing an Astrologer CLI command
 type Command interface {
 	Execute()
 }

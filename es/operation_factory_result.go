@@ -50,23 +50,23 @@ func (f *operationFactory) assignResult() {
 			f.assignInflationResult(r.Tr.MustInflationResult())
 		}
 	} else {
-		f.operation.Succesful = false
+		f.operation.Successful = false
 	}
 }
 
 func (f *operationFactory) assignCreateAccountResult(r xdr.CreateAccountResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.CreateAccountResultCodeCreateAccountSuccess
+	f.operation.Successful = r.Code == xdr.CreateAccountResultCodeCreateAccountSuccess
 }
 
 func (f *operationFactory) assignPaymentResult(r xdr.PaymentResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.PaymentResultCodePaymentSuccess
+	f.operation.Successful = r.Code == xdr.PaymentResultCodePaymentSuccess
 }
 
 func (f *operationFactory) assignPathPaymentStrictReceiveResult(r xdr.PathPaymentStrictReceiveResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess
+	f.operation.Successful = r.Code == xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		if len(s.Offers) > 0 {
@@ -87,7 +87,7 @@ func (f *operationFactory) assignPathPaymentStrictReceiveResult(r xdr.PathPaymen
 func (f *operationFactory) assignPathPaymentStrictSendResult(r xdr.PathPaymentStrictSendResult) {
 
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess
+	f.operation.Successful = r.Code == xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		if len(s.Offers) > 0 {
@@ -106,7 +106,7 @@ func (f *operationFactory) assignPathPaymentStrictSendResult(r xdr.PathPaymentSt
 
 func (f *operationFactory) assignManageSellOfferResult(r xdr.ManageSellOfferResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.ManageSellOfferResultCodeManageSellOfferSuccess
+	f.operation.Successful = r.Code == xdr.ManageSellOfferResultCodeManageSellOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		f.assignManageOfferResult(s)
@@ -115,7 +115,7 @@ func (f *operationFactory) assignManageSellOfferResult(r xdr.ManageSellOfferResu
 
 func (f *operationFactory) assignManageBuyOfferResult(r xdr.ManageBuyOfferResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess
+	f.operation.Successful = r.Code == xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess
 
 	if s, ok := r.GetSuccess(); ok {
 		f.assignManageOfferResult(s)
@@ -144,22 +144,22 @@ func (f *operationFactory) assignManageOfferResult(s xdr.ManageOfferSuccessResul
 
 func (f *operationFactory) assignSetOptionsResult(r xdr.SetOptionsResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.SetOptionsResultCodeSetOptionsSuccess
+	f.operation.Successful = r.Code == xdr.SetOptionsResultCodeSetOptionsSuccess
 }
 
 func (f *operationFactory) assignChangeTrustResult(r xdr.ChangeTrustResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.ChangeTrustResultCodeChangeTrustSuccess
+	f.operation.Successful = r.Code == xdr.ChangeTrustResultCodeChangeTrustSuccess
 }
 
 func (f *operationFactory) assignAllowTrustResult(r xdr.AllowTrustResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.AllowTrustResultCodeAllowTrustSuccess
+	f.operation.Successful = r.Code == xdr.AllowTrustResultCodeAllowTrustSuccess
 }
 
 func (f *operationFactory) assignAccountMergeResult(r xdr.AccountMergeResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.AccountMergeResultCodeAccountMergeSuccess
+	f.operation.Successful = r.Code == xdr.AccountMergeResultCodeAccountMergeSuccess
 
 	if b, ok := r.GetSourceAccountBalance(); ok {
 		f.operation.ResultSourceAccountBalance = amount.String(b)
@@ -168,15 +168,15 @@ func (f *operationFactory) assignAccountMergeResult(r xdr.AccountMergeResult) {
 
 func (f *operationFactory) assignManageDataResult(r xdr.ManageDataResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.ManageDataResultCodeManageDataSuccess
+	f.operation.Successful = r.Code == xdr.ManageDataResultCodeManageDataSuccess
 }
 
 func (f *operationFactory) assignBumpSequenceResult(r xdr.BumpSequenceResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
+	f.operation.Successful = r.Code == xdr.BumpSequenceResultCodeBumpSequenceSuccess
 }
 
 func (f *operationFactory) assignInflationResult(r xdr.InflationResult) {
 	f.operation.InnerResultCode = int(r.Code)
-	f.operation.Succesful = r.Code == xdr.InflationResultCodeInflationSuccess
+	f.operation.Successful = r.Code == xdr.InflationResultCodeInflationSuccess
 }

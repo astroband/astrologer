@@ -17,6 +17,7 @@ var (
 	bar *progressbar.ProgressBar
 )
 
+// ExportCommandConfig represents configuration options for `export` CLI command
 type ExportCommandConfig struct {
 	Start      config.NumberWithSign
 	Count      int
@@ -25,6 +26,7 @@ type ExportCommandConfig struct {
 	BatchSize  int
 }
 
+// ExportCommand represents the `export` CLI command
 type ExportCommand struct {
 	ES     es.Adapter
 	DB     db.Adapter
@@ -34,7 +36,7 @@ type ExportCommand struct {
 	lastLedger  int
 }
 
-// Export command
+// Execute starts the export process
 func (cmd *ExportCommand) Execute() {
 	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
 	total := cmd.DB.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)

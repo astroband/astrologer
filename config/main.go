@@ -23,13 +23,15 @@ var (
 	_                  = kingpin.Command("stats", "Print database ledger statistics")
 	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
 
-	DatabaseUrl = kingpin.
+	// DatabaseURL Stellar Core database URL
+	DatabaseURL = kingpin.
 			Flag("database-url", "Stellar Core database URL").
 			Default("postgres://localhost/core?sslmode=disable").
 			OverrideDefaultFromEnvar("DATABASE_URL").
 			URL()
 
-	EsUrl = kingpin.
+	// EsURL ElasticSearch URL
+	EsURL = kingpin.
 		Flag("es-url", "ElasticSearch URL").
 		Default("http://localhost:9200").
 		OverrideDefaultFromEnvar("ES_URL").
@@ -50,7 +52,7 @@ var (
 			Default("50").
 			Int()
 
-	// Number of retries
+	// Retries Number of retries
 	Retries = exportCommand.
 		Flag("retries", "Retries count").
 		Default("25").

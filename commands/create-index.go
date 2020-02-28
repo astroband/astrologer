@@ -7,16 +7,18 @@ import (
 	"github.com/astroband/astrologer/es"
 )
 
+// CreateIndexCommandConfig represents the configuration options for the `create-index` command
 type CreateIndexCommandConfig struct {
 	Force bool
 }
 
+// CreateIndexCommand represents the `create-index` CLI command
 type CreateIndexCommand struct {
 	ES     es.Adapter
 	Config CreateIndexCommandConfig
 }
 
-// CreateIndex calls create-indexes command
+// Execute creates Astrologer indices in ElasticSearch
 func (cmd *CreateIndexCommand) Execute() {
 	for name, def := range es.GetIndexDefinitions() {
 		cmd.refreshIndex(name, def)

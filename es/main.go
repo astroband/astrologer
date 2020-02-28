@@ -2,8 +2,9 @@ package es
 
 import (
 	"bytes"
-	goES "github.com/elastic/go-elasticsearch/v7"
 	"log"
+
+	goES "github.com/elastic/go-elasticsearch/v7"
 )
 
 // Indexable represents object that can be indexed for ElasticSearch
@@ -12,6 +13,7 @@ type Indexable interface {
 	IndexName() IndexName
 }
 
+// Adapter represents the ledger storage backend
 type Adapter interface {
 	MinMaxSeq() (min, max int)
 	LedgerSeqRangeQuery(ranges []map[string]interface{}) map[string]interface{}
@@ -24,10 +26,12 @@ type Adapter interface {
 	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
 }
 
+// Client is a wrapper type around ElasticSearch raw client
 type Client struct {
 	rawClient *goES.Client
 }
 
+// Connect creates a Client configured to work with the ElasticSearch cluster
 func Connect(url string) *Client {
 	esCfg := goES.Config{
 		Addresses: []string{url},
