@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -ue
 
-function astrologer_create_indices() {
+astrologer_create_indices() {
   local INDICES_INITIALIZED="/root/.indices-initialized"
 
-  if [ -f $INDICES_INITIALIZED]; then
+  if [ -f "$INDICES_INITIALIZED" ]; then
     echo "ES indices have already been initialized."
     return 0
   fi

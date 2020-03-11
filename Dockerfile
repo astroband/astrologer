@@ -25,4 +25,4 @@ RUN chmod +x ./astrologer
 COPY entry.sh /entry.sh
 
 ENTRYPOINT ["/entry.sh"]
-CMD ["/root/astrologer", "ingest", "--", $INGEST_GAP]
+CMD /root/astrologer ingest -- $INGEST_GAP
