@@ -79,8 +79,13 @@ var (
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
 
-	FillGapsFrom  = fillGapsCommand.Arg("start", "Ledger to start from").Int()
-	FillGapsCount = fillGapsCommand.Arg("count", "How many ledgers to check").Int()
+	FillGapsFrom      = fillGapsCommand.Arg("start", "Ledger to start from").Int()
+	FillGapsCount     = fillGapsCommand.Arg("count", "How many ledgers to check").Int()
+	FillGapsBatchSize = fillGapsCommand.
+				Flag("batch", "Ledger batch size").
+				Short('b').
+				Default("50").
+				Int()
 )
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {

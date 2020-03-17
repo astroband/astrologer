@@ -43,9 +43,10 @@ func main() {
 	case "fill-gaps":
 		dbClient := db.Connect(*cfg.DatabaseUrl)
 		config := &cmd.FillGapsCommandConfig{
-			DryRun: *cfg.DryRun,
-			Start:  cfg.FillGapsFrom,
-			Count:  cfg.FillGapsCount,
+			DryRun:    *cfg.DryRun,
+			Start:     cfg.FillGapsFrom,
+			Count:     cfg.FillGapsCount,
+			BatchSize: cfg.FillGapsBatchSize,
 		}
 		command = &cmd.FillGapsCommand{ES: esClient, DB: dbClient, Config: config}
 	}

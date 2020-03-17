@@ -1,20 +1,23 @@
 package commands
 
 import (
+	"bufio"
 	"bytes"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
 	"github.com/astroband/astrologer/support"
 	"log"
+	"strings"
 )
 
 const batchSize = 1000
 const INDEX_RETRIES_COUNT = 25
 
 type FillGapsCommandConfig struct {
-	DryRun bool
-	Start  *int
-	Count  *int
+	DryRun    bool
+	Start     *int
+	Count     *int
+	BatchSize *int
 }
 
 type FillGapsCommand struct {
@@ -69,16 +72,11 @@ func (cmd *FillGapsCommand) Execute() {
 				missing = append(missing, support.MakeRangeGtLte(seqs[len(seqs)-1], to)...)
 			}
 		} else {
-			missing = append(missing, support.MakeRangeGteLt(i, to)...)
+			missing = append(missing, support.MakeRangeGteLte(i, to)...)
 		}
 	}
 
-	log.Println(missing)
-	log.Println(len(missing))
-
-	if !cmd.Config.DryRun {
-		cmd.exportSeqs(missing)
-	}
+	cmd.exportSeqs(missing)
 }
 
 func (cmd *FillGapsCommand) findMissing(sortedArr []int) (missing []int) {
@@ -94,22 +92,14 @@ func (cmd *FillGapsCommand) findMissing(sortedArr []int) (missing []int) {
 }
 
 func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
-	// exportConfig := ExportCommandConfig{
-	// 	Start: config.NumberWithSign{Value: cmd.minSeq, Explicit: false},
-	// 	Count: cmd.count,
-	// }
-
-	// exportCommand = &cmd.ExportCommand{ES: cmd.ES, DB: cmd.DB, Config: exportConfig}
 	log.Printf("Exporting %d ledgers\n", len(seqs))
 
 	var dbSeqs []int
-	var b bytes.Buffer
-	batch := 50
+	batchSize := *cmd.Config.BatchSize
 
-	for i := 0; i < len(seqs); i += batch {
-		b.Reset()
+	for i := 0; i < len(seqs); i += batchSize {
 
-		to := i + batch
+		to := i + batchSize
 		if to > len(seqs) {
 			to = len(seqs) - 1
 		}
@@ -123,10 +113,11 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 		}
 
 		pool.Submit(func() {
+			var b bytes.Buffer
 			rows := cmd.DB.LedgerHeaderRowFetchBySeqs(seqsBlock)
 
 			for n := 0; n < len(rows); n++ {
-				log.Printf("Ingesting %d ledger\n", rows[n].LedgerSeq)
+				// log.Printf("Ingesting %d ledger\n", rows[n].LedgerSeq)
 				dbSeqs = append(dbSeqs, rows[n].LedgerSeq)
 
 				txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
@@ -135,8 +126,15 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 				es.SerializeLedger(rows[n], txs, fees, &b)
 			}
 
-			log.Println("Calling bulk insert")
-			cmd.ES.IndexWithRetries(&b, INDEX_RETRIES_COUNT)
+			log.Printf(
+				"Bulk inserting %d docs, total size is %s\n",
+				countLines(b)/2,
+				support.ByteCountBinary(b.Len()),
+			)
+
+			if !cmd.Config.DryRun {
+				cmd.ES.BulkInsert(&b)
+			}
 		})
 	}
 
@@ -146,4 +144,23 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 	if len(diff) > 0 {
 		log.Printf("DB misses next ledgers: %v", diff)
 	}
+}
+
+func countLines(buf bytes.Buffer) int {
+	scanner := bufio.NewScanner(strings.NewReader(buf.String()))
+
+	// Set the split function for the scanning operation.
+	scanner.Split(bufio.ScanLines)
+
+	// Count the lines.
+	count := 0
+	for scanner.Scan() {
+		count++
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal("reading input:", err)
+	}
+
+	return count
 }

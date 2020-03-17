@@ -1,5 +1,9 @@
 package support
 
+import (
+	"fmt"
+)
+
 func Difference(a, b []int) (diff []int) {
 	m := make(map[int]bool)
 
@@ -55,4 +59,27 @@ func MakeRangeGteLt(gte, lt int) []int {
 		a[i] = gte + i
 	}
 	return a
+}
+
+//Creates [from, to] range slice
+// e.g. for 4, 7 returns [4, 5, 6, 7]
+func MakeRangeGteLte(gte, lte int) []int {
+	a := make([]int, lte-gte+1)
+	for i := range a {
+		a[i] = gte + i
+	}
+	return a
+}
+
+func ByteCountBinary(b int) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }

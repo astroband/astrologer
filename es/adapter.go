@@ -3,6 +3,8 @@ package es
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"log"
 	"math/rand"
 	"net/http"
@@ -111,15 +113,22 @@ func (es *Client) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[strin
 	return aggs
 }
 
-// BulkInsert sends the payload to ES using bulk operation
-func (es *Client) BulkInsert(payload *bytes.Buffer) (success bool) {
+func (es *Client) BulkInsert(payload *bytes.Buffer) error {
 	res, err := es.rawClient.Bulk(bytes.NewReader(payload.Bytes()))
 
 	if res != nil {
 		defer res.Body.Close()
 	}
 
-	return err == nil && (res == nil || !res.IsError())
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return errors.New(res.String())
+	}
+
+	return nil
 }
 
 // LedgerCountInRange counts number of ledgers from the given range persisted into ES
@@ -189,9 +198,11 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 
 // IndexWithRetries performs a bulk insert into ES cluster with retries on failures
 func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
-	isIndexed := es.BulkInsert(payload)
+	err := es.BulkInsert(payload)
 
-	if !isIndexed {
+	if err != nil {
+		log.Println(err)
+
 		if retryCount-1 == 0 {
 			log.Fatal("Retries for bulk failed, aborting")
 		}

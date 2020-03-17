@@ -86,9 +86,12 @@ func (cmd *ExportCommand) exportBlock(i int) {
 }
 
 func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
-	indexed := cmd.ES.BulkInsert(b)
+	err := cmd.ES.BulkInsert(b)
 
-	if !indexed {
+	if err != nil {
+		log.Println(err)
+		log.Println("Failed, retrying")
+
 		if retry > cmd.Config.RetryCount {
 			log.Fatal("Retries for bulk failed, aborting")
 		}
