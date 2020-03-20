@@ -96,6 +96,10 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 
 	var dbSeqs []int
 	batchSize := *cmd.Config.BatchSize
+	batchesCounter := 0
+
+	totalTxs := 0
+	totalOps := 0
 
 	for i := 0; i < len(seqs); i += batchSize {
 
@@ -113,6 +117,7 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 		}
 
 		pool.Submit(func() {
+			batchesCounter += 1
 			var b bytes.Buffer
 			rows := cmd.DB.LedgerHeaderRowFetchBySeqs(seqsBlock)
 
@@ -121,19 +126,32 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 				dbSeqs = append(dbSeqs, rows[n].LedgerSeq)
 
 				txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
+				totalTxs += len(txs)
+
+				for _, tx := range txs {
+					totalOps += len(tx.Envelope.Tx.Operations)
+				}
+
 				fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
 
 				es.SerializeLedger(rows[n], txs, fees, &b)
 			}
 
 			log.Printf(
-				"Bulk inserting %d docs, total size is %s\n",
+				"Batch %d: Bulk inserting %d docs, total size is %s\n",
+				batchesCounter,
 				countLines(b)/2,
 				support.ByteCountBinary(b.Len()),
 			)
 
 			if !cmd.Config.DryRun {
-				cmd.ES.BulkInsert(&b)
+				err := cmd.ES.BulkInsert(&b)
+
+				if err != nil {
+					log.Printf("Batch %d failed with error: %s\n", err)
+				} else {
+					log.Printf("Batch %d is inserted\n", batchesCounter)
+				}
 			}
 		})
 	}
@@ -144,6 +162,8 @@ func (cmd *FillGapsCommand) exportSeqs(seqs []int) {
 	if len(diff) > 0 {
 		log.Printf("DB misses next ledgers: %v", diff)
 	}
+
+	log.Printf("Total txs count: %d, total ops count: %d", totalTxs, totalOps)
 }
 
 func countLines(buf bytes.Buffer) int {
