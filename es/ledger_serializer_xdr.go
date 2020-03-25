@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 
+	"github.com/astroband/astrologer/stellar"
 	"github.com/stellar/go/xdr"
 )
 
@@ -11,6 +12,7 @@ type ledgerSerializerXDR struct {
 	ledgerHeader       *LedgerHeader
 	transactions       []xdr.Transaction
 	transactionResults []xdr.TransactionResultPair
+	transactionMetas   []xdr.TransactionMeta
 	changes            []xdr.LedgerEntryChanges
 
 	buffer *bytes.Buffer
@@ -21,6 +23,7 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 	transactions := make([]xdr.Transaction, len(meta.V0.TxSet.Txs))
 	transactionResults := make([]xdr.TransactionResultPair, len(meta.V0.TxProcessing))
 	changes := make([]xdr.LedgerEntryChanges, len(meta.V0.TxProcessing))
+	transactionMetas := make([]xdr.TransactionMeta, len(meta.V0.TxProcessing))
 
 	for i, txe := range meta.V0.TxSet.Txs {
 		transactions[i] = txe.Tx
@@ -29,12 +32,14 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 	for i, txp := range meta.V0.TxProcessing {
 		transactionResults[i] = txp.Result
 		changes[i] = txp.FeeProcessing
+		transactionMetas[i] = txp.TxApplyProcessing
 	}
 
 	serializer := &ledgerSerializerXDR{
 		ledgerHeader:       NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
 		transactions:       transactions,
 		transactionResults: transactionResults,
+		transactionMetas:   transactionMetas,
 		changes:            changes,
 		buffer:             buffer,
 	}
@@ -71,30 +76,30 @@ func (s *ledgerSerializerXDR) serialize() {
 	}
 }
 
-// func (s *ledgerSerializerXDR) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) {
-// 	effectsCount := 0
-// 	xdrs := transactionRow.Operations()
+func (s *ledgerSerializerXDR) serializeOperations(operations []xdr.Operation, operationResults *[]xdr.OperationResult, transaction *Transaction) {
+	// effectsCount := 0
 
-// 	for index, xdr := range xdrs {
-// 		result := transactionRow.ResultFor(index)
-// 		operation := ProduceOperation(transaction, &xdr, result, index+1)
-// 		SerializeForBulk(operation, s.buffer)
+	for index, operation := range operations {
+		result := (*operationResults)[index]
+		operation := ProduceOperation(transaction, &operation, &result, index+1)
+		SerializeForBulk(operation, s.buffer)
 
-// 		if transaction.Successful {
-// 			metas := transactionRow.MetasFor(index)
-// 			if metas != nil {
-// 				effectsCount = s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta)
-// 			}
+		if transaction.Successful {
+			metas := stellar.OperationMeta(s.transactionMetas[transaction.Index], index)
+			if metas != nil {
+				// effectsCount = s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta)
+				s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta)
+			}
 
-// 			s.serializeTrades(result, transaction, operation, effectsCount)
+			// s.serializeTrades(result, transaction, operation, effectsCount)
 
-// 			h := ProduceSignerHistory(operation)
-// 			if h != nil {
-// 				SerializeForBulk(h, s.buffer)
-// 			}
-// 		}
-// 	}
-// }
+			h := ProduceSignerHistory(operation)
+			if h != nil {
+				SerializeForBulk(h, s.buffer)
+			}
+		}
+	}
+}
 
 func (s *ledgerSerializerXDR) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource) int {
 	if len(changes) == 0 {

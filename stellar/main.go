@@ -139,3 +139,17 @@ func MemoValue(memo xdr.Memo) null.String {
 
 	return null.NewString(value, valid)
 }
+
+func OperationMeta(txMeta xdr.TransactionMeta, opIndex int) (result *xdr.OperationMeta) {
+	if v1, ok := txMeta.GetV1(); ok {
+		ops := v1.Operations
+		return &ops[opIndex]
+	}
+
+	ops, ok := txMeta.GetOperations()
+	if !ok {
+		return nil
+	}
+
+	return &ops[opIndex]
+}
