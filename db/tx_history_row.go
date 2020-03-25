@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/astroband/astrologer/support"
 	"github.com/guregu/null"
 	"github.com/stellar/go/xdr"
 )
@@ -44,7 +45,7 @@ func (tx *TxHistoryRow) MemoValue() null.String {
 	case xdr.MemoTypeMemoNone:
 		value, valid = "", false
 	case xdr.MemoTypeMemoText:
-		scrubbed := utf8Scrub(memo.MustText())
+		scrubbed := support.Utf8Scrub(tx.Envelope.Tx.Memo.MustText())
 		notnull := strings.Join(strings.Split(scrubbed, "\x00"), "")
 		value, valid = notnull, true
 	case xdr.MemoTypeMemoId:

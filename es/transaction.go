@@ -1,9 +1,12 @@
 package es
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/stellar"
+	"github.com/astroband/astrologer/util"
 	"github.com/stellar/go/xdr"
 )
 
@@ -89,6 +92,48 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	}
 
 	return transaction, nil
+}
+
+func NewTransactionFromXDR(txXDR xdr.Transaction, txResult xdr.TransactionResultPair, seq, index int, t time.Time) (*Transaction, error) {
+	resultCode := txResult.Result.Result.Code
+
+	binTx, err := txXDR.MarshalBinary()
+
+	if err != nil {
+		return nil, err
+	}
+
+	tx := &Transaction{
+		ID:              hex.EncodeToString(binTx),
+		Index:           index,
+		Seq:             seq,
+		PagingToken:     PagingToken{LedgerSeq: seq, TransactionOrder: index},
+		Fee:             int(txXDR.Fee),
+		FeeCharged:      int(txResult.Result.FeeCharged),
+		OperationCount:  len(txXDR.Operations),
+		CloseTime:       t,
+		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
+		ResultCode:      int(resultCode),
+		SourceAccountID: txXDR.SourceAccount.Address(),
+	}
+
+	if txXDR.Memo.Type != xdr.MemoTypeMemoNone {
+		value := stellar.MemoValue(txXDR.Memo)
+
+		tx.Memo = &Memo{
+			Type:  int(txXDR.Memo.Type),
+			Value: value.String,
+		}
+	}
+
+	if txXDR.TimeBounds != nil {
+		tx.TimeBounds = &TimeBounds{
+			MinTime: int64(txXDR.TimeBounds.MinTime),
+			MaxTime: int64(txXDR.TimeBounds.MaxTime),
+		}
+	}
+
+	return tx, nil
 }
 
 // DocID return es transaction id (tx id in this case)

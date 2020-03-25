@@ -53,6 +53,7 @@ var (
 	createIndexCommand = kingpin.Command("create-index", "Create ES indexes")
 	exportCommand      = kingpin.Command("export", "Run export")
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
+	fastReplayCommand  = kingpin.Command("fast-replay", "Experiment with using stellar-core fast in-memory replay catchup")
 	_                  = kingpin.Command("stats", "Print database ledger statistics")
 	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
 
@@ -91,8 +92,7 @@ var (
 		Default("25").
 		Int()
 
-	// Start ledger to start with
-	Start = NumberWithSignParse(exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first"))
+	Start = exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first").Default("0").Int()
 
 	// Count ledgers
 	Count = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
@@ -108,4 +108,7 @@ var (
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
+
+	FastReplayUpTo  = fastReplayCommand.Arg("upto", "Ledger to start indexing").Int()
+	FastReplayCount = fastReplayCommand.Arg("count", "Ledgers count to catchup").Int()
 )

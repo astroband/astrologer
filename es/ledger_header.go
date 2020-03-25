@@ -1,9 +1,11 @@
 package es
 
 import (
+	"encoding/hex"
 	"time"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/stellar/go/xdr"
 )
 
 // LedgerHeader represents json-serializable struct for LedgerHeader to index
@@ -45,6 +47,28 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 		BaseFee:        int(row.Data.BaseFee),
 		BaseReserve:    int(row.Data.BaseReserve),
 		MaxTxSetSize:   int(row.Data.MaxTxSetSize),
+	}
+}
+
+func NewLedgerHeaderFromHistory(historyEntry xdr.LedgerHeaderHistoryEntry) *LedgerHeader {
+	header := historyEntry.Header
+	seq := int(header.LedgerSeq)
+
+	return &LedgerHeader{
+		Hash:           hex.EncodeToString(historyEntry.Hash[:]),
+		PrevHash:       hex.EncodeToString(header.PreviousLedgerHash[:]),
+		BucketListHash: hex.EncodeToString(header.BucketListHash[:]),
+		Seq:            seq,
+		PagingToken:    PagingToken{LedgerSeq: seq},
+		CloseTime:      time.Unix(int64(header.ScpValue.CloseTime), 0),
+		Version:        int(header.LedgerVersion),
+		TotalCoins:     int(header.TotalCoins),
+		FeePool:        int(header.FeePool),
+		InflationSeq:   int(header.InflationSeq),
+		IDPool:         int(header.IdPool),
+		BaseFee:        int(header.BaseFee),
+		BaseReserve:    int(header.BaseReserve),
+		MaxTxSetSize:   int(header.MaxTxSetSize),
 	}
 }
 

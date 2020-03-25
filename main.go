@@ -24,7 +24,6 @@ func main() {
 		config := cmd.CreateIndexCommandConfig{Force: *cfg.ForceRecreateIndexes}
 		command = &cmd.CreateIndexCommand{ES: esClient, Config: config}
 	case "export":
-		dbClient := db.Connect(*cfg.DatabaseURL)
 		config := cmd.ExportCommandConfig{
 			Start:      *cfg.Start,
 			Count:      *cfg.Count,
@@ -32,12 +31,18 @@ func main() {
 			RetryCount: *cfg.Retries,
 			BatchSize:  *cfg.BatchSize,
 		}
-		command = &cmd.ExportCommand{ES: esClient, DB: dbClient, Config: config}
+		command = &cmd.ExportCommand{ES: esClient, Config: config}
 	case "ingest":
 		dbClient := db.Connect(*cfg.DatabaseURL)
 		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}
 	case "es-stats":
 		command = &cmd.EsStatsCommand{ES: esClient}
+	case "fast-replay":
+		config := cmd.FastReplayCommandConfig{
+			UpTo:  *cfg.FastReplayUpTo,
+			Count: *cfg.FastReplayCount,
+		}
+		command = &cmd.FastReplayCommand{ES: esClient, Config: config}
 	}
 
 	command.Execute()
