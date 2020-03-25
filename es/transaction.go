@@ -7,8 +7,21 @@ import (
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/stellar"
 	"github.com/astroband/astrologer/util"
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 )
+
+// transactionData represents all necessary pieces we need
+// from stellar-core to ingest single transaction
+type transactionData struct {
+	ledgerSeq int
+	// ledger close time
+	closeTime time.Time
+	// index of transaction in ledger
+	index  int
+	xdr    xdr.Transaction
+	result xdr.TransactionResultPair
+}
 
 // Transaction represents ES-serializable transaction
 type Transaction struct {
@@ -61,8 +74,8 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 		CloseTime:       t,
 		Successful:      success,
 		ResultCode:      int(result.Code),
-		OperationCount:  len(envelope.Operations()),
 		SourceAccountID: sourceAccountAddress,
+		OperationCount:  len(envelope.Operations()),
 	}
 
 	if envelope.IsFeeBump() {
@@ -94,42 +107,43 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	return transaction, nil
 }
 
-func NewTransactionFromXDR(txXDR xdr.Transaction, txResult xdr.TransactionResultPair, seq, index int, t time.Time) (*Transaction, error) {
-	resultCode := txResult.Result.Result.Code
+func NewTransactionFromXDR(data *transactionData) (*Transaction, error) {
+	resultCode := data.result.Result.Result.Code
 
-	binTx, err := txXDR.MarshalBinary()
+	//FIXME remove hardcoded network passphrase
+	txHash, err := network.HashTransaction(&data.xdr, "Public Global Stellar Network ; September 2015")
 
 	if err != nil {
 		return nil, err
 	}
 
 	tx := &Transaction{
-		ID:              hex.EncodeToString(binTx),
-		Index:           index,
-		Seq:             seq,
-		PagingToken:     PagingToken{LedgerSeq: seq, TransactionOrder: index},
-		Fee:             int(txXDR.Fee),
-		FeeCharged:      int(txResult.Result.FeeCharged),
-		OperationCount:  len(txXDR.Operations),
-		CloseTime:       t,
+		ID:              hex.EncodeToString(txHash[:]),
+		Index:           data.index,
+		Seq:             data.ledgerSeq,
+		PagingToken:     PagingToken{LedgerSeq: data.ledgerSeq, TransactionOrder: data.index},
+		Fee:             int(data.xdr.Fee),
+		FeeCharged:      int(data.result.Result.FeeCharged),
+		OperationCount:  len(data.xdr.Operations),
+		CloseTime:       data.closeTime,
 		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
 		ResultCode:      int(resultCode),
-		SourceAccountID: txXDR.SourceAccount.Address(),
+		SourceAccountID: data.xdr.SourceAccount.Address(),
 	}
 
-	if txXDR.Memo.Type != xdr.MemoTypeMemoNone {
-		value := stellar.MemoValue(txXDR.Memo)
+	if data.xdr.Memo.Type != xdr.MemoTypeMemoNone {
+		value := stellar.MemoValue(data.xdr.Memo)
 
 		tx.Memo = &Memo{
-			Type:  int(txXDR.Memo.Type),
+			Type:  int(data.xdr.Memo.Type),
 			Value: value.String,
 		}
 	}
 
-	if txXDR.TimeBounds != nil {
+	if data.xdr.TimeBounds != nil {
 		tx.TimeBounds = &TimeBounds{
-			MinTime: int64(txXDR.TimeBounds.MinTime),
-			MaxTime: int64(txXDR.TimeBounds.MaxTime),
+			MinTime: int64(data.xdr.TimeBounds.MinTime),
+			MaxTime: int64(data.xdr.TimeBounds.MaxTime),
 		}
 	}
 

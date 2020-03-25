@@ -73,12 +73,13 @@ func StreamLedgers(firstLedger, lastLedger int) chan xdr.LedgerCloseMeta {
 		for {
 			bytesRead, err := io.ReadFull(reader, sizeBytes)
 
-			if err != nil {
-				log.Fatal(err)
-			}
-
+			// No more to read
 			if bytesRead == 0 {
 				break
+			}
+
+			if err != nil {
+				log.Fatal("Error on reading from pipe", err)
 			}
 
 			sizeBytes[0] &= 0x7f

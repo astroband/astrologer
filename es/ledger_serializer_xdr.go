@@ -2,21 +2,37 @@ package es
 
 import (
 	"bytes"
+	"log"
 
 	"github.com/stellar/go/xdr"
 )
 
 type ledgerSerializerXDR struct {
-	ledgerHeader *LedgerHeader
+	ledgerHeader       *LedgerHeader
+	transactions       []xdr.Transaction
+	transactionResults []xdr.TransactionResultPair
 
 	buffer *bytes.Buffer
 }
 
 // SerializeLedger serializes ledger data into ES bulk index data
 func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) {
+	transactions := make([]xdr.Transaction, len(meta.V0.TxSet.Txs))
+	transactionResults := make([]xdr.TransactionResultPair, len(meta.V0.TxProcessing))
+
+	for i, txe := range meta.V0.TxSet.Txs {
+		transactions[i] = txe.Tx
+	}
+
+	for i, txp := range meta.V0.TxProcessing {
+		transactionResults[i] = txp.Result
+	}
+
 	serializer := &ledgerSerializerXDR{
-		ledgerHeader: NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
-		buffer:       buffer,
+		ledgerHeader:       NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
+		transactions:       transactions,
+		transactionResults: transactionResults,
+		buffer:             buffer,
 	}
 
 	serializer.serialize()
@@ -25,17 +41,35 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 func (s *ledgerSerializerXDR) serialize() {
 	SerializeForBulk(s.ledgerHeader, s.buffer)
 
-	// for i, tx := range s.transactions {
-	// 	transaction := NewTransactionFromXDR(tx, s.txResults[i], s.ledger.Seq, i, s.ledger.CloseTime)
-	// 	SerializeForBulk(transaction, s.buffer)
+	for i, tx := range s.transactions {
+		transaction, err := NewTransactionFromXDR(
+			&transactionData{
+				xdr:       tx,
+				result:    s.transactionResults[i],
+				index:     i + 1,
+				ledgerSeq: s.ledgerHeader.Seq,
+				closeTime: s.ledgerHeader.CloseTime,
+			},
+		)
 
-	// 	if transaction.Successful {
-	// 		changes := s.feeRows[transaction.Index-1].Changes
-	// 		s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
-	// 	}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// 	s.serializeOperations(transactionRow, transaction)
-	// }
+		SerializeForBulk(transaction, s.buffer)
+
+		// if transaction.Successful {
+		// 	changes := s.feeRows[transaction.Index-1].Changes
+		// 	s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
+		// }
+
+		// 	if transaction.Successful {
+		// 		changes := s.feeRows[transaction.Index-1].Changes
+		// 		s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
+		// 	}
+
+		// 	s.serializeOperations(transactionRow, transaction)
+	}
 }
 
 // func (s *ledgerSerializerXDR) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) {

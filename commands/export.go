@@ -54,13 +54,11 @@ func (cmd *ExportCommand) Execute() {
 
 		es.SerializeLedgerFromHistory(meta, &b)
 	}
-	log.Println("DONE")
 
-	log.Println(b.Len())
-	indexed := cmd.ES.BulkInsert(&b)
+	err := cmd.ES.BulkInsert(&b)
 
-	if !indexed {
-		log.Fatal("Cannot bulk insert")
+	if err != nil {
+		log.Fatal("Cannot bulk insert", err)
 	}
 
 	// for i := 0; i < cmd.blockCount(total); i++ {
@@ -96,9 +94,9 @@ func (cmd *ExportCommand) Execute() {
 // }
 
 func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
-	indexed := cmd.ES.BulkInsert(b)
+	err := cmd.ES.BulkInsert(b)
 
-	if !indexed {
+	if err != nil {
 		if retry > cmd.Config.RetryCount {
 			log.Fatal("Retries for bulk failed, aborting")
 		}
