@@ -11,6 +11,7 @@ type ledgerSerializerXDR struct {
 	ledgerHeader       *LedgerHeader
 	transactions       []xdr.Transaction
 	transactionResults []xdr.TransactionResultPair
+	changes            []xdr.LedgerEntryChanges
 
 	buffer *bytes.Buffer
 }
@@ -19,6 +20,7 @@ type ledgerSerializerXDR struct {
 func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) {
 	transactions := make([]xdr.Transaction, len(meta.V0.TxSet.Txs))
 	transactionResults := make([]xdr.TransactionResultPair, len(meta.V0.TxProcessing))
+	changes := make([]xdr.LedgerEntryChanges, len(meta.V0.TxProcessing))
 
 	for i, txe := range meta.V0.TxSet.Txs {
 		transactions[i] = txe.Tx
@@ -26,12 +28,14 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 
 	for i, txp := range meta.V0.TxProcessing {
 		transactionResults[i] = txp.Result
+		changes[i] = txp.FeeProcessing
 	}
 
 	serializer := &ledgerSerializerXDR{
 		ledgerHeader:       NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
 		transactions:       transactions,
 		transactionResults: transactionResults,
+		changes:            changes,
 		buffer:             buffer,
 	}
 
@@ -58,15 +62,10 @@ func (s *ledgerSerializerXDR) serialize() {
 
 		SerializeForBulk(transaction, s.buffer)
 
-		// if transaction.Successful {
-		// 	changes := s.feeRows[transaction.Index-1].Changes
-		// 	s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
-		// }
-
-		// 	if transaction.Successful {
-		// 		changes := s.feeRows[transaction.Index-1].Changes
-		// 		s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
-		// 	}
+		if transaction.Successful {
+			changes := s.changes[i]
+			s.serializeBalances(changes, transaction, nil, BalanceSourceFee)
+		}
 
 		// 	s.serializeOperations(transactionRow, transaction)
 	}
@@ -97,30 +96,30 @@ func (s *ledgerSerializerXDR) serialize() {
 // 	}
 // }
 
-// func (s *ledgerSerializerXDR) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource) int {
-// 	if len(changes) == 0 {
-// 		return 0
-// 	}
+func (s *ledgerSerializerXDR) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource) int {
+	if len(changes) == 0 {
+		return 0
+	}
 
-// 	pagingToken := PagingToken{
-// 		LedgerSeq:        s.ledger.Seq,
-// 		TransactionOrder: transaction.Index,
-// 	}
+	pagingToken := PagingToken{
+		LedgerSeq:        s.ledgerHeader.Seq,
+		TransactionOrder: transaction.Index,
+	}
 
-// 	if operation != nil {
-// 		pagingToken.OperationOrder = operation.Index
-// 	}
+	if operation != nil {
+		pagingToken.OperationOrder = operation.Index
+	}
 
-// 	balances := ProduceBalances(changes, s.ledger.CloseTime, source, pagingToken)
+	balances := ProduceBalances(changes, s.ledgerHeader.CloseTime, source, pagingToken)
 
-// 	if len(balances) > 0 {
-// 		for _, balance := range balances {
-// 			SerializeForBulk(balance, s.buffer)
-// 		}
-// 	}
+	if len(balances) > 0 {
+		for _, balance := range balances {
+			SerializeForBulk(balance, s.buffer)
+		}
+	}
 
-// 	return len(balances)
-// }
+	return len(balances)
+}
 
 // func (s *ledgerSerializerXDR) serializeTrades(result *xdr.OperationResult, transaction *Transaction, operation *Operation, startIndex int) int {
 // 	pagingToken := PagingToken{
