@@ -9,22 +9,9 @@ import (
 
 // SerializeForBulk returns object serialized for elastic bulk indexing
 func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
-	var meta string
-
-	id := obj.DocID()
-
-	if id != nil {
-		meta = fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_id": "%s", "_type": "_doc" } }%s`,
-			obj.IndexName(),
-			*id,
-			"\n",
-		)
-	} else {
-		meta = fmt.Sprintf(
-			`{ "index": { "_index": "%s", "_type": "_doc" } }%s`, obj.IndexName(), "\n",
-		)
-	}
+	meta := fmt.Sprintf(
+		`{ "index": { "_index": "%s", "_type": "_doc" } }%s`, obj.IndexName(), "\n",
+	)
 
 	data, err := json.Marshal(obj)
 	if err != nil {
