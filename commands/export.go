@@ -2,9 +2,7 @@ package commands
 
 import (
 	"bytes"
-	"log"
-	"math/rand"
-	"time"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/astroband/astrologer/es"
 	"github.com/astroband/astrologer/stellar"
@@ -39,100 +37,52 @@ func (cmd *ExportCommand) Execute() {
 		log.Fatal("Nothing to export within given range!", cmd.firstLedger, cmd.lastLedger)
 	}
 
-	log.Println("Exporting ledgers from", cmd.firstLedger, "to", cmd.lastLedger, "total", total)
+	log.Infof("Exporting ledgers from %d to %d. Total: %d ledgers\n", cmd.firstLedger, cmd.lastLedger, total)
+	log.Infof("Will insert %d batches %d ledgers each\n", cmd.blockCount(total), cmd.Config.BatchSize)
 
-	var b bytes.Buffer
+	for i := 0; i < cmd.blockCount(total); i++ {
+		var b bytes.Buffer
+		ledgerCounter := 0
+		batchNum := i + 1
 
-	for meta := range stellar.StreamLedgers(cmd.firstLedger, cmd.lastLedger) {
-		seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
+		for meta := range stellar.StreamLedgers(cmd.firstLedger, cmd.lastLedger) {
+			seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
 
-		if seq < cmd.firstLedger || seq > cmd.lastLedger {
+			if seq < cmd.firstLedger || seq > cmd.lastLedger {
+				continue
+			}
+
+			ledgerCounter += 1
+
+			log.Println(seq)
+
+			es.SerializeLedgerFromHistory(meta, &b)
+
+			log.Printf("Ledger %d of %d in batch %d\n", ledgerCounter, cmd.Config.BatchSize, batchNum)
+
+			if ledgerCounter == cmd.Config.BatchSize {
+				break
+			}
+		}
+
+		if cmd.Config.DryRun {
 			continue
 		}
 
-		log.Println(seq)
+		pool.Submit(func() {
+			log.Printf("Gonna bulk insert %d bytes\n", b.Len())
+			err := cmd.ES.BulkInsert(b)
 
-		es.SerializeLedgerFromHistory(meta, &b)
+			if err != nil {
+				log.Fatal("Cannot bulk insert", err)
+			} else {
+				log.Printf("Batch %d successfully inserted\n", batchNum)
+			}
+		})
 	}
 
-	err := cmd.ES.BulkInsert(&b)
-
-	if err != nil {
-		log.Fatal("Cannot bulk insert", err)
-	}
-
-	// for i := 0; i < cmd.blockCount(total); i++ {
-	// 	i := i
-	// 	pool.Submit(func() { cmd.exportBlock(i) })
-	// }
-
-	// pool.StopWait()
+	pool.StopWait()
 }
-
-// func (cmd *ExportCommand) exportBlock(i int) {
-// 	var b bytes.Buffer
-
-// 	rows := cmd.DB.LedgerHeaderRowFetchBatch(i, cmd.firstLedger, cmd.Config.BatchSize)
-
-// 	for n := 0; n < len(rows); n++ {
-// 		txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
-// 		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
-// 		es.SerializeLedger(rows[n], txs, fees, &b)
-
-// 		if !*config.Verbose {
-// 			bar.Add(1)
-// 		}
-// 	}
-
-// 	if *config.Verbose {
-// 		log.Println(b.String())
-// 	}
-
-// 	if !cmd.Config.DryRun {
-// 		cmd.ES.IndexWithRetries(&b, cmd.Config.RetryCount)
-// 	}
-// }
-
-func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
-	err := cmd.ES.BulkInsert(b)
-
-	if err != nil {
-		if retry > cmd.Config.RetryCount {
-			log.Fatal("Retries for bulk failed, aborting")
-		}
-
-		delay := time.Duration((rand.Intn(10) + 5))
-		time.Sleep(delay * time.Second)
-
-		cmd.index(b, retry+1)
-	}
-}
-
-// Parses range of export command
-// func (cmd *ExportCommand) getRange() (first int, last int) {
-// 	firstLedger := cmd.DB.LedgerHeaderFirstRow()
-// 	lastLedger := cmd.DB.LedgerHeaderLastRow()
-
-// 	if cmd.Config.Start.Explicit {
-// 		if cmd.Config.Start.Value < 0 {
-// 			first = lastLedger.LedgerSeq + cmd.Config.Start.Value + 1
-// 		} else if config.Start.Value > 0 {
-// 			first = firstLedger.LedgerSeq + cmd.Config.Start.Value
-// 		}
-// 	} else if cmd.Config.Start.Value != 0 {
-// 		first = cmd.Config.Start.Value
-// 	} else {
-// 		first = firstLedger.LedgerSeq
-// 	}
-
-// 	if cmd.Config.Count == 0 {
-// 		last = lastLedger.LedgerSeq
-// 	} else {
-// 		last = first + cmd.Config.Count - 1
-// 	}
-
-// 	return first, last
-// }
 
 func (cmd *ExportCommand) blockCount(count int) (blocks int) {
 	blocks = count / cmd.Config.BatchSize

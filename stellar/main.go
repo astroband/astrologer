@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/astroband/astrologer/support"
 	"github.com/guregu/null"
+	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 )
 
@@ -34,28 +34,29 @@ func StreamLedgers(firstLedger, lastLedger int) chan xdr.LedgerCloseMeta {
 		fmt.Sprintf("%d/%d", lastLedger, lastLedger-firstLedger+1),
 		"--replay-in-memory",
 		"--conf",
-		"./stellar-core.cfg",
+		"./stellar-core/pubnet.cfg",
 	)
+	stellarCoreLogger := log.WithFields(log.Fields{"process": "stellar-core"})
+	stellarCoreStdOut, err := stellarCoreInstance.StdoutPipe()
 
-	// stdout, err := stellarCoreInstance.StdoutPipe()
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		if err := stellarCoreInstance.Start(); err != nil {
-			log.Fatal(err)
+			stellarCoreLogger.Fatal(err)
 		}
-		// scanner := bufio.NewScanner(stdout)
 
-		// for scanner.Scan() {
-		// 	log.Println(scanner.Text())
-		// }
+		scanner := bufio.NewScanner(stellarCoreStdOut)
 
-		// if err := scanner.Err(); err != nil {
-		// 	log.Fatal(err)
-		// }
+		for scanner.Scan() {
+			stellarCoreLogger.Println(scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			stellarCoreLogger.Fatal(err)
+		}
 	}()
 
 	pipe, err := os.OpenFile(pipeFile, os.O_RDONLY, os.ModeNamedPipe)
@@ -67,6 +68,8 @@ func StreamLedgers(firstLedger, lastLedger int) chan xdr.LedgerCloseMeta {
 	reader := bufio.NewReader(pipe)
 	sizeBytes := make([]byte, 4)
 
+	readerLogger := log.WithFields(log.Fields{"process": "reader"})
+
 	go func() {
 		defer close(ch)
 
@@ -75,11 +78,12 @@ func StreamLedgers(firstLedger, lastLedger int) chan xdr.LedgerCloseMeta {
 
 			// No more to read
 			if bytesRead == 0 {
+				readerLogger.Info("Reached the end of the stream")
 				break
 			}
 
 			if err != nil {
-				log.Fatal("Error on reading from pipe", err)
+				readerLogger.Fatal("Failed to read from pipe", err)
 			}
 
 			sizeBytes[0] &= 0x7f
@@ -91,18 +95,19 @@ func StreamLedgers(firstLedger, lastLedger int) chan xdr.LedgerCloseMeta {
 
 			if err == nil {
 				var meta xdr.LedgerCloseMeta
-
 				meta.UnmarshalBinary(data)
+
+				readerLogger.Info("Writing to the channel...")
 				ch <- meta
 			} else {
-				log.Fatal("Error reading from pipe:", err)
+				readerLogger.Fatal("Error reading from pipe:", err)
 			}
 		}
 
 		err = pipe.Close()
 
 		if err != nil {
-			log.Println(err)
+			readerLogger.Println(err)
 		}
 	}()
 

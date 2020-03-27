@@ -22,7 +22,7 @@ type Adapter interface {
 	IndexExists(name IndexName) bool
 	CreateIndex(name IndexName, body IndexDefinition)
 	DeleteIndex(name IndexName)
-	BulkInsert(payload *bytes.Buffer) error
+	BulkInsert(payload bytes.Buffer) error
 	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
 }
 
