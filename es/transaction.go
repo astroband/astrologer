@@ -21,6 +21,8 @@ type Transaction struct {
 	ResultCode      int         `json:"result_code"`
 	SourceAccountID string      `json:"source_account_id"`
 
+	meta xdr.TransactionMetaV1
+
 	*TimeBounds `json:"time_bounds,omitempty"`
 	*Memo       `json:"memo,omitempty"`
 }
@@ -41,6 +43,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
 		ResultCode:      int(resultCode),
 		SourceAccountID: row.Envelope.Tx.SourceAccount.Address(),
+		meta:            row.Meta.MustV1(),
 	}
 
 	if row.Envelope.Tx.Memo.Type != xdr.MemoTypeMemoNone {
