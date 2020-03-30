@@ -25,7 +25,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
             "index" : {
               "sort.field" : "paging_token",
               "sort.order" : "desc",
-              "number_of_shards" : 4
+              "number_of_shards" : 1
             }
           },
           "mappings": {
@@ -257,7 +257,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 			"index" : {
         "sort.field" : "paging_token",
 				"sort.order" : "desc",
-				"number_of_shards" : 4
+				"number_of_shards" : 1
 			}
 		},
 		"mappings": {
@@ -295,7 +295,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 			"index" : {
         "sort.field" : "paging_token",
 				"sort.order" : "desc",
-				"number_of_shards" : 4
+				"number_of_shards" : 1
 			}
 		},
 		"mappings": {
