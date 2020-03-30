@@ -22,6 +22,7 @@ var (
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
 	_                  = kingpin.Command("stats", "Print database ledger statistics")
 	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
+	dedupeCommand      = kingpin.Command("dedupe", "Eliminate duplicates in ES indices")
 
 	// DatabaseURL Stellar Core database URL
 	DatabaseURL = kingpin.
@@ -77,6 +78,8 @@ var (
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
+
+	DedupeDryRun = dedupeCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
 )
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {

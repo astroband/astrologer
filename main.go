@@ -38,6 +38,11 @@ func main() {
 		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}
 	case "es-stats":
 		command = &cmd.EsStatsCommand{ES: esClient}
+	case "dedupe":
+		config := cmd.DedupeCommandConfig{
+			DryRun: *cfg.DedupeDryRun,
+		}
+		command = &cmd.DedupeCommand{ES: esClient, Config: config}
 	}
 
 	command.Execute()

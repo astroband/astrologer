@@ -3,6 +3,8 @@ package es
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -62,6 +64,17 @@ func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]inte
 	res.Body.Close()
 
 	return r
+}
+
+func (es *Client) searchIndex(indexName, query string) io.ReadCloser {
+	res, err := es.rawClient.Search(
+		es.rawClient.Search.WithIndex(indexName),
+		es.rawClient.Search.WithBody(strings.NewReader(query)),
+	)
+
+	fatalIfError(res, err)
+
+	return res.Body
 }
 
 // MinMaxSeq return the minimum and maximum seqnum of ledgers stored in the ES
@@ -194,6 +207,44 @@ func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 		time.Sleep(delay * time.Second)
 
 		es.IndexWithRetries(payload, retryCount-1)
+	}
+}
+
+type duplicatesResponse struct {
+	Aggregations struct {
+		Duplicates struct {
+			Buckets []struct {
+				Key      string `json:"key"`
+				DocCount int    `json:"doc_count"`
+			} `json:"buckets"`
+		} `json:"duplicates"`
+	} `json:"aggregations"`
+}
+
+func (es *Client) FindDuplicates(indexName, fieldName string) {
+	query := fmt.Sprintf(`{
+	  "size": 0,
+	  "aggs": {
+	    "duplicates": {
+	      "terms": {
+	        "field": "%s",
+	        "min_doc_count": 2
+	      }
+	    }
+	  }
+	}`, fieldName)
+
+	responseBody := es.searchIndex(indexName, query)
+	var response duplicatesResponse
+
+	if err := json.NewDecoder(responseBody).Decode(&response); err != nil {
+		log.Fatalf("Error parsing the response body: %s", err)
+	}
+
+	responseBody.Close()
+
+	for _, bucket := range response.Aggregations.Duplicates.Buckets {
+		log.Printf("%s: %d", bucket.Key, bucket.DocCount)
 	}
 }
 
