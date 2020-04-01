@@ -40,12 +40,14 @@ func (cmd *ExportCommand) Execute() {
 	log.Infof("Exporting ledgers from %d to %d. Total: %d ledgers\n", cmd.firstLedger, cmd.lastLedger, total)
 	log.Infof("Will insert %d batches %d ledgers each\n", cmd.blockCount(total), cmd.Config.BatchSize)
 
+  channel := stellar.StreamLedgers(cmd.firstLedger, cmd.lastLedger)
+
 	for i := 0; i < cmd.blockCount(total); i++ {
 		var b bytes.Buffer
 		ledgerCounter := 0
 		batchNum := i + 1
 
-		for meta := range stellar.StreamLedgers(cmd.firstLedger, cmd.lastLedger) {
+		for meta := range channel {
 			seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
 
 			if seq < cmd.firstLedger || seq > cmd.lastLedger {
