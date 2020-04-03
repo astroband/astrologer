@@ -24,7 +24,7 @@ type Adapter interface {
 	DeleteIndex(name IndexName)
 	BulkInsert(payload *bytes.Buffer) (success bool)
 	IndexWithRetries(payload *bytes.Buffer, retriesCount int)
-	FindDuplicates(indexName, query string)
+	GroupLedgersBySeq(startLedger, endLedger int, after *string) []Bucket
 }
 
 // Client is a wrapper type around ElasticSearch raw client

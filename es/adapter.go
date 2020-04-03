@@ -213,28 +213,59 @@ func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
 type duplicatesResponse struct {
 	Aggregations struct {
 		Duplicates struct {
+      AfterKey struct {
+        Value string `json:"group_field"`
+      } `json:"after_key"`
 			Buckets []struct {
-				Key      string `json:"key"`
+				Key struct {
+          FieldValue string `json:"group_field"`
+        } `json:"key"`
 				DocCount int    `json:"doc_count"`
 			} `json:"buckets"`
 		} `json:"duplicates"`
 	} `json:"aggregations"`
 }
 
-func (es *Client) FindDuplicates(indexName, fieldName string) {
-	query := fmt.Sprintf(`{
-	  "size": 0,
-	  "aggs": {
-	    "duplicates": {
-	      "terms": {
-	        "field": "%s",
-	        "min_doc_count": 2
-	      }
-	    }
-	  }
-	}`, fieldName)
+type Bucket struct {
+  FieldValue string
+  DocCount int
+}
 
-	responseBody := es.searchIndex(indexName, query)
+func (es *Client) GroupLedgersBySeq(startLedger, endLedger int, after *string) []Bucket {
+  pageSize := 1000
+  var result []Bucket
+
+  var queryAfterPart string
+
+  if after != nil {
+    queryAfterPart = fmt.Sprintf(`"after": { "group_field": "%s" },`, *after)
+  }
+
+	query := fmt.Sprintf(`{
+    "query": {
+      "range": {
+        "seq": {
+          "gte": %d,
+          "lte": %d
+        }
+      }
+    },
+	  "size": 0,
+    "track_total_hits": false,
+    "aggs": {
+      "duplicates": {
+        "composite": {
+          "size": %d,
+          %s
+          "sources": [
+            { "group_field": { "terms": { "field": "paging_token" } } }
+          ]
+        }
+      }
+    }
+	}`, startLedger, endLedger, pageSize, queryAfterPart)
+
+	responseBody := es.searchIndex(string(ledgerHeaderIndexName), query)
 	var response duplicatesResponse
 
 	if err := json.NewDecoder(responseBody).Decode(&response); err != nil {
@@ -244,8 +275,10 @@ func (es *Client) FindDuplicates(indexName, fieldName string) {
 	responseBody.Close()
 
 	for _, bucket := range response.Aggregations.Duplicates.Buckets {
-		log.Printf("%s: %d", bucket.Key, bucket.DocCount)
+    result = append(result, Bucket{FieldValue: bucket.Key.FieldValue, DocCount: bucket.DocCount})
 	}
+
+  return result
 }
 
 func fatalIfError(res *esapi.Response, err error) {

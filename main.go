@@ -41,6 +41,8 @@ func main() {
 	case "dedupe":
 		config := cmd.DedupeCommandConfig{
 			DryRun: *cfg.DedupeDryRun,
+      Start: *cfg.DedupeStart,
+      Count: *cfg.DedupeCount,
 		}
 		command = &cmd.DedupeCommand{ES: esClient, Config: config}
 	}

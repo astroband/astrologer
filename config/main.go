@@ -80,6 +80,8 @@ var (
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
 
 	DedupeDryRun = dedupeCommand.Flag("dry-run", "Do not send actual data to Elastic").Bool()
+	DedupeStart = dedupeCommand.Arg("start", "").Int()
+	DedupeCount = dedupeCommand.Arg("count", "").Int()
 )
 
 func parseNumberWithSign(value string) (r NumberWithSign, err error) {
