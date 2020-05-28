@@ -47,9 +47,13 @@ func (s *ledgerSerializer) serialize() {
 	}
 }
 
-func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) {
+func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) error {
 	effectsCount := 0
-	xdrs := transactionRow.Operations()
+	err, xdrs := transactionRow.Operations()
+
+	if err != nil {
+		return err
+	}
 
 	for index, xdr := range xdrs {
 		result := transactionRow.ResultFor(index)
@@ -70,6 +74,8 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 			}
 		}
 	}
+
+	return nil
 }
 
 func (s *ledgerSerializer) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource) int {

@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/util"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -29,33 +31,60 @@ type Transaction struct {
 func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 	resultCode := row.Result.Result.Result.Code
 
+	var (
+		fee             int
+		operationCount  int
+		sourceAccountId string
+		memo            xdr.Memo
+		timeBounds      *xdr.TimeBounds
+	)
+
+	switch row.Envelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+		tx := row.Envelope.V0.Tx
+		fee = int(tx.Fee)
+		operationCount = len(tx.Operations)
+		accountIdBin, _ := tx.SourceAccountEd25519.MarshalBinary()
+		sourceAccountId, _ = strkey.Encode(strkey.VersionByteAccountID, accountIdBin)
+		memo = tx.Memo
+		timeBounds = tx.TimeBounds
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		tx := row.Envelope.V1.Tx
+		fee = int(tx.Fee)
+		operationCount = len(tx.Operations)
+		sourceAccountId, _ = util.Address(tx.SourceAccount)
+		memo = tx.Memo
+		timeBounds = tx.TimeBounds
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+	}
+
 	tx := &Transaction{
 		ID:              row.ID,
 		Index:           row.Index,
 		Seq:             row.LedgerSeq,
 		PagingToken:     PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index},
-		Fee:             int(row.Envelope.Tx.Fee),
+		Fee:             fee,
 		FeeCharged:      int(row.Result.Result.FeeCharged),
-		OperationCount:  len(row.Envelope.Tx.Operations),
+		OperationCount:  operationCount,
 		CloseTime:       t,
 		Successful:      resultCode == xdr.TransactionResultCodeTxSuccess,
 		ResultCode:      int(resultCode),
-		SourceAccountID: row.Envelope.Tx.SourceAccount.Address(),
+		SourceAccountID: sourceAccountId,
 	}
 
-	if row.Envelope.Tx.Memo.Type != xdr.MemoTypeMemoNone {
+	if memo.Type != xdr.MemoTypeMemoNone {
 		value := row.MemoValue()
 
 		tx.Memo = &Memo{
-			Type:  int(row.Envelope.Tx.Memo.Type),
+			Type:  int(memo.Type),
 			Value: value.String,
 		}
 	}
 
-	if row.Envelope.Tx.TimeBounds != nil {
+	if timeBounds != nil {
 		tx.TimeBounds = &TimeBounds{
-			MinTime: int64(row.Envelope.Tx.TimeBounds.MinTime),
-			MaxTime: int64(row.Envelope.Tx.TimeBounds.MaxTime),
+			MinTime: int64(timeBounds.MinTime),
+			MaxTime: int64(timeBounds.MaxTime),
 		}
 	}
 

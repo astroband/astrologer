@@ -141,7 +141,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 				},
 				"offer_id": { "type": "long" },
 				"trust_limit": { "type": "scaled_float", "scaling_factor": 10000000 },
-				"authorize": { "type": "boolean" },
+        "authorize": { "type": "keyword" },
 				"bump_to": { "type": "long" },
 				"path": {
 					"properties": {

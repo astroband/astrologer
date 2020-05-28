@@ -6,6 +6,14 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+type AuthorizationFlag string
+
+const (
+	None                = "none"
+	Full                = "full"
+	MaintainLiabilities = "maintain-liabilities"
+)
+
 // Operation represents ES-serializable transaction
 type Operation struct {
 	TxID                 string             `json:"tx_id"`
@@ -31,7 +39,7 @@ type Operation struct {
 	OfferPriceND         *Price             `json:"offer_price_n_d,omitempty"`
 	OfferID              int                `json:"offer_id,omitempty"`
 	TrustLimit           string             `json:"trust_limit,omitempty"`
-	Authorize            bool               `json:"authorize,omitempty"`
+	Authorize            AuthorizationFlag  `json:"authorize,omitempty"`
 	BumpTo               int                `json:"bump_to,omitempty"`
 	Path                 []*Asset           `json:"path,omitempty"`
 	Thresholds           *AccountThresholds `json:"thresholds,omitempty"`

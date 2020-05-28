@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/astroband/astrologer/util"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
@@ -68,7 +69,7 @@ func (f *operationFactory) assignSourceAccountID() {
 	sourceAccountID := f.transaction.SourceAccountID
 
 	if f.source.SourceAccount != nil {
-		sourceAccountID = f.source.SourceAccount.Address()
+		sourceAccountID, _ = util.Address(*f.source.SourceAccount)
 	}
 
 	f.operation.SourceAccountID = sourceAccountID
@@ -118,12 +119,12 @@ func (f *operationFactory) assignCreateAccount(o xdr.CreateAccountOp) {
 
 func (f *operationFactory) assignPayment(o xdr.PaymentOp) {
 	f.operation.SourceAmount = amount.String(o.Amount)
-	f.operation.DestinationAccountID = o.Destination.Address()
+	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
 	f.operation.SourceAsset = NewAsset(&o.Asset)
 }
 
 func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStrictReceiveOp) {
-	f.operation.DestinationAccountID = o.Destination.Address()
+	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
 	f.operation.DestinationAmount = amount.String(o.DestAmount)
 	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
 
@@ -138,8 +139,8 @@ func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStric
 }
 
 func (f *operationFactory) assignPathPaymentStrictSend(o xdr.PathPaymentStrictSendOp) {
+	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
 
-	f.operation.DestinationAccountID = o.Destination.Address()
 	f.operation.DestinationAmount = amount.String(o.DestMin)
 	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
 
@@ -205,11 +206,20 @@ func (f *operationFactory) assignAllowTrust(o xdr.AllowTrustOp) {
 
 	f.operation.DestinationAsset = NewAsset(&a)
 	f.operation.DestinationAccountID = o.Trustor.Address()
-	f.operation.Authorize = o.Authorize
+
+	flags := xdr.TrustLineFlags(o.Authorize)
+
+	if flags.IsAuthorized() {
+		f.operation.Authorize = Full
+	} else if flags.IsAuthorizedToMaintainLiabilitiesFlag() {
+		f.operation.Authorize = MaintainLiabilities
+	} else {
+		f.operation.Authorize = None
+	}
 }
 
-func (f *operationFactory) assignAccountMerge(d xdr.AccountId) {
-	f.operation.DestinationAccountID = d.Address()
+func (f *operationFactory) assignAccountMerge(d xdr.MuxedAccount) {
+	f.operation.DestinationAccountID, _ = util.Address(d)
 }
 
 func (f *operationFactory) assignBumpSequence(o xdr.BumpSequenceOp) {
