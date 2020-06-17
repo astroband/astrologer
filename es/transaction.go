@@ -111,7 +111,10 @@ func NewTransactionFromXDR(data *transactionData) (*Transaction, error) {
 	resultCode := data.result.Result.Result.Code
 
 	//FIXME remove hardcoded network passphrase
-	txHash, err := network.HashTransaction(&data.xdr, "Public Global Stellar Network ; September 2015")
+	txHash, err := network.HashTransaction(
+		data.xdr,
+		"Public Global Stellar Network ; September 2015",
+	)
 
 	if err != nil {
 		return nil, err

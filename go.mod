@@ -15,6 +15,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/schollz/progressbar/v2 v2.15.0
+	github.com/sirupsen/logrus v1.2.0
 	github.com/stellar/go v0.0.0-20200616201928-2e9029aa9df5
 	github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6

@@ -45,7 +45,7 @@ func (tx *TxHistoryRow) MemoValue() null.String {
 	case xdr.MemoTypeMemoNone:
 		value, valid = "", false
 	case xdr.MemoTypeMemoText:
-		scrubbed := support.Utf8Scrub(tx.Envelope.Tx.Memo.MustText())
+		scrubbed := support.Utf8Scrub(memo.MustText())
 		notnull := strings.Join(strings.Split(scrubbed, "\x00"), "")
 		value, valid = notnull, true
 	case xdr.MemoTypeMemoId:

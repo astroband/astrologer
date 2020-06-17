@@ -26,7 +26,12 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 	transactionMetas := make([]xdr.TransactionMeta, len(meta.V0.TxProcessing))
 
 	for i, txe := range meta.V0.TxSet.Txs {
-		transactions[i] = txe.Tx
+		switch txe.Type {
+		case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+			transactions[i] = txe.V0.Tx
+		case xdr.EnvelopeTypeEnvelopeTypeTx:
+			transactions[i] = txe.V1.Tx
+		}
 	}
 
 	for i, txp := range meta.V0.TxProcessing {
