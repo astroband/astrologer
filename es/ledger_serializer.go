@@ -2,6 +2,7 @@ package es
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/astroband/astrologer/db"
 	"github.com/stellar/go/xdr"
@@ -17,7 +18,7 @@ type ledgerSerializer struct {
 }
 
 // SerializeLedger serializes ledger data into ES bulk index data
-func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistoryRow, feeRows []db.TxFeeHistoryRow, buffer *bytes.Buffer) {
+func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistoryRow, feeRows []db.TxFeeHistoryRow, buffer *bytes.Buffer) error {
 	ledger := NewLedgerHeader(&ledgerRow)
 
 	serializer := &ledgerSerializer{
@@ -28,14 +29,19 @@ func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistor
 		buffer:          buffer,
 	}
 
-	serializer.serialize()
+	return serializer.serialize()
 }
 
-func (s *ledgerSerializer) serialize() {
+func (s *ledgerSerializer) serialize() error {
 	SerializeForBulk(s.ledger, s.buffer)
 
 	for _, transactionRow := range s.transactionRows {
-		transaction := NewTransaction(&transactionRow, s.ledger.CloseTime)
+		transaction, err := NewTransaction(&transactionRow, s.ledger.CloseTime)
+
+		if err != nil {
+			return err
+		}
+
 		SerializeForBulk(transaction, s.buffer)
 
 		if transaction.Successful {
@@ -45,6 +51,8 @@ func (s *ledgerSerializer) serialize() {
 
 		s.serializeOperations(transactionRow, transaction)
 	}
+
+	return nil
 }
 
 func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, transaction *Transaction) error {
@@ -57,7 +65,12 @@ func (s *ledgerSerializer) serializeOperations(transactionRow db.TxHistoryRow, t
 
 	for index, xdr := range xdrs {
 		result := transactionRow.ResultFor(index)
-		operation := ProduceOperation(transaction, &xdr, result, index+1)
+		operation, err := ProduceOperation(transaction, &xdr, result, index+1)
+
+		if err != nil {
+			return fmt.Errorf("Failed to serialize operation with index %d in tx %s: %w", index, transaction.ID, err)
+		}
+
 		SerializeForBulk(operation, s.buffer)
 
 		if transaction.Successful {

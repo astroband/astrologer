@@ -21,7 +21,7 @@ type operationFactory struct {
 }
 
 // ProduceOperation creates factory and returns produced operation
-func ProduceOperation(t *Transaction, o *xdr.Operation, r *xdr.OperationResult, n int) *Operation {
+func ProduceOperation(t *Transaction, o *xdr.Operation, r *xdr.OperationResult, n int) (*Operation, error) {
 	factory := operationFactory{
 		transaction: t,
 		source:      o,
@@ -32,15 +32,27 @@ func ProduceOperation(t *Transaction, o *xdr.Operation, r *xdr.OperationResult, 
 	return factory.produce()
 }
 
-func (f *operationFactory) produce() *Operation {
+func (f *operationFactory) produce() (*Operation, error) {
+	var err error
+
 	f.makeOperation()
-	f.assignSourceAccountID()
+	err = f.assignSourceAccountID()
+
+	if err != nil {
+		return nil, err
+	}
+
 	f.assignPagingToken()
 	f.assignType()
-	f.assignSpecifics()
+	err = f.assignSpecifics()
+
+	if err != nil {
+		return nil, err
+	}
+
 	f.assignResult() // see operation_factory_result.go
 
-	return f.operation
+	return f.operation, nil
 }
 
 func (f *operationFactory) makeOperation() {
@@ -65,32 +77,39 @@ func (f *operationFactory) assignPagingToken() {
 	}
 }
 
-func (f *operationFactory) assignSourceAccountID() {
+func (f *operationFactory) assignSourceAccountID() error {
+	var err error
 	sourceAccountID := f.transaction.SourceAccountID
 
 	if f.source.SourceAccount != nil {
-		sourceAccountID, _ = util.Address(*f.source.SourceAccount)
+		sourceAccountID, err = util.EncodeMuxedAccount(*f.source.SourceAccount)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	f.operation.SourceAccountID = sourceAccountID
+	return nil
 }
 
 func (f *operationFactory) assignType() {
 	f.operation.Type = strings.Replace(f.source.Body.Type.String(), "OperationType", "", 1)
 }
 
-func (f *operationFactory) assignSpecifics() {
+func (f *operationFactory) assignSpecifics() error {
+	var err error
 	body := f.source.Body
 
 	switch t := body.Type; t {
 	case xdr.OperationTypeCreateAccount:
 		f.assignCreateAccount(body.MustCreateAccountOp())
 	case xdr.OperationTypePayment:
-		f.assignPayment(body.MustPaymentOp())
+		err = f.assignPayment(body.MustPaymentOp())
 	case xdr.OperationTypePathPaymentStrictReceive:
-		f.assignPathPaymentStrictReceive(body.MustPathPaymentStrictReceiveOp())
+		err = f.assignPathPaymentStrictReceive(body.MustPathPaymentStrictReceiveOp())
 	case xdr.OperationTypePathPaymentStrictSend:
-		f.assignPathPaymentStrictSend(body.MustPathPaymentStrictSendOp())
+		err = f.assignPathPaymentStrictSend(body.MustPathPaymentStrictSendOp())
 	case xdr.OperationTypeManageSellOffer:
 		f.assignManageSellOffer(body.MustManageSellOfferOp())
 	case xdr.OperationTypeManageBuyOffer:
@@ -104,12 +123,14 @@ func (f *operationFactory) assignSpecifics() {
 	case xdr.OperationTypeAllowTrust:
 		f.assignAllowTrust(body.MustAllowTrustOp())
 	case xdr.OperationTypeAccountMerge:
-		f.assignAccountMerge(body.MustDestination())
+		err = f.assignAccountMerge(body.MustDestination())
 	case xdr.OperationTypeManageData:
 		f.assignManageData(body.MustManageDataOp())
 	case xdr.OperationTypeBumpSequence:
 		f.assignBumpSequence(body.MustBumpSequenceOp())
 	}
+
+	return err
 }
 
 func (f *operationFactory) assignCreateAccount(o xdr.CreateAccountOp) {
@@ -117,14 +138,28 @@ func (f *operationFactory) assignCreateAccount(o xdr.CreateAccountOp) {
 	f.operation.DestinationAccountID = o.Destination.Address()
 }
 
-func (f *operationFactory) assignPayment(o xdr.PaymentOp) {
+func (f *operationFactory) assignPayment(o xdr.PaymentOp) error {
 	f.operation.SourceAmount = amount.String(o.Amount)
-	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
+
+	var err error
+	f.operation.DestinationAccountID, err = util.EncodeMuxedAccount(o.Destination)
+
+	if err != nil {
+		return err
+	}
+
 	f.operation.SourceAsset = NewAsset(&o.Asset)
+	return nil
 }
 
-func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStrictReceiveOp) {
-	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
+func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStrictReceiveOp) error {
+	var err error
+	f.operation.DestinationAccountID, err = util.EncodeMuxedAccount(o.Destination)
+
+	if err != nil {
+		return err
+	}
+
 	f.operation.DestinationAmount = amount.String(o.DestAmount)
 	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
 
@@ -136,10 +171,17 @@ func (f *operationFactory) assignPathPaymentStrictReceive(o xdr.PathPaymentStric
 	for i, a := range o.Path {
 		f.operation.Path[i] = NewAsset(&a)
 	}
+
+	return nil
 }
 
-func (f *operationFactory) assignPathPaymentStrictSend(o xdr.PathPaymentStrictSendOp) {
-	f.operation.DestinationAccountID, _ = util.Address(o.Destination)
+func (f *operationFactory) assignPathPaymentStrictSend(o xdr.PathPaymentStrictSendOp) error {
+	var err error
+	f.operation.DestinationAccountID, err = util.EncodeMuxedAccount(o.Destination)
+
+	if err != nil {
+		return err
+	}
 
 	f.operation.DestinationAmount = amount.String(o.DestMin)
 	f.operation.DestinationAsset = NewAsset(&o.DestAsset)
@@ -151,6 +193,8 @@ func (f *operationFactory) assignPathPaymentStrictSend(o xdr.PathPaymentStrictSe
 	for i, a := range o.Path {
 		f.operation.Path[i] = NewAsset(&a)
 	}
+
+	return nil
 }
 
 func (f *operationFactory) assignManageSellOffer(o xdr.ManageSellOfferOp) {
@@ -218,8 +262,15 @@ func (f *operationFactory) assignAllowTrust(o xdr.AllowTrustOp) {
 	}
 }
 
-func (f *operationFactory) assignAccountMerge(d xdr.MuxedAccount) {
-	f.operation.DestinationAccountID, _ = util.Address(d)
+func (f *operationFactory) assignAccountMerge(d xdr.MuxedAccount) error {
+	var err error
+	f.operation.DestinationAccountID, err = util.EncodeMuxedAccount(d)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (f *operationFactory) assignBumpSequence(o xdr.BumpSequenceOp) {

@@ -1,11 +1,22 @@
 package util
 
 import (
+	"encoding"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
-func Address(a xdr.MuxedAccount) (string, error) {
+func EncodeEd25519(a encoding.BinaryMarshaler) (string, error) {
+	accountIdBin, err := a.MarshalBinary()
+
+	if err != nil {
+		return "", err
+	}
+
+	return strkey.Encode(strkey.VersionByteAccountID, accountIdBin)
+}
+
+func EncodeMuxedAccount(a xdr.MuxedAccount) (string, error) {
 	var (
 		accountIdBin []byte
 		marshalErr   error

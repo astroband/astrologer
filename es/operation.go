@@ -63,7 +63,7 @@ type Operation struct {
 }
 
 // NewOperation creates Operation from xdr.Operation
-func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) *Operation {
+func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n int) (*Operation, error) {
 	var result *xdr.OperationResult
 
 	if r != nil {

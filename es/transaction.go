@@ -5,7 +5,6 @@ import (
 
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/util"
-	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -28,10 +27,11 @@ type Transaction struct {
 }
 
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
-func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
+func NewTransaction(row *db.TxHistoryRow, t time.Time) (*Transaction, error) {
 	resultCode := row.Result.Result.Result.Code
 
 	var (
+		err             error
 		fee             int
 		operationCount  int
 		sourceAccountId string
@@ -44,15 +44,21 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		tx := row.Envelope.V0.Tx
 		fee = int(tx.Fee)
 		operationCount = len(tx.Operations)
-		accountIdBin, _ := tx.SourceAccountEd25519.MarshalBinary()
-		sourceAccountId, _ = strkey.Encode(strkey.VersionByteAccountID, accountIdBin)
+		sourceAccountId, err = util.EncodeEd25519(tx.SourceAccountEd25519)
+		if err != nil {
+			return nil, err
+		}
 		memo = tx.Memo
 		timeBounds = tx.TimeBounds
 	case xdr.EnvelopeTypeEnvelopeTypeTx:
 		tx := row.Envelope.V1.Tx
 		fee = int(tx.Fee)
 		operationCount = len(tx.Operations)
-		sourceAccountId, _ = util.Address(tx.SourceAccount)
+		sourceAccountId, err = util.EncodeMuxedAccount(tx.SourceAccount)
+
+		if err != nil {
+			return nil, err
+		}
 		memo = tx.Memo
 		timeBounds = tx.TimeBounds
 	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
@@ -88,7 +94,7 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) *Transaction {
 		}
 	}
 
-	return tx
+	return tx, nil
 }
 
 // DocID return es transaction id (tx id in this case)

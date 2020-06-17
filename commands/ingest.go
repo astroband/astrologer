@@ -30,7 +30,11 @@ func (cmd *IngestCommand) Execute() {
 		txs := cmd.DB.TxHistoryRowForSeq(seq)
 		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
 
-		es.SerializeLedger(*current, txs, fees, &b)
+		err := es.SerializeLedger(*current, txs, fees, &b)
+
+		if err != nil {
+			log.Fatalf("Failed to ingest ledger %d: %v\n", seq, err)
+		}
 		//es.NewBulkMaker(*current, txs, fees, &b).Make()
 
 		cmd.ES.IndexWithRetries(&b, ingestRetries)
