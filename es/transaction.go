@@ -62,6 +62,17 @@ func NewTransaction(row *db.TxHistoryRow, t time.Time) (*Transaction, error) {
 		memo = tx.Memo
 		timeBounds = tx.TimeBounds
 	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		tx := row.Envelope.FeeBump.Tx
+		innerTx := tx.InnerTx.V1.Tx
+		fee = int(innerTx.Fee)
+		operationCount = len(innerTx.Operations)
+		sourceAccountId, err = util.EncodeMuxedAccount(innerTx.SourceAccount)
+
+		if err != nil {
+			return nil, err
+		}
+		memo = innerTx.Memo
+		timeBounds = innerTx.TimeBounds
 	}
 
 	tx := &Transaction{
