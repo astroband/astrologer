@@ -37,36 +37,56 @@ func (tx *TxHistoryRow) MemoValue() null.String {
 	var (
 		value string
 		valid bool
+		memo  xdr.Memo
 	)
-	switch tx.Envelope.Tx.Memo.Type {
+
+	switch tx.Envelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+		memo = tx.Envelope.V0.Tx.Memo
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		memo = tx.Envelope.V1.Tx.Memo
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		memo = tx.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Memo
+	}
+
+	switch memo.Type {
 	case xdr.MemoTypeMemoNone:
 		value, valid = "", false
 	case xdr.MemoTypeMemoText:
-		scrubbed := utf8Scrub(tx.Envelope.Tx.Memo.MustText())
+		scrubbed := utf8Scrub(memo.MustText())
 		notnull := strings.Join(strings.Split(scrubbed, "\x00"), "")
 		value, valid = notnull, true
 	case xdr.MemoTypeMemoId:
-		value, valid = fmt.Sprintf("%d", tx.Envelope.Tx.Memo.MustId()), true
+		value, valid = fmt.Sprintf("%d", memo.MustId()), true
 	case xdr.MemoTypeMemoHash:
-		hash := tx.Envelope.Tx.Memo.MustHash()
+		hash := memo.MustHash()
 		value, valid =
 			base64.StdEncoding.EncodeToString(hash[:]),
 			true
 	case xdr.MemoTypeMemoReturn:
-		hash := tx.Envelope.Tx.Memo.MustRetHash()
+		hash := memo.MustRetHash()
 		value, valid =
 			base64.StdEncoding.EncodeToString(hash[:]),
 			true
 	default:
-		panic(fmt.Errorf("invalid memo type: %v", tx.Envelope.Tx.Memo.Type))
+		panic(fmt.Errorf("invalid memo type: %v", memo.Type))
 	}
 
 	return null.NewString(value, valid)
 }
 
 // Operations returns operations array
-func (tx *TxHistoryRow) Operations() []xdr.Operation {
-	return tx.Envelope.Tx.Operations
+func (tx *TxHistoryRow) Operations() (error, []xdr.Operation) {
+	switch tx.Envelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+		return nil, tx.Envelope.V0.Tx.Operations
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		return nil, tx.Envelope.V1.Tx.Operations
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		return nil, tx.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Operations
+	default:
+		return fmt.Errorf("Unknown tx envelope type %s", tx.Envelope.Type), make([]xdr.Operation, 0)
+	}
 }
 
 // ResultFor returns result for operation index

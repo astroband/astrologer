@@ -67,7 +67,11 @@ func (cmd *ExportCommand) exportBlock(i int) {
 		txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
 		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
 
-		es.SerializeLedger(rows[n], txs, fees, &b)
+		err := es.SerializeLedger(rows[n], txs, fees, &b)
+
+		if err != nil {
+			log.Fatalf("Failed to ingest ledger %d: %v\n", rows[n].LedgerSeq, err)
+		}
 
 		if !*config.Verbose {
 			bar.Add(1)
