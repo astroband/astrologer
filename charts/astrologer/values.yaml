@@ -4,6 +4,7 @@ image:
   repository: astroband/astrologer
   tag: master-20aae4d8337fcbc97ebd6678debc9fc79de11d95
   pullPolicy: IfNotPresent
+  # pullSecret: some-secret
 
 # database:
   # url: postgres://localhost/stellar
