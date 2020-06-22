@@ -6,6 +6,7 @@ import (
 
 // Trade represents trade entry
 type Trade struct {
+	ID              string      `json:"id"`
 	PagingToken     PagingToken `json:"paging_token"`
 	Sold            string      `json:"sold"`
 	Bought          string      `json:"bought"`

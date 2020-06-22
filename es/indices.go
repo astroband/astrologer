@@ -30,6 +30,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
           },
           "mappings": {
             "properties": {
+              "id": { "type": "keyword", "index": true },
               "hash": { "type": "keyword", "index": true },
               "prev_hash": { "type": "keyword", "index": false },
               "bucket_list_hash": { "type": "keyword", "index": false },
@@ -97,6 +98,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 		},
 		"mappings": {
 			"properties": {
+        "id": { "type": "keyword", "index": true },
 				"tx_id": { "type": "keyword", "index": true },
 				"tx_idx": { "type": "integer" },
 				"idx": { "type": "integer" },
@@ -232,6 +234,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 		},
 		"mappings": {
 			"properties": {
+        "id": { "type": "keyword", "index": true },
 				"paging_token": { "type": "keyword", "index": true },
 				"account_id": { "type": "keyword", "index": true },
 				"value": { "type": "scaled_float", "scaling_factor": 10000000 },
@@ -262,6 +265,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 		},
 		"mappings": {
 			"properties": {
+        "id": { "type": "keyword", "index": true },
 				"paging_token": { "type": "keyword", "index": true },
 				"sold": { "type": "scaled_float", "scaling_factor": 10000000 },
 				"bought": { "type": "scaled_float", "scaling_factor": 10000000 },
@@ -300,6 +304,7 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 		},
 		"mappings": {
 			"properties": {
+        "id": { "type": "keyword", "index": true },
 				"paging_token": { "type": "keyword", "index": true },
 				"account_id": { "type": "keyword", "index": true },
 				"signer": { "type": "keyword", "index": true },

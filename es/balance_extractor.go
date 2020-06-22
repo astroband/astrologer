@@ -54,6 +54,10 @@ func (e *BalanceExtractor) extract() []*Balance {
 		}
 	}
 
+	for i, balance := range e.balances {
+		e.balances[i].ID = balance.PagingToken.String()
+	}
+
 	return e.balances
 }
 

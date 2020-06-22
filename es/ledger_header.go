@@ -8,6 +8,7 @@ import (
 
 // LedgerHeader represents json-serializable struct for LedgerHeader to index
 type LedgerHeader struct {
+	ID             string      `json:"id"`
 	Hash           string      `json:"hash"`
 	PrevHash       string      `json:"prev_hash"`
 	BucketListHash string      `json:"bucket_list_hash"`
@@ -26,12 +27,15 @@ type LedgerHeader struct {
 
 // NewLedgerHeader creates LedgerHeader from LedgerHeaderRow
 func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
+	pagingToken := PagingToken{LedgerSeq: row.LedgerSeq}
+
 	return &LedgerHeader{
+		ID:             pagingToken.String(),
 		Hash:           row.Hash,
 		PrevHash:       row.PrevHash,
 		BucketListHash: row.BucketListHash,
 		Seq:            row.LedgerSeq,
-		PagingToken:    PagingToken{LedgerSeq: row.LedgerSeq},
+		PagingToken:    pagingToken,
 		CloseTime:      time.Unix(row.CloseTime, 0),
 		Version:        int(row.Data.LedgerVersion),
 		TotalCoins:     int(row.Data.TotalCoins),

@@ -16,6 +16,7 @@ const (
 
 // Operation represents ES-serializable transaction
 type Operation struct {
+	ID                   string             `json:"id"`
 	TxID                 string             `json:"tx_id"`
 	TxIndex              int                `json:"tx_idx"`
 	Index                int                `json:"idx"`
@@ -70,7 +71,15 @@ func NewOperation(t *Transaction, o *xdr.Operation, r *[]xdr.OperationResult, n 
 		result = &(*r)[n]
 	}
 
-	return ProduceOperation(t, o, result, n)
+	operation, err := ProduceOperation(t, o, result, n)
+
+	if err != nil {
+		return nil, err
+	}
+
+	operation.ID = operation.PagingToken.String()
+
+	return operation, nil
 }
 
 // DocID returns elastic document id

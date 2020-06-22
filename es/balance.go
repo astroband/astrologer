@@ -20,6 +20,7 @@ const (
 
 // Balance represents balance log entry
 type Balance struct {
+	ID          string        `json:"id"`
 	PagingToken PagingToken   `json:"paging_token"`
 	AccountID   string        `json:"account_id"`
 	Value       string        `json:"value"`
