@@ -26,7 +26,7 @@ func main() {
 	case "export":
 		dbClient := db.Connect(*cfg.DatabaseURL)
 		config := cmd.ExportCommandConfig{
-			Start:      cfg.Start,
+			Start:      *cfg.Start,
 			Count:      *cfg.Count,
 			DryRun:     *cfg.ExportDryRun,
 			RetryCount: *cfg.Retries,

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -14,6 +14,39 @@ const Version string = "0.2.0"
 type NumberWithSign struct {
 	Value    int
 	Explicit bool // True if + or - was passed
+}
+
+func (n *NumberWithSign) Set(value string) error {
+	v, err := strconv.Atoi(value)
+
+	if err != nil {
+		return err
+	}
+
+	n.Value = v
+	n.Explicit = value[0] == '-' || value[0] == '+'
+
+	return nil
+}
+
+func (n *NumberWithSign) String() string {
+	if n.Value == 0 {
+		return "0"
+	}
+
+	if n.Explicit {
+		return fmt.Sprintf("%+d", n.Value)
+	} else {
+		return fmt.Sprintf("%d", n.Value)
+	}
+}
+
+// Helper for the kingpin argument custom parser
+// See https://github.com/alecthomas/kingpin#custom-parsers
+func NumberWithSignParse(s kingpin.Settings) (target *NumberWithSign) {
+	target = &NumberWithSign{0, false}
+	s.SetValue(target)
+	return
 }
 
 var (
@@ -59,9 +92,7 @@ var (
 		Int()
 
 	// Start ledger to start with
-	Start = NumberWithSign{0, false}
-
-	start = exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first").Default("0").String()
+	Start = NumberWithSignParse(exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first"))
 
 	// Count ledgers
 	Count = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
@@ -78,34 +109,3 @@ var (
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
 )
-
-func parseNumberWithSign(value string) (r NumberWithSign, err error) {
-	v, err := strconv.Atoi(value)
-
-	if err != nil {
-		return r, err
-	}
-
-	r.Value = v
-	if value[0] == '-' || value[0] == '+' {
-		r.Explicit = true
-	}
-
-	return r, nil
-}
-
-func parseStart() {
-	if *start == "" {
-		return
-	}
-
-	s, err := parseNumberWithSign(*start)
-	if err != nil {
-		log.Fatal("Error parsing start value", err)
-	}
-	Start = s
-}
-
-func init() {
-	parseStart()
-}
