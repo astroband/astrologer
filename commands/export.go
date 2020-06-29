@@ -39,6 +39,7 @@ type ExportCommand struct {
 // Execute starts the export process
 func (cmd *ExportCommand) Execute() {
 	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
+
 	total := cmd.DB.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
 
 	if total == 0 {

@@ -36,7 +36,7 @@ func (s *ledgerSerializer) serialize() error {
 	SerializeForBulk(s.ledger, s.buffer)
 
 	for _, transactionRow := range s.transactionRows {
-		transaction, err := NewTransaction(&transactionRow, s.ledger.CloseTime)
+		transaction, err := s.NewTransaction(&transactionRow, s.ledger.CloseTime)
 
 		if err != nil {
 			return err
