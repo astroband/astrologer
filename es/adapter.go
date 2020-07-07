@@ -3,6 +3,8 @@ package es
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"log"
 	"math/rand"
 	"net/http"
@@ -41,7 +43,7 @@ func (es *Client) CreateIndex(name IndexName, body IndexDefinition) {
 	fatalIfError(res, err)
 }
 
-func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]interface{}) {
+func (es *Client) search(query map[string]interface{}, index IndexName) (r map[string]interface{}) {
 	var buf bytes.Buffer
 
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
@@ -49,7 +51,7 @@ func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]inte
 	}
 
 	res, err := es.rawClient.Search(
-		es.rawClient.Search.WithIndex("ledger"),
+		es.rawClient.Search.WithIndex(string(index)),
 		es.rawClient.Search.WithBody(&buf),
 	)
 
@@ -64,8 +66,7 @@ func (es *Client) searchLedgers(query map[string]interface{}) (r map[string]inte
 	return r
 }
 
-// MinMaxSeq return the minimum and maximum seqnum of ledgers stored in the ES
-func (es *Client) MinMaxSeq() (min, max int) {
+func (es *Client) MinMaxSeq() (min, max int, storageEmpty bool) {
 	query := map[string]interface{}{
 		"aggs": map[string]interface{}{
 			"seq_stats": map[string]interface{}{
@@ -76,14 +77,21 @@ func (es *Client) MinMaxSeq() (min, max int) {
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 
 	aggs := r["aggregations"].(map[string]interface{})["seq_stats"].(map[string]interface{})
 
-	min = int(aggs["min"].(float64))
-	max = int(aggs["max"].(float64))
+	if aggs["min"] != nil && aggs["max"] != nil {
+		min = int(aggs["min"].(float64))
+		max = int(aggs["max"].(float64))
+		storageEmpty = false
+	} else {
+		min = 0
+		max = 0
+		storageEmpty = true
+	}
 
-	return min, max
+	return
 }
 
 // LedgerSeqRangeQuery fetches ledger ranges from ES
@@ -99,21 +107,28 @@ func (es *Client) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[strin
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 	aggs := r["aggregations"].(map[string]interface{})["seq_ranges"].(map[string]interface{})
 
 	return aggs
 }
 
-// BulkInsert sends the payload to ES using bulk operation
-func (es *Client) BulkInsert(payload *bytes.Buffer) (success bool) {
+func (es *Client) BulkInsert(payload *bytes.Buffer) error {
 	res, err := es.rawClient.Bulk(bytes.NewReader(payload.Bytes()))
 
 	if res != nil {
 		defer res.Body.Close()
 	}
 
-	return err == nil && (res == nil || !res.IsError())
+	if err != nil {
+		return err
+	}
+
+	if res.IsError() {
+		return errors.New(res.String())
+	}
+
+	return nil
 }
 
 // LedgerCountInRange counts number of ledgers from the given range persisted into ES
@@ -164,13 +179,13 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 			"range": map[string]interface{}{
 				"seq": map[string]interface{}{
 					"gte": min,
-					"lt":  max,
+					"lte": max,
 				},
 			},
 		},
 	}
 
-	r := es.searchLedgers(query)
+	r := es.search(query, ledgerHeaderIndexName)
 
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 		doc := hit.(map[string]interface{})
@@ -183,12 +198,16 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 
 // IndexWithRetries performs a bulk insert into ES cluster with retries on failures
 func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
-	isIndexed := es.BulkInsert(payload)
+	err := es.BulkInsert(payload)
 
-	if !isIndexed {
+	if err != nil {
+		log.Println(err)
+
 		if retryCount-1 == 0 {
 			log.Fatal("Retries for bulk failed, aborting")
 		}
+
+		log.Println("Failed, retrying...")
 
 		delay := time.Duration((rand.Intn(10) + 5))
 		time.Sleep(delay * time.Second)

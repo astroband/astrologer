@@ -40,6 +40,7 @@ func utf8Scrub(in string) string {
 type Adapter interface {
 	LedgerHeaderRowCount(first int, last int) int
 	LedgerHeaderRowFetchBatch(n int, start int, batchSize int) []LedgerHeaderRow
+	LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow
 	LedgerHeaderLastRow() *LedgerHeaderRow
 	LedgerHeaderFirstRow() *LedgerHeaderRow
 	LedgerHeaderNext(seq int) *LedgerHeaderRow

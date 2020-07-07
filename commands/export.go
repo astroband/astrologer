@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"time"
@@ -84,14 +85,18 @@ func (cmd *ExportCommand) exportBlock(i int) {
 	}
 
 	if !cmd.Config.DryRun {
+		ioutil.WriteFile("./bulk.json", b.Bytes(), 0644)
 		cmd.ES.IndexWithRetries(&b, cmd.Config.RetryCount)
 	}
 }
 
 func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
-	indexed := cmd.ES.BulkInsert(b)
+	err := cmd.ES.BulkInsert(b)
 
-	if !indexed {
+	if err != nil {
+		log.Println(err)
+		log.Println("Failed, retrying")
+
 		if retry > cmd.Config.RetryCount {
 			log.Fatal("Retries for bulk failed, aborting")
 		}

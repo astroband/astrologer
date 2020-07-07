@@ -2,9 +2,9 @@ package db
 
 import (
 	"database/sql"
-	"log"
-
+	"github.com/jmoiron/sqlx"
 	"github.com/stellar/go/xdr"
+	"log"
 )
 
 // LedgerHeaderRow is struct representing ledger in database
@@ -105,6 +105,25 @@ func (db *Client) LedgerHeaderNext(seq int) *LedgerHeaderRow {
 	}
 
 	return &h
+}
+
+func (db *Client) LedgerHeaderRowFetchBySeqs(seqs []int) []LedgerHeaderRow {
+	ledgers := []LedgerHeaderRow{}
+
+	query, args, err := sqlx.In("SELECT * FROM ledgerheaders WHERE ledgerseq IN (?) ORDER BY ledgerseq ASC;", seqs)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	query = db.rawClient.Rebind(query)
+	err = db.rawClient.Select(&ledgers, query, args...)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return ledgers
 }
 
 // LedgerHeaderGaps returns gap positions in ledgerheaders
