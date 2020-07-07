@@ -37,17 +37,8 @@ func (tx *TxHistoryRow) MemoValue() null.String {
 	var (
 		value string
 		valid bool
-		memo  xdr.Memo
+		memo  = tx.Envelope.Memo()
 	)
-
-	switch tx.Envelope.Type {
-	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
-		memo = tx.Envelope.V0.Tx.Memo
-	case xdr.EnvelopeTypeEnvelopeTypeTx:
-		memo = tx.Envelope.V1.Tx.Memo
-	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
-		memo = tx.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Memo
-	}
 
 	switch memo.Type {
 	case xdr.MemoTypeMemoNone:
