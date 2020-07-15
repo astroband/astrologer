@@ -8,9 +8,22 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+type txVersion int
+
+const (
+	v0 = iota
+	v1 = iota
+)
+
+type txSetMember struct {
+	v     txVersion
+	xdrV0 *xdr.TransactionV0
+	xdrV1 *xdr.Transaction
+}
+
 type ledgerSerializerXDR struct {
 	ledgerHeader       *LedgerHeader
-	transactions       []xdr.Transaction
+	txSet              []txSetMember
 	transactionResults []xdr.TransactionResultPair
 	transactionMetas   []xdr.TransactionMeta
 	changes            []xdr.LedgerEntryChanges
@@ -20,33 +33,30 @@ type ledgerSerializerXDR struct {
 
 // SerializeLedger serializes ledger data into ES bulk index data
 func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) {
-	transactions := make([]xdr.Transaction, len(meta.V0.TxSet.Txs))
-	transactionResults := make([]xdr.TransactionResultPair, len(meta.V0.TxProcessing))
-	changes := make([]xdr.LedgerEntryChanges, len(meta.V0.TxProcessing))
-	transactionMetas := make([]xdr.TransactionMeta, len(meta.V0.TxProcessing))
+	serializer := &ledgerSerializerXDR{
+		txSet:              make([]txSetMember, len(meta.V0.TxSet.Txs)),
+		ledgerHeader:       NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
+		transactionResults: make([]xdr.TransactionResultPair, len(meta.V0.TxProcessing)),
+		changes:            make([]xdr.LedgerEntryChanges, len(meta.V0.TxProcessing)),
+		transactionMetas:   make([]xdr.TransactionMeta, len(meta.V0.TxProcessing)),
+		buffer:             buffer,
+	}
 
 	for i, txe := range meta.V0.TxSet.Txs {
 		switch txe.Type {
 		case xdr.EnvelopeTypeEnvelopeTypeTxV0:
-			transactions[i] = txe.V0.Tx
+			serializer.txSet[i] = txSetMember{v: v0, xdrV0: &txe.V0.Tx}
 		case xdr.EnvelopeTypeEnvelopeTypeTx:
-			transactions[i] = txe.V1.Tx
+			serializer.txSet[i] = txSetMember{v: v1, xdrV1: &txe.V1.Tx}
+		default:
+			log.Fatal("Unknown type")
 		}
 	}
 
 	for i, txp := range meta.V0.TxProcessing {
-		transactionResults[i] = txp.Result
-		changes[i] = txp.FeeProcessing
-		transactionMetas[i] = txp.TxApplyProcessing
-	}
-
-	serializer := &ledgerSerializerXDR{
-		ledgerHeader:       NewLedgerHeaderFromHistory(meta.V0.LedgerHeader),
-		transactions:       transactions,
-		transactionResults: transactionResults,
-		transactionMetas:   transactionMetas,
-		changes:            changes,
-		buffer:             buffer,
+		serializer.transactionResults[i] = txp.Result
+		serializer.changes[i] = txp.FeeProcessing
+		serializer.transactionMetas[i] = txp.TxApplyProcessing
 	}
 
 	serializer.serialize()
@@ -55,16 +65,24 @@ func SerializeLedgerFromHistory(meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) 
 func (s *ledgerSerializerXDR) serialize() {
 	SerializeForBulk(s.ledgerHeader, s.buffer)
 
-	for i, tx := range s.transactions {
-		transaction, err := NewTransactionFromXDR(
-			&transactionData{
-				xdr:       tx,
-				result:    s.transactionResults[i],
-				index:     i + 1,
-				ledgerSeq: s.ledgerHeader.Seq,
-				closeTime: s.ledgerHeader.CloseTime,
-			},
-		)
+	for i, tx := range s.txSet {
+		txData := transactionData{
+			result:    s.transactionResults[i],
+			index:     i + 1,
+			ledgerSeq: s.ledgerHeader.Seq,
+			closeTime: s.ledgerHeader.CloseTime,
+		}
+
+		switch tx.v {
+		case v0:
+			txData.v = v0
+			txData.xdrV0 = tx.xdrV0
+		case v1:
+			txData.v = v1
+			txData.xdrV1 = tx.xdrV1
+		}
+
+		transaction, err := NewTransactionFromXDR(&txData)
 
 		if err != nil {
 			log.Fatal(err)
@@ -81,12 +99,17 @@ func (s *ledgerSerializerXDR) serialize() {
 	}
 }
 
-func (s *ledgerSerializerXDR) serializeOperations(operations []xdr.Operation, operationResults *[]xdr.OperationResult, transaction *Transaction) {
+func (s *ledgerSerializerXDR) serializeOperations(operations []xdr.Operation, operationResults *[]xdr.OperationResult, transaction *Transaction) error {
 	// effectsCount := 0
 
 	for index, operation := range operations {
 		result := (*operationResults)[index]
-		operation := ProduceOperation(transaction, &operation, &result, index+1)
+		operation, err := ProduceOperation(transaction, &operation, &result, index+1)
+
+		if err != nil {
+			return err
+		}
+
 		SerializeForBulk(operation, s.buffer)
 
 		if transaction.Successful {
@@ -104,6 +127,8 @@ func (s *ledgerSerializerXDR) serializeOperations(operations []xdr.Operation, op
 			}
 		}
 	}
+
+	return nil
 }
 
 func (s *ledgerSerializerXDR) serializeBalances(changes xdr.LedgerEntryChanges, transaction *Transaction, operation *Operation, source BalanceSource) int {
