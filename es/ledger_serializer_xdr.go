@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"log"
 
-	"github.com/astroband/astrologer/stellar"
+	"github.com/astroband/astrologer/support"
 	"github.com/stellar/go/xdr"
 )
 
@@ -113,7 +113,7 @@ func (s *ledgerSerializerXDR) serializeOperations(operations []xdr.Operation, op
 		SerializeForBulk(operation, s.buffer)
 
 		if transaction.Successful {
-			metas := stellar.OperationMeta(s.transactionMetas[transaction.Index], index)
+			metas := support.OperationMeta(s.transactionMetas[transaction.Index], index)
 			if metas != nil {
 				// effectsCount = s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta)
 				s.serializeBalances(metas.Changes, transaction, operation, BalanceSourceMeta)

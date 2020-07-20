@@ -107,8 +107,8 @@ func (es *Client) LedgerSeqRangeQuery(ranges []map[string]interface{}) map[strin
 }
 
 // BulkInsert sends the payload to ES using bulk operation
-func (es *Client) BulkInsert(payload bytes.Buffer) error {
-	res, err := es.rawClient.Bulk(bytes.NewReader(payload.Bytes()))
+func (es *Client) BulkInsert(payload string) error {
+	res, err := es.rawClient.Bulk(strings.NewReader(payload))
 
 	if res != nil {
 		defer res.Body.Close()
@@ -192,7 +192,7 @@ func (es *Client) GetLedgerSeqsInRange(min, max int) (seqs []int) {
 
 // IndexWithRetries performs a bulk insert into ES cluster with retries on failures
 func (es *Client) IndexWithRetries(payload *bytes.Buffer, retryCount int) {
-	err := es.BulkInsert(*payload)
+	err := es.BulkInsert(payload.String())
 
 	if err != nil {
 		if retryCount-1 == 0 {

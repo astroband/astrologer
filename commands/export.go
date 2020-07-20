@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/astroband/astrologer/es"
-	"github.com/astroband/astrologer/stellar"
+	lb "github.com/stellar/go/exp/ingest/ledgerbackend"
 )
 
 // ExportCommandConfig represents configuration options for `export` CLI command
@@ -22,16 +22,16 @@ type ExportCommand struct {
 	ES     es.Adapter
 	Config ExportCommandConfig
 
-	firstLedger int
-	lastLedger  int
+	firstLedger uint32
+	lastLedger  uint32
 }
 
 // Execute starts the export process
 func (cmd *ExportCommand) Execute() {
 	total := cmd.Config.Count
 
-	cmd.firstLedger = cmd.Config.Start
-	cmd.lastLedger = cmd.firstLedger + cmd.Config.Count
+	cmd.firstLedger = uint32(cmd.Config.Start)
+	cmd.lastLedger = cmd.firstLedger + uint32(cmd.Config.Count) - 1
 
 	if total == 0 {
 		log.Fatal("Nothing to export within given range!", cmd.firstLedger, cmd.lastLedger)
@@ -40,48 +40,91 @@ func (cmd *ExportCommand) Execute() {
 	log.Infof("Exporting ledgers from %d to %d. Total: %d ledgers\n", cmd.firstLedger, cmd.lastLedger, total)
 	log.Infof("Will insert %d batches %d ledgers each\n", cmd.blockCount(total), cmd.Config.BatchSize)
 
-  channel := stellar.StreamLedgers(cmd.firstLedger, cmd.lastLedger)
+	ledgerBackend := lb.NewCaptive(
+		"stellar-core",
+		"Public Global Stellar Network ; September 2015",
+		[]string{
+			"https://history.stellar.org/prd/core-live/core_live_001",
+			"https://history.stellar.org/prd/core-live/core_live_002",
+			"https://history.stellar.org/prd/core-live/core_live_003",
+		},
+	)
 
-	for i := 0; i < cmd.blockCount(total); i++ {
-		var b bytes.Buffer
-		ledgerCounter := 0
-		batchNum := i + 1
+	err := ledgerBackend.PrepareRange(cmd.firstLedger, cmd.lastLedger)
 
-		for meta := range channel {
-			seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
-
-			if seq < cmd.firstLedger || seq > cmd.lastLedger {
-				continue
-			}
-
-			ledgerCounter += 1
-
-			log.Println(seq)
-
-			es.SerializeLedgerFromHistory(meta, &b)
-
-			log.Printf("Ledger %d of %d in batch %d\n", ledgerCounter, cmd.Config.BatchSize, batchNum)
-
-			if ledgerCounter == cmd.Config.BatchSize {
-				break
-			}
-		}
-
-		if cmd.Config.DryRun {
-			continue
-		}
-
-		pool.Submit(func() {
-			log.Printf("Gonna bulk insert %d bytes\n", b.Len())
-			err := cmd.ES.BulkInsert(b)
-
-			if err != nil {
-				log.Fatal("Cannot bulk insert", err)
-			} else {
-				log.Printf("Batch %d successfully inserted\n", batchNum)
-			}
-		})
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	var batchBuffer bytes.Buffer
+
+	for ledgerSeq := cmd.firstLedger; ledgerSeq <= cmd.lastLedger; ledgerSeq++ {
+		_, meta, err := ledgerBackend.GetLedger(ledgerSeq)
+
+		if err != nil {
+			// FIXME skip instead of failing
+			log.Fatal(err)
+		}
+
+		es.SerializeLedgerFromHistory(meta, &batchBuffer)
+
+		if (ledgerSeq-cmd.firstLedger+1)%uint32(cmd.Config.BatchSize) == 0 || ledgerSeq == cmd.lastLedger {
+			payload := batchBuffer.String()
+			pool.Submit(func() {
+				log.Printf("Gonna bulk insert %d bytes\n", len(payload))
+				err := cmd.ES.BulkInsert(payload)
+
+				if err != nil {
+					log.Fatal("Cannot bulk insert", err)
+				} else {
+					log.Printf("Batch successfully inserted\n")
+				}
+			})
+
+			batchBuffer.Reset()
+		}
+	}
+
+	// for i := 0; i < cmd.blockCount(total); i++ {
+	// 	var b bytes.Buffer
+	// 	ledgerCounter := 0
+	// 	batchNum := i + 1
+
+	// 	for meta := range channel {
+	// 		seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
+
+	// 		if seq < cmd.firstLedger || seq > cmd.lastLedger {
+	// 			continue
+	// 		}
+
+	// 		ledgerCounter += 1
+
+	// 		log.Println(seq)
+
+	// 		es.SerializeLedgerFromHistory(meta, &b)
+
+	// 		log.Printf("Ledger %d of %d in batch %d\n", ledgerCounter, cmd.Config.BatchSize, batchNum)
+
+	// 		if ledgerCounter == cmd.Config.BatchSize {
+	// 			break
+	// 		}
+	// 	}
+
+	// 	if cmd.Config.DryRun {
+	// 		continue
+	// 	}
+
+	// 	pool.Submit(func() {
+	// 		log.Printf("Gonna bulk insert %d bytes\n", b.Len())
+	// 		err := cmd.ES.BulkInsert(b)
+
+	// 		if err != nil {
+	// 			log.Fatal("Cannot bulk insert", err)
+	// 		} else {
+	// 			log.Printf("Batch %d successfully inserted\n", batchNum)
+	// 		}
+	// 	})
+	// }
 
 	pool.StopWait()
 }

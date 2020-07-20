@@ -55,6 +55,7 @@ func NewLedgerHeaderFromHistory(historyEntry xdr.LedgerHeaderHistoryEntry) *Ledg
 	seq := int(header.LedgerSeq)
 
 	return &LedgerHeader{
+		ID:             seq,
 		Hash:           hex.EncodeToString(historyEntry.Hash[:]),
 		PrevHash:       hex.EncodeToString(header.PreviousLedgerHash[:]),
 		BucketListHash: hex.EncodeToString(header.BucketListHash[:]),

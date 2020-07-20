@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/astroband/astrologer/db"
-	"github.com/astroband/astrologer/stellar"
+	"github.com/astroband/astrologer/support"
 	"github.com/astroband/astrologer/util"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
@@ -95,7 +95,7 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	if envelope.Memo().Type != xdr.MemoTypeMemoNone {
 		transaction.Memo = &Memo{
 			Type:  int(envelope.Memo().Type),
-			Value: row.MemoValue().String,
+			Value: support.MemoValue(row.Envelope.Memo()).String,
 		}
 	}
 
@@ -138,7 +138,7 @@ func NewTransactionFromXDR(data *transactionData) (*Transaction, error) {
 		operationsCount = len(data.xdrV0.Operations)
 
 		if data.xdrV0.Memo.Type != xdr.MemoTypeMemoNone {
-			value := stellar.MemoValue(data.xdrV0.Memo)
+			value := support.MemoValue(data.xdrV0.Memo)
 
 			memo = Memo{
 				Type:  int(data.xdrV0.Memo.Type),
@@ -168,7 +168,7 @@ func NewTransactionFromXDR(data *transactionData) (*Transaction, error) {
 		operationsCount = len(data.xdrV1.Operations)
 
 		if data.xdrV1.Memo.Type != xdr.MemoTypeMemoNone {
-			value := stellar.MemoValue(data.xdrV1.Memo)
+			value := support.MemoValue(data.xdrV1.Memo)
 
 			memo = Memo{
 				Type:  int(data.xdrV1.Memo.Type),
