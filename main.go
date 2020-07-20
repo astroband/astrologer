@@ -25,11 +25,12 @@ func main() {
 		command = &cmd.CreateIndexCommand{ES: esClient, Config: config}
 	case "export":
 		config := cmd.ExportCommandConfig{
-			Start:      *cfg.Start,
-			Count:      *cfg.Count,
-			DryRun:     *cfg.ExportDryRun,
-			RetryCount: *cfg.Retries,
-			BatchSize:  *cfg.BatchSize,
+			Start:             *cfg.Start,
+			Count:             *cfg.Count,
+			DryRun:            *cfg.ExportDryRun,
+			RetryCount:        *cfg.Retries,
+			BatchSize:         *cfg.BatchSize,
+			NetworkPassphrase: *cfg.NetworkPassphrase,
 		}
 		command = &cmd.ExportCommand{ES: esClient, Config: config}
 	case "ingest":

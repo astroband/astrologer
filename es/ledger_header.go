@@ -53,14 +53,15 @@ func NewLedgerHeader(row *db.LedgerHeaderRow) *LedgerHeader {
 func NewLedgerHeaderFromHistory(historyEntry xdr.LedgerHeaderHistoryEntry) *LedgerHeader {
 	header := historyEntry.Header
 	seq := int(header.LedgerSeq)
+	pagingToken := PagingToken{LedgerSeq: seq}
 
 	return &LedgerHeader{
-		ID:             seq,
+		ID:             pagingToken.String(),
 		Hash:           hex.EncodeToString(historyEntry.Hash[:]),
 		PrevHash:       hex.EncodeToString(header.PreviousLedgerHash[:]),
 		BucketListHash: hex.EncodeToString(header.BucketListHash[:]),
 		Seq:            seq,
-		PagingToken:    PagingToken{LedgerSeq: seq},
+		PagingToken:    pagingToken,
 		CloseTime:      time.Unix(int64(header.ScpValue.CloseTime), 0),
 		Version:        int(header.LedgerVersion),
 		TotalCoins:     int(header.TotalCoins),

@@ -95,7 +95,12 @@ var (
 	Start = exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first").Default("0").Int()
 
 	// Count ledgers
-	Count = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
+	Count             = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
+	NetworkPassphrase = exportCommand.
+				Flag("network-passphrase", "Network passphrase to use").
+				Default("Test SDF Network ; September 2015").
+				OverrideDefaultFromEnvar("NETWORK_PASSPHRASE").
+				String()
 
 	// StartIngest ledger to start with ingesting
 	StartIngest = ingestCommand.Arg("start", "Ledger to start ingesting").Int()

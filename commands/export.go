@@ -10,11 +10,12 @@ import (
 
 // ExportCommandConfig represents configuration options for `export` CLI command
 type ExportCommandConfig struct {
-	Start      int
-	Count      int
-	RetryCount int
-	DryRun     bool
-	BatchSize  int
+	Start             int
+	Count             int
+	RetryCount        int
+	DryRun            bool
+	BatchSize         int
+	NetworkPassphrase string
 }
 
 // ExportCommand represents the `export` CLI command
@@ -42,12 +43,8 @@ func (cmd *ExportCommand) Execute() {
 
 	ledgerBackend := lb.NewCaptive(
 		"stellar-core",
-		"Public Global Stellar Network ; September 2015",
-		[]string{
-			"https://history.stellar.org/prd/core-live/core_live_001",
-			"https://history.stellar.org/prd/core-live/core_live_002",
-			"https://history.stellar.org/prd/core-live/core_live_003",
-		},
+		cmd.Config.NetworkPassphrase,
+		getHistoryURLs(cmd.Config.NetworkPassphrase),
 	)
 
 	err := ledgerBackend.PrepareRange(cmd.firstLedger, cmd.lastLedger)
@@ -137,4 +134,23 @@ func (cmd *ExportCommand) blockCount(count int) (blocks int) {
 	}
 
 	return blocks
+}
+
+func getHistoryURLs(networkPassphrase string) []string {
+	switch networkPassphrase {
+	case "Public Global Stellar Network ; September 2015":
+		return []string{
+			"https://history.stellar.org/prd/core-live/core_live_001",
+			"https://history.stellar.org/prd/core-live/core_live_002",
+			"https://history.stellar.org/prd/core-live/core_live_003",
+		}
+	case "Test SDF Network ; September 2015":
+		return []string{
+			"http://history.stellar.org/prd/core-testnet/core_testnet_001",
+			"http://history.stellar.org/prd/core-testnet/core_testnet_002",
+			"http://history.stellar.org/prd/core-testnet/core_testnet_003",
+		}
+	default:
+		return []string{}
+	}
 }
