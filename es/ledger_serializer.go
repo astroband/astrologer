@@ -37,12 +37,14 @@ func (s *ledgerSerializer) serialize() error {
 
 	for _, transactionRow := range s.transactionRows {
 		transaction, err := s.NewTransaction(&transactionRow, s.ledger.CloseTime)
+		transactionXDR := s.NewTransactionXDR(&transactionRow, &s.feeRows[transaction.Index-1])
 
 		if err != nil {
 			return err
 		}
 
 		SerializeForBulk(transaction, s.buffer)
+		SerializeForBulk(transactionXDR, s.buffer)
 
 		if transaction.Successful {
 			changes := s.feeRows[transaction.Index-1].Changes

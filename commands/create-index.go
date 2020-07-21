@@ -23,7 +23,7 @@ func (cmd *CreateIndexCommand) Execute() {
 	for name, def := range es.GetIndexDefinitions() {
 		cmd.refreshIndex(name, def)
 	}
-	fmt.Println("Indicies created successfully!")
+	fmt.Println("Indices were created successfully!")
 }
 
 func (cmd *CreateIndexCommand) refreshIndex(name es.IndexName, schema es.IndexDefinition) {

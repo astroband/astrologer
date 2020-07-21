@@ -9,6 +9,7 @@ type IndexDefinition string
 const (
 	ledgerHeaderIndexName  IndexName = "ledger"
 	txIndexName            IndexName = "tx"
+	txXDRIndexName         IndexName = "tx_xdr"
 	opIndexName            IndexName = "op"
 	balanceIndexName       IndexName = "balance"
 	tradesIndexName        IndexName = "trades"
@@ -297,11 +298,11 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 	m[signerHistoryIndexName] = `
 	{
 		"settings": {
-			"index" : {
+		  "index" : {
         "sort.field" : "paging_token",
-				"sort.order" : "desc",
-				"number_of_shards" : 1
-			}
+		 	  "sort.order" : "desc",
+		    "number_of_shards" : 1
+      }
 		},
 		"mappings": {
 			"properties": {
@@ -320,5 +321,28 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
 	}
 `
 
+	m[txXDRIndexName] = `
+    {
+      "settings": {
+        "index": {
+          "sort.field" : "paging_token",
+          "sort.order" : "desc",
+          "number_of_shards" : 1
+        }
+      },
+      "mappings": {
+        "properties": {
+          "tx_hash": { "type": "keyword", "index": true },
+          "tx_idx": { "type": "integer" },
+          "seq": { "type": "long" },
+          "envelope": { "type": "binary" },
+          "result": { "type": "binary" },
+          "result_meta": { "type": "binary" },
+          "fee_meta": { "type": "binary" },
+          "paging_token": { "type": "keyword", "index": true }
+        }
+      }
+    }
+`
 	return m
 }

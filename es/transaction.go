@@ -1,6 +1,8 @@
 package es
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"time"
 
 	"github.com/astroband/astrologer/db"
@@ -24,6 +26,17 @@ type Transaction struct {
 
 	*TimeBounds `json:"time_bounds,omitempty"`
 	*Memo       `json:"memo,omitempty"`
+}
+
+type TransactionXDR struct {
+	TxHash      string                  `json:"tx_hash"`
+	TxIndex     int                     `json:"tx_idx"`
+	Seq         int                     `json:"seq"`
+	PagingToken PagingToken             `json:"paging_token"`
+	Envelope    xdr.TransactionEnvelope `json:"envelope"`
+	Result      xdr.TransactionResult   `json:"result"`
+	ResultMeta  xdr.TransactionMeta     `json:"result_meta"`
+	FeeMeta     xdr.LedgerEntryChanges  `json:"fee_meta"`
 }
 
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
@@ -91,6 +104,67 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	return transaction, nil
 }
 
+func (s *ledgerSerializer) NewTransactionXDR(row *db.TxHistoryRow, feeRow *db.TxFeeHistoryRow) *TransactionXDR {
+	return &TransactionXDR{
+		TxHash:      row.ID,
+		Seq:         row.LedgerSeq,
+		PagingToken: PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index},
+		TxIndex:     row.Index,
+		Envelope:    row.Envelope,
+		ResultMeta:  row.Meta,
+		Result:      row.Result.Result,
+		FeeMeta:     feeRow.Changes,
+	}
+}
+
+func (t TransactionXDR) MarshalJSON() ([]byte, error) {
+	envelopeBin, err := t.Envelope.MarshalBinary()
+
+	if err != nil {
+		return nil, err
+	}
+
+	resultBin, err := t.Result.MarshalBinary()
+
+	if err != nil {
+		return nil, err
+	}
+
+	resultMetaBin, err := t.ResultMeta.MarshalBinary()
+
+	if err != nil {
+		return nil, err
+	}
+
+	feeMetaBin, err := t.FeeMeta.MarshalBinary()
+
+	if err != nil {
+		return nil, err
+	}
+
+	v := &struct {
+		TxHash      string      `json:"tx_hash"`
+		TxIndex     int         `json:"tx_idx"`
+		Seq         int         `json:"seq"`
+		PagingToken PagingToken `json:"paging_token"`
+		Envelope    string      `json:"envelope"`
+		Result      string      `json:"result"`
+		ResultMeta  string      `json:"result_meta"`
+		FeeMeta     string      `json:"fee_meta"`
+	}{
+		TxHash:      t.TxHash,
+		TxIndex:     t.TxIndex,
+		Seq:         t.Seq,
+		PagingToken: t.PagingToken,
+		Envelope:    base64.StdEncoding.EncodeToString(envelopeBin),
+		Result:      base64.StdEncoding.EncodeToString(resultBin),
+		ResultMeta:  base64.StdEncoding.EncodeToString(resultMetaBin),
+		FeeMeta:     base64.StdEncoding.EncodeToString(feeMetaBin),
+	}
+
+	return json.Marshal(v)
+}
+
 // DocID return es transaction id (tx id in this case)
 func (tx *Transaction) DocID() *string {
 	return &tx.ID
@@ -99,4 +173,12 @@ func (tx *Transaction) DocID() *string {
 // IndexName returns tx index name
 func (tx *Transaction) IndexName() IndexName {
 	return txIndexName
+}
+
+func (tx *TransactionXDR) DocID() *string {
+	return &tx.TxHash
+}
+
+func (tx *TransactionXDR) IndexName() IndexName {
+	return txXDRIndexName
 }
