@@ -335,10 +335,6 @@ func GetIndexDefinitions() map[IndexName]IndexDefinition {
           "tx_hash": { "type": "keyword", "index": true },
           "tx_idx": { "type": "integer" },
           "seq": { "type": "long" },
-          "envelope": { "type": "binary" },
-          "result": { "type": "binary" },
-          "result_meta": { "type": "binary" },
-          "fee_meta": { "type": "binary" },
           "paging_token": { "type": "keyword", "index": true }
         }
       }

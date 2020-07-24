@@ -1,8 +1,6 @@
 package es
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"time"
 
 	"github.com/astroband/astrologer/db"
@@ -115,54 +113,6 @@ func (s *ledgerSerializer) NewTransactionXDR(row *db.TxHistoryRow, feeRow *db.Tx
 		Result:      row.Result.Result,
 		FeeMeta:     feeRow.Changes,
 	}
-}
-
-func (t TransactionXDR) MarshalJSON() ([]byte, error) {
-	envelopeBin, err := t.Envelope.MarshalBinary()
-
-	if err != nil {
-		return nil, err
-	}
-
-	resultBin, err := t.Result.MarshalBinary()
-
-	if err != nil {
-		return nil, err
-	}
-
-	resultMetaBin, err := t.ResultMeta.MarshalBinary()
-
-	if err != nil {
-		return nil, err
-	}
-
-	feeMetaBin, err := t.FeeMeta.MarshalBinary()
-
-	if err != nil {
-		return nil, err
-	}
-
-	v := &struct {
-		TxHash      string      `json:"tx_hash"`
-		TxIndex     int         `json:"tx_idx"`
-		Seq         int         `json:"seq"`
-		PagingToken PagingToken `json:"paging_token"`
-		Envelope    string      `json:"envelope"`
-		Result      string      `json:"result"`
-		ResultMeta  string      `json:"result_meta"`
-		FeeMeta     string      `json:"fee_meta"`
-	}{
-		TxHash:      t.TxHash,
-		TxIndex:     t.TxIndex,
-		Seq:         t.Seq,
-		PagingToken: t.PagingToken,
-		Envelope:    base64.StdEncoding.EncodeToString(envelopeBin),
-		Result:      base64.StdEncoding.EncodeToString(resultBin),
-		ResultMeta:  base64.StdEncoding.EncodeToString(resultMetaBin),
-		FeeMeta:     base64.StdEncoding.EncodeToString(feeMetaBin),
-	}
-
-	return json.Marshal(v)
 }
 
 // DocID return es transaction id (tx id in this case)

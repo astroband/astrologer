@@ -15,10 +15,6 @@ func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
 
 	data, err := json.Marshal(obj)
 
-	if obj.IndexName() == "tx_xdr" {
-		log.Println(string(data))
-	}
-
 	if err != nil {
 		log.Fatal(err)
 	}
