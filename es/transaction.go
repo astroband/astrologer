@@ -26,6 +26,17 @@ type Transaction struct {
 	*Memo       `json:"memo,omitempty"`
 }
 
+type TransactionXDR struct {
+	TxHash      string                  `json:"tx_hash"`
+	TxIndex     int                     `json:"tx_idx"`
+	Seq         int                     `json:"seq"`
+	PagingToken PagingToken             `json:"paging_token"`
+	Envelope    xdr.TransactionEnvelope `json:"envelope"`
+	Result      xdr.TransactionResult   `json:"result"`
+	ResultMeta  xdr.TransactionMeta     `json:"result_meta"`
+	FeeMeta     xdr.LedgerEntryChanges  `json:"fee_meta"`
+}
+
 // NewTransaction creates LedgerHeader from LedgerHeaderRow
 func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*Transaction, error) {
 	var (
@@ -91,6 +102,19 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	return transaction, nil
 }
 
+func (s *ledgerSerializer) NewTransactionXDR(row *db.TxHistoryRow, feeRow *db.TxFeeHistoryRow) *TransactionXDR {
+	return &TransactionXDR{
+		TxHash:      row.ID,
+		Seq:         row.LedgerSeq,
+		PagingToken: PagingToken{LedgerSeq: row.LedgerSeq, TransactionOrder: row.Index},
+		TxIndex:     row.Index,
+		Envelope:    row.Envelope,
+		ResultMeta:  row.Meta,
+		Result:      row.Result.Result,
+		FeeMeta:     feeRow.Changes,
+	}
+}
+
 // DocID return es transaction id (tx id in this case)
 func (tx *Transaction) DocID() *string {
 	return &tx.ID
@@ -99,4 +123,12 @@ func (tx *Transaction) DocID() *string {
 // IndexName returns tx index name
 func (tx *Transaction) IndexName() IndexName {
 	return txIndexName
+}
+
+func (tx *TransactionXDR) DocID() *string {
+	return &tx.TxHash
+}
+
+func (tx *TransactionXDR) IndexName() IndexName {
+	return txXDRIndexName
 }

@@ -14,6 +14,7 @@ func SerializeForBulk(obj Indexable, b *bytes.Buffer) {
 	)
 
 	data, err := json.Marshal(obj)
+
 	if err != nil {
 		log.Fatal(err)
 	}
