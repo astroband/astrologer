@@ -15,10 +15,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.7.0
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mndrix/ps v0.0.0-20170330174427-18e65badd6ab // indirect
-	github.com/nullstyle/go-xdr v0.0.0-20180726165426-f4c839f75077 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
-	github.com/schollz/progressbar/v2 v2.15.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stellar/go v0.0.0-20200719182404-6934026f350b
 	github.com/stretchr/objx v0.3.0 // indirect
