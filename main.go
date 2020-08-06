@@ -38,12 +38,6 @@ func main() {
 		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}
 	case "es-stats":
 		command = &cmd.EsStatsCommand{ES: esClient}
-	case "fast-replay":
-		config := cmd.FastReplayCommandConfig{
-			UpTo:  *cfg.FastReplayUpTo,
-			Count: *cfg.FastReplayCount,
-		}
-		command = &cmd.FastReplayCommand{ES: esClient, Config: config}
 	}
 
 	command.Execute()
