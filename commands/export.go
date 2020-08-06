@@ -41,16 +41,22 @@ func (cmd *ExportCommand) Execute() {
 	log.Infof("Exporting ledgers from %d to %d. Total: %d ledgers\n", cmd.firstLedger, cmd.lastLedger, total)
 	log.Infof("Will insert %d batches %d ledgers each\n", cmd.blockCount(total), cmd.Config.BatchSize)
 
-	ledgerBackend := lb.NewCaptive(
+	ledgerBackend, err := lb.NewCaptive(
 		"stellar-core",
+		"",
 		cmd.Config.NetworkPassphrase,
 		getHistoryURLs(cmd.Config.NetworkPassphrase),
 	)
 
-	err := ledgerBackend.PrepareRange(cmd.firstLedger, cmd.lastLedger)
+	if err != nil {
+		log.Fatal("error creating captive core backend", err)
+	}
+
+	log.Info("Preparing range...")
+	err = ledgerBackend.PrepareRange(lb.BoundedRange(cmd.firstLedger, cmd.lastLedger))
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed preparing range", err)
 	}
 
 	var batchBuffer bytes.Buffer
@@ -68,7 +74,7 @@ func (cmd *ExportCommand) Execute() {
 		if (ledgerSeq-cmd.firstLedger+1)%uint32(cmd.Config.BatchSize) == 0 || ledgerSeq == cmd.lastLedger {
 			payload := batchBuffer.String()
 			pool.Submit(func() {
-				log.Printf("Gonna bulk insert %d bytes\n", len(payload))
+				log.Infof("Gonna bulk insert %d bytes\n", len(payload))
 				err := cmd.ES.BulkInsert(payload)
 
 				if err != nil {

@@ -17,7 +17,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/sirupsen/logrus v1.6.0
-	github.com/stellar/go v0.0.0-20200719182404-6934026f350b
+	github.com/stellar/go v0.0.0-20200804130752-fdc4eca4f6ce
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect

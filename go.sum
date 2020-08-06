@@ -207,6 +207,8 @@ github.com/spf13/pflag v0.0.0-20161005214240-4bd69631f475/go.mod h1:DYY7MBk1bdzu
 github.com/spf13/viper v0.0.0-20150621231900-db7ff930a189/go.mod h1:A8kyI5cUJhb8N+3pkfONlcEcZbueH6nhAm0Fq7SrnBM=
 github.com/stellar/go v0.0.0-20200719182404-6934026f350b h1:BIM4A/5MhgfBabSv+MIimHwdeQlamXFD0zlhkOXjvmg=
 github.com/stellar/go v0.0.0-20200719182404-6934026f350b/go.mod h1:LDU2cdYFQbYGt7UtgciOw8g5DXdc93r6N3e1mdHWems=
+github.com/stellar/go v0.0.0-20200804130752-fdc4eca4f6ce h1:Lixum59yJNsfxgKO1e99ZwWKgfmQfFWRD5U4oyFxazc=
+github.com/stellar/go v0.0.0-20200804130752-fdc4eca4f6ce/go.mod h1:LDU2cdYFQbYGt7UtgciOw8g5DXdc93r6N3e1mdHWems=
 github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2 h1:K9H+A+eWe8ZlnpNha+pXbEK+jtIluQp/2dKxkK8k7OE=
 github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stellar/throttled v2.2.3-0.20190823235211-89d75816f59d+incompatible/go.mod h1:7CJ23pXirXBJq45DqvO6clzTEGM/l1SfKrgrzLry8b4=
