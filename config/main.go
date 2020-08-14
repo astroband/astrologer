@@ -53,7 +53,6 @@ var (
 	createIndexCommand = kingpin.Command("create-index", "Create ES indexes")
 	exportCommand      = kingpin.Command("export", "Run export")
 	ingestCommand      = kingpin.Command("ingest", "Start real time ingestion")
-	fastReplayCommand  = kingpin.Command("fast-replay", "Experiment with using stellar-core fast in-memory replay catchup")
 	_                  = kingpin.Command("stats", "Print database ledger statistics")
 	_                  = kingpin.Command("es-stats", "Print ES ranges stats")
 
@@ -95,12 +94,8 @@ var (
 	Start = exportCommand.Arg("start", "Ledger to start indexing, +100 means offset 100 from the first").Default("0").Int()
 
 	// Count ledgers
-	Count             = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
-	NetworkPassphrase = exportCommand.
-				Flag("network-passphrase", "Network passphrase to use").
-				Default("Test SDF Network ; September 2015").
-				OverrideDefaultFromEnvar("NETWORK_PASSPHRASE").
-				String()
+	Count   = exportCommand.Arg("count", "Count of ledgers to ingest, should be aliquout batch size").Default("0").Int()
+	Network = exportCommand.Flag("network", "Stellar network to use").Default("testnet").Enum("public", "test")
 
 	// StartIngest ledger to start with ingesting
 	StartIngest = ingestCommand.Arg("start", "Ledger to start ingesting").Int()
@@ -113,7 +108,4 @@ var (
 
 	// ForceRecreateIndexes Allows indexes to be deleted before creation
 	ForceRecreateIndexes = createIndexCommand.Flag("force", "Delete indexes before creation").Bool()
-
-	FastReplayUpTo  = fastReplayCommand.Arg("upto", "Ledger to start indexing").Int()
-	FastReplayCount = fastReplayCommand.Arg("count", "Ledgers count to catchup").Int()
 )

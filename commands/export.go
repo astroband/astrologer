@@ -69,7 +69,7 @@ func (cmd *ExportCommand) Execute() {
 			log.Fatal(err)
 		}
 
-		es.SerializeLedgerFromHistory(meta, &batchBuffer)
+		es.SerializeLedgerFromHistory(cmd.Config.NetworkPassphrase, meta, &batchBuffer)
 
 		if (ledgerSeq-cmd.firstLedger+1)%uint32(cmd.Config.BatchSize) == 0 || ledgerSeq == cmd.lastLedger {
 			payload := batchBuffer.String()
