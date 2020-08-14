@@ -1,13 +1,9 @@
 package db
 
 import (
-	"encoding/base64"
 	"fmt"
-	"log"
-	"strings"
-
-	"github.com/guregu/null"
 	"github.com/stellar/go/xdr"
+	"log"
 )
 
 // TxHistoryRow represents row of txhistory table
@@ -30,40 +26,6 @@ func (db *Client) TxHistoryRowForSeq(seq int) []TxHistoryRow {
 	}
 
 	return txs
-}
-
-// MemoValue Returns clean memo value, this is copy paste from horizon internal package
-func (tx *TxHistoryRow) MemoValue() null.String {
-	var (
-		value string
-		valid bool
-		memo  = tx.Envelope.Memo()
-	)
-
-	switch memo.Type {
-	case xdr.MemoTypeMemoNone:
-		value, valid = "", false
-	case xdr.MemoTypeMemoText:
-		scrubbed := utf8Scrub(memo.MustText())
-		notnull := strings.Join(strings.Split(scrubbed, "\x00"), "")
-		value, valid = notnull, true
-	case xdr.MemoTypeMemoId:
-		value, valid = fmt.Sprintf("%d", memo.MustId()), true
-	case xdr.MemoTypeMemoHash:
-		hash := memo.MustHash()
-		value, valid =
-			base64.StdEncoding.EncodeToString(hash[:]),
-			true
-	case xdr.MemoTypeMemoReturn:
-		hash := memo.MustRetHash()
-		value, valid =
-			base64.StdEncoding.EncodeToString(hash[:]),
-			true
-	default:
-		panic(fmt.Errorf("invalid memo type: %v", memo.Type))
-	}
-
-	return null.NewString(value, valid)
 }
 
 // Operations returns operations array

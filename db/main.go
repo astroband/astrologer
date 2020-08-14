@@ -1,40 +1,12 @@
 package db
 
 import (
-	"bytes"
 	"log"
 	"net/url"
-	"unicode/utf8"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Postgres driver
 )
-
-// Copy paste from Horizon
-func utf8Scrub(in string) string {
-
-	// First check validity using the stdlib, returning if the string is already
-	// valid
-	if utf8.ValidString(in) {
-		return in
-	}
-
-	left := []byte(in)
-	var result bytes.Buffer
-
-	for len(left) > 0 {
-		r, n := utf8.DecodeRune(left)
-
-		_, err := result.WriteRune(r)
-		if err != nil {
-			panic(err)
-		}
-
-		left = left[n:]
-	}
-
-	return result.String()
-}
 
 // Adapter defines the interface to work with ledger database
 type Adapter interface {

@@ -5,6 +5,7 @@ import (
 	cfg "github.com/astroband/astrologer/config"
 	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
+	"github.com/stellar/go/network"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -24,15 +25,24 @@ func main() {
 		config := cmd.CreateIndexCommandConfig{Force: *cfg.ForceRecreateIndexes}
 		command = &cmd.CreateIndexCommand{ES: esClient, Config: config}
 	case "export":
-		dbClient := db.Connect(*cfg.DatabaseURL)
-		config := cmd.ExportCommandConfig{
-			Start:      *cfg.Start,
-			Count:      *cfg.Count,
-			DryRun:     *cfg.ExportDryRun,
-			RetryCount: *cfg.Retries,
-			BatchSize:  *cfg.BatchSize,
+		var networkPassphrase string
+
+		switch *cfg.Network {
+		case "public":
+			networkPassphrase = network.PublicNetworkPassphrase
+		case "test":
+			networkPassphrase = network.TestNetworkPassphrase
 		}
-		command = &cmd.ExportCommand{ES: esClient, DB: dbClient, Config: config}
+
+		config := cmd.ExportCommandConfig{
+			Start:             *cfg.Start,
+			Count:             *cfg.Count,
+			DryRun:            *cfg.ExportDryRun,
+			RetryCount:        *cfg.Retries,
+			BatchSize:         *cfg.BatchSize,
+			NetworkPassphrase: networkPassphrase,
+		}
+		command = &cmd.ExportCommand{ES: esClient, Config: config}
 	case "ingest":
 		dbClient := db.Connect(*cfg.DatabaseURL)
 		command = &cmd.IngestCommand{ES: esClient, DB: dbClient}

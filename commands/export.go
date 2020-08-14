@@ -2,150 +2,134 @@ package commands
 
 import (
 	"bytes"
-	"log"
-	"math/rand"
-	"time"
+	log "github.com/sirupsen/logrus"
 
-	progressbar "github.com/schollz/progressbar/v2"
-
-	"github.com/astroband/astrologer/config"
-	"github.com/astroband/astrologer/db"
 	"github.com/astroband/astrologer/es"
-)
-
-var (
-	bar *progressbar.ProgressBar
+	lb "github.com/stellar/go/exp/ingest/ledgerbackend"
 )
 
 // ExportCommandConfig represents configuration options for `export` CLI command
 type ExportCommandConfig struct {
-	Start      config.NumberWithSign
-	Count      int
-	RetryCount int
-	DryRun     bool
-	BatchSize  int
+	Start             int
+	Count             int
+	RetryCount        int
+	DryRun            bool
+	BatchSize         int
+	NetworkPassphrase string
 }
 
 // ExportCommand represents the `export` CLI command
 type ExportCommand struct {
 	ES     es.Adapter
-	DB     db.Adapter
 	Config ExportCommandConfig
 
-	firstLedger int
-	lastLedger  int
+	firstLedger uint32
+	lastLedger  uint32
 }
 
 // Execute starts the export process
 func (cmd *ExportCommand) Execute() {
-	cmd.firstLedger, cmd.lastLedger = cmd.getRange()
+	total := cmd.Config.Count
 
-	total := cmd.DB.LedgerHeaderRowCount(cmd.firstLedger, cmd.lastLedger)
+	cmd.firstLedger = uint32(cmd.Config.Start)
+	cmd.lastLedger = cmd.firstLedger + uint32(cmd.Config.Count) - 1
 
 	if total == 0 {
 		log.Fatal("Nothing to export within given range!", cmd.firstLedger, cmd.lastLedger)
 	}
 
-	log.Println("Exporting ledgers from", cmd.firstLedger, "to", cmd.lastLedger, "total", total)
+	log.Infof("Exporting ledgers from %d to %d. Total: %d ledgers\n", cmd.firstLedger, cmd.lastLedger, total)
+	log.Infof("Will insert %d batches %d ledgers each\n", cmd.blockCount(total), cmd.Config.BatchSize)
 
-	createBar(total)
-
-	for i := 0; i < cmd.blockCount(total); i++ {
-		i := i
-		pool.Submit(func() { cmd.exportBlock(i) })
-	}
-
-	pool.StopWait()
-	finishBar()
-}
-
-func (cmd *ExportCommand) exportBlock(i int) {
-	var b bytes.Buffer
-
-	rows := cmd.DB.LedgerHeaderRowFetchBatch(i, cmd.firstLedger, cmd.Config.BatchSize)
-
-	for n := 0; n < len(rows); n++ {
-		txs := cmd.DB.TxHistoryRowForSeq(rows[n].LedgerSeq)
-		fees := cmd.DB.TxFeeHistoryRowsForRows(txs)
-
-		err := es.SerializeLedger(rows[n], txs, fees, &b)
-
-		if err != nil {
-			log.Fatalf("Failed to ingest ledger %d: %v\n", rows[n].LedgerSeq, err)
-		}
-
-		if !*config.Verbose {
-			bar.Add(1)
-		}
-	}
-
-	if *config.Verbose {
-		log.Println(b.String())
-	}
-
-	if !cmd.Config.DryRun {
-		cmd.ES.IndexWithRetries(&b, cmd.Config.RetryCount)
-	}
-}
-
-func (cmd *ExportCommand) index(b *bytes.Buffer, retry int) {
-	indexed := cmd.ES.BulkInsert(b)
-
-	if !indexed {
-		if retry > cmd.Config.RetryCount {
-			log.Fatal("Retries for bulk failed, aborting")
-		}
-
-		delay := time.Duration((rand.Intn(10) + 5))
-		time.Sleep(delay * time.Second)
-
-		cmd.index(b, retry+1)
-	}
-}
-
-// Parses range of export command
-func (cmd *ExportCommand) getRange() (first int, last int) {
-	firstLedger := cmd.DB.LedgerHeaderFirstRow()
-	lastLedger := cmd.DB.LedgerHeaderLastRow()
-
-	if cmd.Config.Start.Explicit {
-		if cmd.Config.Start.Value < 0 {
-			first = lastLedger.LedgerSeq + cmd.Config.Start.Value + 1
-		} else if config.Start.Value > 0 {
-			first = firstLedger.LedgerSeq + cmd.Config.Start.Value
-		}
-	} else if cmd.Config.Start.Value != 0 {
-		first = cmd.Config.Start.Value
-	} else {
-		first = firstLedger.LedgerSeq
-	}
-
-	if cmd.Config.Count == 0 {
-		last = lastLedger.LedgerSeq
-	} else {
-		last = first + cmd.Config.Count - 1
-	}
-
-	return first, last
-}
-
-func createBar(count int) {
-	bar = progressbar.NewOptions(
-		count,
-		progressbar.OptionEnableColorCodes(false),
-		progressbar.OptionShowCount(),
-		progressbar.OptionThrottle(500*time.Millisecond),
-		progressbar.OptionSetRenderBlankState(true),
-		progressbar.OptionSetWidth(100),
+	ledgerBackend, err := lb.NewCaptive(
+		"stellar-core",
+		"",
+		cmd.Config.NetworkPassphrase,
+		getHistoryURLs(cmd.Config.NetworkPassphrase),
 	)
 
-	bar.RenderBlank()
-}
-
-func finishBar() {
-	if !*config.Verbose {
-		bar.Finish()
+	if err != nil {
+		log.Fatal("error creating captive core backend", err)
 	}
+
+	log.Info("Preparing range...")
+	err = ledgerBackend.PrepareRange(lb.BoundedRange(cmd.firstLedger, cmd.lastLedger))
+
+	if err != nil {
+		log.Fatal("Failed preparing range", err)
+	}
+
+	var batchBuffer bytes.Buffer
+
+	for ledgerSeq := cmd.firstLedger; ledgerSeq <= cmd.lastLedger; ledgerSeq++ {
+		_, meta, err := ledgerBackend.GetLedger(ledgerSeq)
+
+		if err != nil {
+			// FIXME skip instead of failing
+			log.Fatal(err)
+		}
+
+		es.SerializeLedgerFromHistory(cmd.Config.NetworkPassphrase, meta, &batchBuffer)
+
+		if (ledgerSeq-cmd.firstLedger+1)%uint32(cmd.Config.BatchSize) == 0 || ledgerSeq == cmd.lastLedger {
+			payload := batchBuffer.String()
+			pool.Submit(func() {
+				log.Infof("Gonna bulk insert %d bytes\n", len(payload))
+				err := cmd.ES.BulkInsert(payload)
+
+				if err != nil {
+					log.Fatal("Cannot bulk insert", err)
+				} else {
+					log.Printf("Batch successfully inserted\n")
+				}
+			})
+
+			batchBuffer.Reset()
+		}
+	}
+
+	// for i := 0; i < cmd.blockCount(total); i++ {
+	// 	var b bytes.Buffer
+	// 	ledgerCounter := 0
+	// 	batchNum := i + 1
+
+	// 	for meta := range channel {
+	// 		seq := int(meta.V0.LedgerHeader.Header.LedgerSeq)
+
+	// 		if seq < cmd.firstLedger || seq > cmd.lastLedger {
+	// 			continue
+	// 		}
+
+	// 		ledgerCounter += 1
+
+	// 		log.Println(seq)
+
+	// 		es.SerializeLedgerFromHistory(meta, &b)
+
+	// 		log.Printf("Ledger %d of %d in batch %d\n", ledgerCounter, cmd.Config.BatchSize, batchNum)
+
+	// 		if ledgerCounter == cmd.Config.BatchSize {
+	// 			break
+	// 		}
+	// 	}
+
+	// 	if cmd.Config.DryRun {
+	// 		continue
+	// 	}
+
+	// 	pool.Submit(func() {
+	// 		log.Printf("Gonna bulk insert %d bytes\n", b.Len())
+	// 		err := cmd.ES.BulkInsert(b)
+
+	// 		if err != nil {
+	// 			log.Fatal("Cannot bulk insert", err)
+	// 		} else {
+	// 			log.Printf("Batch %d successfully inserted\n", batchNum)
+	// 		}
+	// 	})
+	// }
+
+	pool.StopWait()
 }
 
 func (cmd *ExportCommand) blockCount(count int) (blocks int) {
@@ -156,4 +140,23 @@ func (cmd *ExportCommand) blockCount(count int) (blocks int) {
 	}
 
 	return blocks
+}
+
+func getHistoryURLs(networkPassphrase string) []string {
+	switch networkPassphrase {
+	case "Public Global Stellar Network ; September 2015":
+		return []string{
+			"https://history.stellar.org/prd/core-live/core_live_001",
+			"https://history.stellar.org/prd/core-live/core_live_002",
+			"https://history.stellar.org/prd/core-live/core_live_003",
+		}
+	case "Test SDF Network ; September 2015":
+		return []string{
+			"http://history.stellar.org/prd/core-testnet/core_testnet_001",
+			"http://history.stellar.org/prd/core-testnet/core_testnet_002",
+			"http://history.stellar.org/prd/core-testnet/core_testnet_003",
+		}
+	default:
+		return []string{}
+	}
 }

@@ -4,8 +4,26 @@ import (
 	"time"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/support"
 	"github.com/stellar/go/xdr"
 )
+
+// transactionData represents all necessary pieces we need
+// from stellar-core to ingest single transaction
+type transactionData struct {
+	id        string
+	ledgerSeq int
+	// ledger close time
+	closeTime time.Time
+	// index of transaction in ledger
+	index      int
+	xdrV0      *xdr.TransactionV0
+	xdrV1      *xdr.Transaction
+	feeBump    *xdr.FeeBumpTransaction
+	result     xdr.TransactionResultPair
+	feeAccount string
+	maxFee     int
+}
 
 // Transaction represents ES-serializable transaction
 type Transaction struct {
@@ -26,7 +44,7 @@ type Transaction struct {
 	*Memo       `json:"memo,omitempty"`
 }
 
-// NewTransaction creates LedgerHeader from LedgerHeaderRow
+// NewTransaction creates Transaction from TxHistoryRow
 func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*Transaction, error) {
 	var (
 		err      error
@@ -58,8 +76,8 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 		CloseTime:       t,
 		Successful:      success,
 		ResultCode:      int(result.Code),
-		OperationCount:  len(envelope.Operations()),
 		SourceAccountID: sourceAccountAddress,
+		OperationCount:  len(envelope.Operations()),
 	}
 
 	if envelope.IsFeeBump() {
@@ -77,7 +95,7 @@ func (s *ledgerSerializer) NewTransaction(row *db.TxHistoryRow, t time.Time) (*T
 	if envelope.Memo().Type != xdr.MemoTypeMemoNone {
 		transaction.Memo = &Memo{
 			Type:  int(envelope.Memo().Type),
-			Value: row.MemoValue().String,
+			Value: support.MemoValue(row.Envelope.Memo()).String,
 		}
 	}
 

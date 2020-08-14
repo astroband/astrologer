@@ -2,9 +2,12 @@ package es
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
+	"log"
 
 	"github.com/astroband/astrologer/db"
+	"github.com/astroband/astrologer/util"
 	"github.com/stellar/go/xdr"
 )
 
@@ -30,6 +33,62 @@ func SerializeLedger(ledgerRow db.LedgerHeaderRow, transactionRows []db.TxHistor
 	}
 
 	return serializer.serialize()
+}
+
+// SerializeLedger serializes ledger data into ES bulk index data
+func SerializeLedgerFromHistory(networkPassphrase string, meta xdr.LedgerCloseMeta, buffer *bytes.Buffer) {
+	ledgerHeader := meta.V0.LedgerHeader.Header
+
+	ledgerRow := db.LedgerHeaderRow{
+		Hash:           hex.EncodeToString(meta.V0.LedgerHeader.Hash[:]),
+		PrevHash:       hex.EncodeToString(ledgerHeader.PreviousLedgerHash[:]),
+		BucketListHash: hex.EncodeToString(ledgerHeader.BucketListHash[:]),
+		LedgerSeq:      int(ledgerHeader.LedgerSeq),
+		CloseTime:      int64(ledgerHeader.ScpValue.CloseTime),
+		Data:           ledgerHeader,
+	}
+
+	transactionRows := make([]db.TxHistoryRow, len(meta.V0.TxSet.Txs))
+	feeRows := make([]db.TxFeeHistoryRow, len(meta.V0.TxSet.Txs))
+
+	for i, txe := range meta.V0.TxSet.Txs {
+		txHash, hashErr := util.HashTransactionInEnvelope(txe, networkPassphrase)
+
+		if hashErr != nil {
+			log.Fatalf("Failed to hash transaction #%d in ledger %d\n", i, ledgerRow.LedgerSeq)
+		}
+
+		transactionRows[i] = db.TxHistoryRow{
+			ID:        hex.EncodeToString(txHash[:]),
+			LedgerSeq: ledgerRow.LedgerSeq,
+			Envelope:  txe,
+		}
+
+		feeRows[i] = db.TxFeeHistoryRow{
+			TxID:      transactionRows[i].ID,
+			LedgerSeq: ledgerRow.LedgerSeq,
+		}
+
+		for j, txp := range meta.V0.TxProcessing {
+			if transactionRows[i].ID == hex.EncodeToString(txp.Result.TransactionHash[:]) {
+				transactionRows[i].Result = txp.Result
+				transactionRows[i].Meta = txp.TxApplyProcessing
+				transactionRows[i].Index = j + 1
+				feeRows[i].Changes = txp.FeeProcessing
+				feeRows[i].Index = j + 1
+			}
+		}
+	}
+
+	serializer := &ledgerSerializer{
+		ledgerRow:       ledgerRow,
+		transactionRows: transactionRows,
+		feeRows:         feeRows,
+		ledger:          NewLedgerHeader(&ledgerRow),
+		buffer:          buffer,
+	}
+
+	serializer.serialize()
 }
 
 func (s *ledgerSerializer) serialize() error {

@@ -55,10 +55,6 @@ func (e *TradeExtractor) extract() (trades []Trade) {
 		}
 	}
 
-	for i, trade := range trades {
-		trades[i].ID = trade.PagingToken.String()
-	}
-
 	return trades
 }
 

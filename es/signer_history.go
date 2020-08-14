@@ -6,7 +6,6 @@ import (
 
 // SignerHistory represents signer change entry, still the question if it is required
 type SignerHistory struct {
-	ID              string      `json:"id"`
 	PagingToken     PagingToken `json:"paging_token"`
 	AccountID       string      `json:"account_id"`
 	Signer          string      `json:"signer"`
@@ -33,7 +32,6 @@ func ProduceSignerHistory(o *Operation) (h *SignerHistory) {
 	}
 
 	entry := &SignerHistory{
-		ID:              token.String(),
 		PagingToken:     token,
 		AccountID:       o.SourceAccountID,
 		Signer:          o.Signer.ID,
