@@ -61,21 +61,21 @@ func SerializeLedgerFromHistory(networkPassphrase string, meta xdr.LedgerCloseMe
 		transactionRows[i] = db.TxHistoryRow{
 			ID:        hex.EncodeToString(txHash[:]),
 			LedgerSeq: ledgerRow.LedgerSeq,
-			Index:     i + 1,
 			Envelope:  txe,
 		}
 
 		feeRows[i] = db.TxFeeHistoryRow{
 			TxID:      transactionRows[i].ID,
 			LedgerSeq: ledgerRow.LedgerSeq,
-			Index:     i + 1,
 		}
 
-		for _, txp := range meta.V0.TxProcessing {
+		for j, txp := range meta.V0.TxProcessing {
 			if transactionRows[i].ID == hex.EncodeToString(txp.Result.TransactionHash[:]) {
 				transactionRows[i].Result = txp.Result
 				transactionRows[i].Meta = txp.TxApplyProcessing
+				transactionRows[i].Index = j + 1
 				feeRows[i].Changes = txp.FeeProcessing
+				feeRows[i].Index = j + 1
 			}
 		}
 	}
