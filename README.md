@@ -1,4 +1,5 @@
-[![CircleCI](https://img.shields.io/circleci/build/gh/astroband/astrologer/master)](https://circleci.com/gh/astroband/astrologer) [![Go Report Card](https://goreportcard.com/badge/astroband/astrologer)](https://goreportcard.com/report/astroband/astrologer) [![License](https://img.shields.io/github/license/astroband/astrologer)]((https://github.com/astroband/astrologer/blob/master/LICENSE))
+[![CircleCI](https://img.shields.io/circleci/build/gh/astroband/astrologer/master)](https://circleci.com/gh/astroband/astrologer) [![Go Report Card](https://goreportcard.com/badge/astroband/astrologer)](https://goreportcard.com/report/astroband/astrologer) [![License](https://img.shields.io/github/license/astroband/astrologer)]((https://github.com/astroband/astrologer/blob/master/LICENSE)[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fastroband%2Fastrologer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fastroband%2Fastrologer?ref=badge_shield)
+)
 
 
 # Astrologer
@@ -86,3 +87,7 @@ Reports ledger segments existing elastic database.
 ```
   ./astrologer es-stats
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fastroband%2Fastrologer.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fastroband%2Fastrologer?ref=badge_large)
